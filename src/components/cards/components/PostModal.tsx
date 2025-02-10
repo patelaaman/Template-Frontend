@@ -26,7 +26,6 @@ const PostModal = ({
   item,
   profile,
   media,
-  showRepostOp,
   setShowRepostOp,
   utils
 }:
@@ -583,7 +582,9 @@ const PostModal = ({
                   variant="ghost"
                   className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
                   style={{ fontSize: "0.8rem" }}
-                  onClick={() => setShowRepostOp(true)}
+                  onClick={() => {handleClose()
+                    setShowRepostOp(true)
+                  }}
                 >
                   <Repeat size={16} />
                   {/* <span>Repost</span> */}
