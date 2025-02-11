@@ -145,10 +145,10 @@ const handledelete = async () => {
             </>
       )}
 
-      {(subrole === "" || subrole == null) && <p>No About Section Was Created by the user.</p>}
+      {(subrole === "" || subrole == null) && <p>This business profile is not yet complete.</p>}
     </CardBody>
   </Card>
-  <Interests />
+  
 </div>
   );
 };

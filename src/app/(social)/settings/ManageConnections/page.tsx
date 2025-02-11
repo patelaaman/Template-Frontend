@@ -23,7 +23,7 @@ const ManageConnections = () => {
     { title: "My Connections", icon: <FaUserPlus />, component: <MyConnections /> },
     { title: "Request Sent", icon: <FaUserCheck />, component: <ConnectionsStatus /> },
     { title: "Request Received", icon: <FaUserFriends />, component: <ConnectionRequest /> },
-    { title: "Connect & Grow", icon: <FaUsers />, component: <SuggestedConnections /> },
+    { title: "Connect 'n' Grow", icon: <FaUsers />, component: <SuggestedConnections /> },
   ];
 
   const setCurrentSection = (index) => {
@@ -47,7 +47,7 @@ const ManageConnections = () => {
         </button>
       ))}
       </div>
-      <div className="content-container">
+      <div>
       {sections[step].component}
       </div>
       <style>

@@ -255,70 +255,80 @@ export const ConnectionRequest = () => {
   }
 
   return (
-    <Card className="rounded">
-  {allFollowers.length === 0 ? (
-    <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-      <div className="text-center">
-        <p className="mb-0" style={{ fontSize: '1.25rem', fontWeight: '600', color: '#6c757d', opacity: '0.8' }}>
-          No connection requests found
-        </p>
-        <p className="small text-muted">
-          It looks like you have no new connection requests at the moment.
-        </p>
-      </div>
-    </div>
-  ) : (
-    <CardBody>
-      {allFollowers.map((follower, idx) => (
-        <div 
-          key={idx} 
-          className={`p-3 d-flex align-items-center ${idx === allFollowers.length - 1 ? '' : 'border-bottom'}`}
-        >
-          <div className="avatar me-3">
-            <span role="button">
-              <img
-                className="avatar-img rounded-circle"
-                src={follower.profilePictureUploadUrl || avatar7}
-                alt={`${follower?.requesterDetails?.firstName} ${follower?.requesterDetails?.lastName}`}
-                style={{ width: "50px", height: "50px", objectFit: "cover" }}
-              />
-            </span>
-          </div>
-          <div className="flex-grow-1">
-            <h6 className="mb-1">
-              <Link className="text-dark fw-semibold text-decoration-none" to="">
-                {follower?.requesterDetails?.firstName} {follower?.requesterDetails?.lastName}
-              </Link>
-            </h6>
-            <p className="small text-muted mb-1">{follower?.requesterDetails?.userRole}</p>
-          </div>
-          <div className="ms-auto d-flex">
-            <Button
-              onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'rejected')}
-              variant="outline-danger"
-              size="sm"
-              className="me-2"
-              disabled={loadingStates[follower?.requesterDetails?.id] === 'rejected'}
-              style={{ minWidth: '120px', transition: "0.2s ease-in-out", fontSize: '15px' }}
-            >
-              {loadingStates[follower?.requesterDetails?.id] === 'rejected' ? <Loading size={15} loading={true} /> : "Decline"}
-            </Button>
-            <Button
-              onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'accepted')}
-              variant="success"
-              size="sm"
-              className="text-white"
-              disabled={loadingStates[follower?.requesterDetails?.id] === 'accepted'}
-              style={{ minWidth: '120px', transition: "0.2s ease-in-out" }}
-            >
-              {loadingStates[follower?.requesterDetails?.id] === 'accepted' ? <Loading size={15} loading={true} /> : "Approve"}
-            </Button>
-          </div>
+    <Card className="border-0 shadow-sm">
+    <CardHeader className="bg-light text-dark d-flex align-items-center">
+      <CardTitle className="mb-0 fw-semibold fs-5">
+        Total Request Received: {allFollowers.length}
+      </CardTitle>
+    </CardHeader>
+    {allFollowers.length === 0 ? (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="text-center">
+          <p className="mb-0 text-muted fw-semibold" style={{ fontSize: '1.25rem', opacity: '0.8' }}>
+            No follower requests found
+          </p>
+          <p className="small text-muted">
+            It looks like you have no new follower requests at the moment.
+          </p>
         </div>
-      ))}
-    </CardBody>
-  )}
-</Card>
+      </div>
+    ) : (
+      <CardBody className="p-0">
+        {allFollowers.map((follower, idx) => (
+          <div 
+            key={idx} 
+            className={`p-3 d-flex align-items-center bg-white ${idx !== allFollowers.length - 1 ? 'border-bottom' : ''}`}
+          >
+            {/* Profile Image */}
+            <div className="avatar me-3">
+              <span role="button">
+                <img
+                  className="avatar-img rounded-circle border"
+                  src={follower.profilePictureUploadUrl || avatar7}
+                  alt={`${follower?.requesterDetails?.firstName} ${follower?.requesterDetails?.lastName}`}
+                  style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                />
+              </span>
+            </div>
+  
+            {/* User Info */}
+            <div className="flex-grow-1">
+              <h6 className="mb-1">
+                <Link className="text-dark fw-semibold text-decoration-none" to="">
+                  {follower?.requesterDetails?.firstName} {follower?.requesterDetails?.lastName}
+                </Link>
+              </h6>
+              <p className="small text-muted mb-0">{follower?.requesterDetails?.userRole}</p>
+            </div>
+  
+            {/* Buttons */}
+            <div className="ms-auto d-flex">
+              <Button
+                onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'rejected')}
+                variant="outline-danger"
+                size="sm"
+                className="me-2"
+                disabled={loadingStates[follower?.requesterDetails?.id] === 'rejected'}
+                style={{ minWidth: '120px', fontSize: '15px' }}
+              >
+                {loadingStates[follower?.requesterDetails?.id] === 'rejected' ? <Loading size={15} loading={true} /> : "Decline"}
+              </Button>
+              <Button
+                onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'accepted')}
+                variant="success"
+                size="sm"
+                className="text-white"
+                disabled={loadingStates[follower?.requesterDetails?.id] === 'accepted'}
+                style={{ minWidth: '120px' }}
+              >
+                {loadingStates[follower?.requesterDetails?.id] === 'accepted' ? <Loading size={15} loading={true} /> : "Approve"}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </CardBody>
+    )}
+  </Card>  
 
   );
 };
