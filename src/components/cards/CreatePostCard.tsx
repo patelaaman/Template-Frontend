@@ -45,6 +45,7 @@ interface CreatePostCardProps {
 import { useAuthContext } from '@/context/useAuthContext'
 import { Spinner } from "react-bootstrap";
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
+import { toast } from 'react-toastify'
 interface ApiResponse<T> {
   status: number
   data: T
@@ -154,22 +155,19 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
 
   const handlePhotoSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      alert('No Photos are Uploaded');
+      toast.error('No Photos are Uploaded'); // Show error toast instead of alert
       return;
     }
     setIsSubmittingPhoto(true);
     const uploadSuccess = await handleUpload()
 
-
     try {
       // Wait for handleUpload to complete before proceeding
-
       if (uploadSuccess) {
         // Regular expression to match hashtags
-        const hashtagRegex = /#\w+/g
-        const hashtags = photoQuote.match(hashtagRegex) || []
+        const hashtagRegex = /#\w+/g;
+        const hashtags = photoQuote.match(hashtagRegex) || [];
 
-        // console.log('-------------awsIds----------------------------- :', awsIds)
         // Making the API request
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
           method: 'POST',
@@ -180,79 +178,79 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
             hashtags: hashtags,
             mediaKeys: uploadSuccess,
           },
-        })
+        });
+        
         if (response.data) {
-          console.log('went inside')
-          setThoughts('') // Reset thoughts after successful post
-          togglePhotoModel()
+          toast.success('Post submitted successfully!'); // Show success toast
+          setThoughts(''); // Reset thoughts after successful post
+          togglePhotoModel();
         }
       } else {
-        console.log('Upload failed. Post not submitted.')
+        toast.error('Upload failed. Post not submitted.'); // Show error toast
+        console.log('Upload failed. Post not submitted.');
       }
     } catch (err) {
-      console.log('Error in the posting', err)
+      console.log('Error in the posting', err);
+      toast.error('Error in the posting. Please try again.'); // Show error toast
     }
     finally {
-      setIsCreated(() => !isCreated)
+      setIsCreated(() => !isCreated);
       setIsSubmittingPhoto(false);
       setUploadedFiles([]);
       setThoughts('');
     }
-  }
+}
 
-  const handleVideoSubmit = async () => {
+const handleVideoSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      alert('You must add a Video');
+      toast.error('You must add a Video'); // Show error toast instead of alert
       return;
     }
     setIsSubmittingVideo(true);
     try {
       // Wait for handleUpload to complete before proceeding
-      const uploadSuccess = await handleUpload()
-      // console.log('video upload success', uploadSuccess)
-
+      const uploadSuccess = await handleUpload();
+      
       if (uploadSuccess) {
         // Regular expression to match hashtags
-        const hashtagRegex = /#\w+/g
-        const hashtags = videoQuote.match(hashtagRegex) || []
-        // console.log('hashtags match', hashtags)
-        // console.log('---videoupload----', videoQuote)
-        // console.log('---upload success---', uploadSuccess)
+        const hashtagRegex = /#\w+/g;
+        const hashtags = videoQuote.match(hashtagRegex) || [];
+
         // Making the API request
         const data = {
           userId: user?.id,
           content: thoughts,
           hashtags: hashtags,
           mediaKeys: uploadSuccess || [],
-        }
-        console.log('video request data', data)
+        };
+
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
           method: 'POST',
           url: CREATE_POST,
           data: data,
-        })
+        });
 
         if (response.data) {
-          setThoughts('') // Reset thoughts after successful post
-
-          console.log('isCreated before', isCreated)
-
-          console.log('isCreated after', isCreated)
+          toast.success('Video posted successfully!'); // Show success toast
+          setThoughts(''); // Reset thoughts after successful post
         }
       } else {
-        console.log('Upload failed. Post not submitted.')
+        toast.error('Upload failed. Post not submitted.'); // Show error toast if upload failed
+        console.log('Upload failed. Post not submitted.');
       }
     } catch (err) {
-      console.log('Error in the posting', err)
+      console.log('Error in the posting', err);
+      toast.error('Error in the posting. Please try again.'); // Show error toast in case of exception
     }
     finally {
       setIsSubmittingVideo(false);
       toggleVideoModel();
       setUploadedFiles([]);
       setThoughts('');
-      setIsCreated(() => !isCreated)
+      setIsCreated(() => !isCreated);
     }
-  }
+}
+
   // console.log("profile", profile);
 
   const [show, setShow] = useState(true)
@@ -276,15 +274,15 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const handlePostClick = async (values) => {
     // Check if thoughts is empty
     if (!thoughts.trim()) {
-      console.log('Thoughts cannot be empty.')
-      alert('Thoughts cannot be empty.')
-      return
+      console.log('Thoughts cannot be empty.');
+      toast.error('Thoughts cannot be empty.'); // Show error toast instead of alert
+      return;
     }
     setIsSubmittingPost(true);
 
     try {
-      const hashtagRegex = /#\w+/g
-      const hashtags = thoughts.match(hashtagRegex) || []
+      const hashtagRegex = /#\w+/g;
+      const hashtags = thoughts.match(hashtagRegex) || [];
       const response = await makeApiRequest<ApiResponse<{ url: string }>>({
         method: 'POST',
         url: CREATE_POST,
@@ -293,22 +291,24 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           content: processMentionsForSubmission(values),
           hashtags: hashtags,
         },
-      })
+      });
 
       if (response.data) {
-        setThoughts('')
-        console.log('isCreated before', isCreated)
-        setIsCreated(() => !isCreated)
-        console.log('isCreated after', isCreated)
+        setThoughts('');
+        console.log('isCreated before', isCreated);
+        setIsCreated(() => !isCreated);
+        console.log('isCreated after', isCreated);
+        toast.success('Post created successfully!'); // Show success toast when post is created
       }
     } catch (err) {
-      console.log('Error in the posting', err)
+      console.log('Error in the posting', err);
+      toast.error('Error creating the post. Please try again.'); // Show error toast for any error during the posting
     }
     finally {
       setIsSubmittingPost(false);
       setUploadedFiles([]);
     }
-  }
+}
 
   const [mentionMap, setMentionMap] = useState<Record<string, string>>({});
   const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false);
