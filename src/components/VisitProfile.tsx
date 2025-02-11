@@ -42,6 +42,7 @@ const ProfileVisits = () => {
   const [loading, setLoading] = useState(true)
   const [sentStatus, setSentStatus] = useState({})
   const { user } = useAuthContext()
+  
 
   useEffect(() => {
     const fetchProfileVisits = async () => {
@@ -120,12 +121,13 @@ const ProfileVisits = () => {
     )
   }
 
+
   return (
     <div className="container mt-0" style={{width:"103%"}}>
       <Card>
         <CardBody>
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h1 className="h5 mb-0 d-flex align-items-center">
+            <h1 className="h6 mb-0 d-flex align-items-center">
               <FaEye className="me-2" />
               Who Viewed My Profile
               <span className="badge bg-success ms-2">{visits.length}</span>
@@ -162,33 +164,33 @@ const ProfileVisits = () => {
                   </Link>
                   <div className="d-flex align-items-center">
                     {visit.connectionStatus === 'accepted' ? (
-                      <Link to="/messaging" className="mx-2 btn btn-primary btn-sm">
+                        <Link to="/messaging" className="mx-2 btn btn-primary btn-sm" style={{ minWidth: '120px' }}>
                         Message
-                      </Link>
+                        </Link>
                     ) : visit.connectionStatus === 'none' ? (
                       <Button
                         variant="primary"
                         size="sm"
                         className="mb-0 me-2"
-                        style={{ minWidth: '85px' }}
+                        style={{ minWidth: '120px' }}
                         onClick={() => handleUserRequest(visit.visitor.id)}
                         disabled={loading === visit.visitor.id}>
                         {loading === visit.visitor.id ? <Loading size={16} /> : 'Connect'}
                       </Button>
                     ) : (
-                      <Button
+                        <Button
                         variant={
                           visit.connectionStatus === 'accepted'
-                            ? 'outline-success'
-                            : visit.connectionStatus === 'rejected'
-                              ? 'outline-danger'
-                              : 'outline-secondary'
+                          ? 'outline-success'
+                          : visit.connectionStatus === 'rejected'
+                            ? 'outline-danger'
+                            : 'outline-secondary'
                         }
                         className="ms-sm-2 mb-0"
                         disabled
-                        style={{ minWidth: '85px' }}>
+                        style={{ minWidth: '85px', fontSize: '16px' }}>
                         {(visit.connectionStatus === 'pending' && 'Pending') || (visit.connectionStatus === 'rejected' && 'Pending')}
-                      </Button>
+                        </Button>
                     )}
                   </div>
                 </ListGroupItem>
@@ -292,13 +294,14 @@ const ProfileVisited = () => {
       </div>
     )
   }
+  
 
   return (
     <div className="container mt-0">
       <Card >
         <CardBody>
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h1 className="h5 mb-0 d-flex align-items-center">
+            <h1 className="h6 mb-0 d-flex align-items-center">
               <FaUserAlt className="me-2" />
               Profiles I've Viewed
               <span className="badge bg-success ms-2">{visits.length}</span>
@@ -329,19 +332,19 @@ const ProfileVisited = () => {
                   </Link>
                   <div className="d-flex align-items-center">
                     {visit.connectionStatus === 'accepted' ? (
-                      <Link to="/messaging" className="mx-2 btn btn-primary btn-sm">
+                        <Link to="/messaging" className="mx-2 btn btn-primary btn-sm" style={{ minWidth: '120px' }}>
                         Message
-                      </Link>
+                        </Link>
                     ) : visit.connectionStatus === 'none' ? (
-                      <Button
+                        <Button
                         variant="primary"
                         size="sm"
                         className="mb-0 me-2"
-                        style={{ minWidth: '85px' }}
+                        style={{ minWidth: '120px', fontSize: '16px' }}
                         onClick={() => handleUserRequest(visit.profile.id)}
                         disabled={loading === visit.profile.id}>
                         {loading === visit.profile.id ? <Loading size={16} /> : 'Connect'}
-                      </Button>
+                        </Button>
                     ) : (
                       <Button
                         variant={
@@ -406,7 +409,7 @@ const VisitProfile = () => {
           </button>
         ))}
       </div>
-      <div className="content-container">{sections[step].component}</div>
+      <div>{sections[step].component}</div>
       <style>
         {`
           .tab-btn {

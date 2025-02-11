@@ -144,7 +144,6 @@ const MyConnections = () => {
       console.error(`Error while remove connection request:`, error)
       toast.error(`Failed to remove connection request.`)
     } finally {
-      // Set loading to false only for the specific connectionId
       setLoadingStates((prev) => ({ ...prev, [connectionId]: false }))
     }
   }
@@ -160,37 +159,42 @@ const MyConnections = () => {
   }
 
   return (
-    <Card className="mb-3"  >
-    <CardBody>
+    <Card className="mb-3">
+      <CardHeader className="bg-light text-dark">
+        <CardTitle className="mb-0">
+          Total Connections: {allConnections.length}
+        </CardTitle>
+      </CardHeader>
+      <CardBody className="bg-white">
       {allConnections.map((connection, idx) => (
         <div
-          key={idx}
-          className={`p-3 d-flex align-items-center ${idx === allConnections.length - 1 ? '' : 'border-bottom'}`}
-          style={{ marginBottom: idx === allConnections.length - 1 ? 0 : '1rem' }} // Add margin-bottom only if it's not the last card
+        key={idx}
+        className={`p-3 d-flex align-items-center ${idx === allConnections.length - 1 ? '' : 'border-bottom'}`}
+        style={{ marginBottom: idx === allConnections.length - 1 ? 0 : '1rem' }} // Add margin-bottom only if it's not the last card
         >
-          <div className="avatar me-3">
-            <span role="button">
-              <img
-          className="avatar-img rounded-circle"
-          src={connection.profilePictureUrl || avatar}
-          alt={`${connection.firstName} ${connection.lastName}`}
-          style={{ width: '50px', height: '50px' }}
-              />
-            </span>
-          </div>
-          <div className="flex-grow-1">
-            <h6 className="mb-1">
-              <a href={`/profile/feed/${connection.userId}#${connection.userId}`} className="text-dark">
-          {`${connection.firstName} ${connection.lastName}`}
-              </a>
-            </h6>
-            <p className="small text-muted mb-1">{connection.userRole}</p>
-            <p className="small text-muted mb-0">{connection.meeted}</p>
-          </div>
-          {connection?.userId !== user?.id ? (
-            <div className="ms-auto d-flex">
-              {user?.id === id ? (
-          <>
+        <div className="avatar me-3">
+          <span role="button">
+          <img
+            className="avatar-img rounded-circle"
+            src={connection.profilePictureUrl || avatar}
+            alt={`${connection.firstName} ${connection.lastName}`}
+            style={{ width: '50px', height: '50px' }}
+          />
+          </span>
+        </div>
+        <div className="flex-grow-1">
+          <h6 className="mb-1">
+          <a href={`/profile/feed/${connection.userId}#${connection.userId}`} className="text-dark">
+            {`${connection.firstName} ${connection.lastName}`}
+          </a>
+          </h6>
+          <p className="small text-muted mb-1">{connection.userRole}</p>
+          <p className="small text-muted mb-0">{connection.meeted}</p>
+        </div>
+        {connection?.userId !== user?.id ? (
+          <div className="ms-auto d-flex">
+          {user?.id === id ? (
+            <>
             <Button
               onClick={() => handleRemove(connection.connectionId)}
               variant="outline-danger"
@@ -209,50 +213,50 @@ const MyConnections = () => {
             >
               Message
             </Button>
-          </>
-              ) : (
-          <>
+            </>
+          ) : (
+            <>
             {sent ? (
               <Button
-                variant="outline-danger"
-                size="sm"
-                className="me-2"
-                onClick={handleCancel}
-                disabled={loading}
-                style={{ minWidth: '140px', transition: '0.2s ease-in-out', fontSize: '15px' }}
+              variant="outline-danger"
+              size="sm"
+              className="me-2"
+              onClick={handleCancel}
+              disabled={loading}
+              style={{ minWidth: '140px', transition: '0.2s ease-in-out', fontSize: '15px' }}
               >
-                {loading ? <Loading size={15} loading={true} /> : <FaUserTimes size={16} />}
+              {loading ? <Loading size={15} loading={true} /> : <FaUserTimes size={16} />}
               </Button>
             ) : (
               <Button
-                variant={sentStates[connection?.userId] ? 'outline-success' : 'outline-primary'}
-                size="sm"
-                className="me-2"
-                onClick={() => UserRequest(connection?.userId)}
-                disabled={loadingStates[connection?.userId]}
-                style={{ minWidth: '140px', transition: '0.2s ease-in-out', fontSize: '15px' }}
+              variant={sentStates[connection?.userId] ? 'outline-success' : 'outline-primary'}
+              size="sm"
+              className="me-2"
+              onClick={() => UserRequest(connection?.userId)}
+              disabled={loadingStates[connection?.userId]}
+              style={{ minWidth: '140px', transition: '0.2s ease-in-out', fontSize: '15px' }}
               >
-                {loadingStates[connection?.userId] ? (
-            <Loading size={15} loading={true} />
-                ) : sentStates[connection?.userId] ? (
-            <FaUserCheck size={16} />
-                ) : (
-            <FaUserPlus size={16} />
-                )}
+              {loadingStates[connection?.userId] ? (
+                <Loading size={15} loading={true} />
+              ) : sentStates[connection?.userId] ? (
+                <FaUserCheck size={16} />
+              ) : (
+                <FaUserPlus size={16} />
+              )}
               </Button>
             )}
-          </>
-              )}
-            </div>
-          ) : (
-            <Link to={'/feed/home'} className="mx-4 text-primary">
-              <FaUser size={16} />
-            </Link>
+            </>
           )}
+          </div>
+        ) : (
+          <Link to={'/feed/home'} className="mx-4 text-primary">
+          <FaUser size={16} />
+          </Link>
+        )}
         </div>
       ))}
-    </CardBody>
-  </Card>  
+      </CardBody>
+    </Card>
   )
 }
 export default MyConnections

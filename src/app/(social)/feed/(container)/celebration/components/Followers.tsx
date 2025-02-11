@@ -13,7 +13,7 @@ const Followers =  () => {
   return (
     <Card >
       <CardHeader className="pb-0 border-0">
-      <CardTitle className="mb-0" style={{ fontSize: '2px' }}>Connect'n Grow</CardTitle>
+      <CardTitle className="mb-0" style={{ fontSize: '2px' }}>Connect 'n' Grow</CardTitle>
       </CardHeader>
 
       <CardBody>
