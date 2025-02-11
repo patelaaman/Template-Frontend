@@ -41,7 +41,7 @@ const ImageZoom = ({
       />
 
       {/* Frame (Banner) */}
-      <img
+      {/* <img
         src={banner}
         alt="Frame"
         style={{
@@ -53,7 +53,7 @@ const ImageZoom = ({
           objectFit: "cover", // Ensures the frame fits properly
           zIndex: 2, // Ensures frame is on top
         }}
-      />
+      /> */}
     </div>
   );
 };
