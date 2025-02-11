@@ -14,6 +14,20 @@ import { useAuthContext } from '@/context/useAuthContext'
 import Loading from '@/components/Loading'
 import { LIVE_URL } from '@/utils/api';
 
+const FullPageLoader = () => (
+  <div 
+    className="d-flex justify-content-center align-items-center bg-light" 
+    style={{ height: '100vh' }}
+  >
+    <div 
+      className="spinner-border text-primary" 
+      role="status" 
+      style={{ width: '4rem', height: '4rem', borderWidth: '6px' }}
+    >
+      <span className="visually-hidden">Loading...</span>
+    </div>
+  </div> 
+);
 
 const SuggestedConnections = () => {
   const { user } = useAuthContext()
@@ -27,14 +41,11 @@ const SuggestedConnections = () => {
   const [btnloading, setBtnLoading] = useState<string | null>(null)
 
   useEffect(() => {
-
-
     fetchConnectionSuggestions()
   }, [page, user?.id])
 
   const fetchConnectionSuggestions = async () => {
     try {
-      // setSkeletonLoading(true);
       const response = await fetch('https://strengthholdings.com/api/v1/connection/get-connection-suggest', {
         method: 'POST',
         headers: {
@@ -51,16 +62,12 @@ const SuggestedConnections = () => {
 
       const data = await response.json()
       setAllFollowers((prevFollowers) => {
-        // Avoid duplicates by checking user IDs
         const newUsers = data.data.filter((newUser: any) => !prevFollowers.some((existing) => existing.id === newUser.id))
-
         return [...prevFollowers, ...newUsers]
       })
       setTotalUsers(data.total)
     } catch (error) {
       console.error('Error fetching connection suggestions:', error)
-    } finally {
-      // setSkeletonLoading(false);
     }
   }
 
@@ -69,7 +76,7 @@ const SuggestedConnections = () => {
   }
 
   const UserRequest = async (userId: string) => {
-    const isSending = !sentStatus[userId]; // Toggle send status
+    const isSending = !sentStatus[userId];
     const updatedStatus = { ...sentStatus, [userId]: isSending };
     setSentStatus(updatedStatus);
     setBtnLoading(userId);
@@ -104,29 +111,16 @@ const SuggestedConnections = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div
-        className="d-flex justify-content-center align-items-center bg-light"
-        style={{ height: '100vh' }}
-      >
-        <div
-          className="spinner-border text-primary"
-          role="status"
-          style={{ width: '4rem', height: '4rem', borderWidth: '6px' }}
-        >
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <Card className="rounded shadow-lg border">
+    <Card className="rounded shadow-sm border">
       <CardBody>
-        {skeletonLoading ? (
-          <div className="d-flex justify-content-center align-items-center bg-light" style={{ height: "100vh" }}>
-            <div className="spinner-border text-primary" role="status" style={{ width: "4rem", height: "4rem", borderWidth: "6px" }}>
+        {/* {skeletonLoading ? (
+          <div className="d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
+            <div 
+              className="spinner-border text-primary" 
+              role="status" 
+              style={{ width: '4rem', height: '4rem', borderWidth: '6px' }}
+            >
               <span className="visually-hidden">Loading...</span>
             </div>
           </div>
@@ -134,12 +128,12 @@ const SuggestedConnections = () => {
           <InfiniteScroll
             dataLength={allFollowers.length}
             next={fetchMoreData}
-            hasMore={false}
-            loader={<Loading loading={allFollowers.length !== totalUsers} size={16} />}
+            hasMore={allFollowers.length !== totalUsers}
+            loader={<Loading loading={true} size={16} />}
             style={{ overflowX: "hidden", overflowY: "hidden" }}
-            endMessage={<b className="text-muted">No more Connect'n Grow</b>}
+            endMessage={<Loading loading={true} size={16} />}
             scrollableTarget="scrollableDiv"
-          >
+          > */}
             {allFollowers.map((friend, idx) => (
               <div
                 key={idx}
@@ -169,7 +163,6 @@ const SuggestedConnections = () => {
                   )}
                 </div>
 
-                {/* Connect Button */}
                 <div className="ms-auto d-flex">
                     <Button
                     variant={sentStatus[friend.id] ? "outline-secondary" : "primary"}
@@ -179,16 +172,15 @@ const SuggestedConnections = () => {
                     disabled={loading === friend.id}
                     style={{ minWidth: "120px", transition: "0.2s ease-in-out", fontSize: "15px" }}
                     >
-                    {loading === friend.id ? <Loading size={16} loading={true} /> : sentStatus[friend.id] ? "Request Sent" : "Connect"}
+                    {loading === friend.id ? <Loading size={16} loading={true} /> : sentStatus[friend.id] ? "Pending" : "Connect"}
                     </Button>
                 </div>
               </div>
             ))}
-          </InfiniteScroll>
-        )}
+          {/* </InfiniteScroll>
+        )} */}
       </CardBody>
     </Card>
-  
   )
 }
 

@@ -117,7 +117,7 @@ const Followers = () => {
       <Card style={{ marginTop: '-22px' }}>
         <CardHeader className="pb-0 border-0">
           <CardTitle className="mb-0 text-center" style={{ fontSize: '17px', fontWeight: 500 }}>
-            Connect'n Grow
+            Connect 'n' Grow
           </CardTitle>
         </CardHeader>
 
