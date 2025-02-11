@@ -11,7 +11,7 @@ import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
 import { GetAllLikesResponse, Like, Post } from '../PostCard'
 import LikeListModal from './LikeListModal'
 import FormatContent from './ContentFormating'
-
+import avatar from '@/assets/images/avatar/default avatar.png'
 interface DeleteCommentResponse {
   message: string
 }
@@ -515,7 +515,7 @@ const CommentItem = ({
                   >
                     <div className="avatar">
                       <img
-                        src={user.avatar || "default-avatar.png"}
+                        src={user.avatar || avatar}
                         alt={user.fullName}
                         className="avatar-img rounded-circle border border-white border-3"
                         width={34}

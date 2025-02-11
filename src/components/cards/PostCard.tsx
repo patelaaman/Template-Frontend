@@ -19,6 +19,8 @@ import { toast } from 'react-toastify';
 import ImageZoom from './ImageZoom';
 import LikeListModal from './components/LikeListModal';
 import FormatContent from './components/ContentFormating';
+
+import avatar from '@/assets/images/avatar/default avatar.png'
 export interface Like {
   id: string;
   occupation: string;
@@ -1021,7 +1023,7 @@ const PostCard = ({
                       >
                         <div className="avatar">
                           <img 
-                            src={user.avatar || "default-avatar.png"}
+                            src={user.avatar || avatar}
                             alt={user.fullName}
                             className="avatar-img rounded-circle border border-white border-3"
                             width={34}
@@ -1530,7 +1532,7 @@ const PostCard = ({
                       >
                         <div className="avatar">
                           <img
-                            src={user.avatar || "default-avatar.png"}
+                            src={user.avatar || avatar}
                             alt={user.fullName}
                             className="avatar-img rounded-circle border border-white border-3"
                             width={34}
