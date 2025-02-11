@@ -668,14 +668,239 @@ bUSINESS sELLER ENDS HERE
 
 
 
+// import React, { useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import { ButtonGroup, Card } from 'react-bootstrap';
+// import { FaMapMarkerAlt, FaBuilding, FaMoneyBillWave, FaToolbox, FaClock, FaBalanceScale, FaHandsHelping, FaFileSignature, FaInfoCircle } from 'react-icons/fa';
+// import { useAuthContext } from '@/context/useAuthContext';
+// import { ToastContainer, toast } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.css';
+// import { LIVE_URL } from '@/utils/api';
+
+// const BusinessPreferencesForm = () => {
+//   const { user } = useAuthContext();
+//   const navigate = useNavigate();
+//   const [formData, setFormData] = useState({
+//     businessType: '',
+//     businessLocation: '',
+//     businessModel: '',
+//     budget: "",
+//     renovationInvestment: "",
+//     timeline: '',
+//     growthOrStableCashFlow: '',
+//     supportAfterPurchase: '',
+//     ndaAgreement: '',
+//     additionalInfo: '',
+//   });
+
+//   const [step, setStep] = useState(0);
+//   const sections = [
+//     { title: "Business Type & Location", icon: <FaBuilding /> },
+//     { title: "Financial & Investment Details", icon: <FaMoneyBillWave /> },
+//     { title: "Timeline & Growth Preferences", icon: <FaClock /> },
+//     { title: "Support & Confidentiality", icon: <FaHandsHelping /> },
+//     { title: "Additional Information", icon: <FaInfoCircle /> },
+//   ];
+
+//   const handleInputChange = (name, value) => {
+//     // Remove any validation restrictions
+//     setFormData((prev) => ({
+//       ...prev,
+//       [name]: value,
+//       UserId: user?.id
+//     }));
+//   };
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+  
+//     if (!user?.id) {
+//       toast.error("User ID is missing. Please log in again.");
+//       return;
+//     }
+  
+//     toast.success("Form submitted successfully!");
+  
+//     try {
+//       const response1 = await fetch(`http://13.216.146.100/api/v1/businessbuyer/create`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ ...formData }),
+//       });
+  
+//       if (!response1.ok) {
+//         throw new Error("Failed to submit business buyer data");
+//       }
+  
+//       try {
+//         const response2 = await fetch(`http://13.216.146.100/api/v1/subrole/create`, {
+//           method: 'POST',
+//           headers: {
+//             'Content-Type': 'application/json',
+//           },
+//           body: JSON.stringify({
+//             UserId: user?.id,
+//             SubRole: "BusinessBuyer"
+//           }),
+//         });
+  
+//         if (!response2.ok) {
+//           throw new Error("Failed to submit subrole data");
+//         }
+  
+//         navigate('/');
+//       } catch (error) {
+//         console.error("Error in second request:", error);
+//         toast.error("An error occurred while submitting the subrole data.");
+//       }
+  
+//     } catch (error) {
+//       console.error("Error in first request:", error);
+//       toast.error("An error occurred while submitting the form.");
+//     }
+//   };
+//   const handleSkip = () => {
+//     navigate('/');
+//   };
+
+//   const setCurrentSection = (index) => {
+//     setStep(index);
+//   };
+
+//   const renderStep = () => {
+//     const renderFormFields = (fields) => (
+//       <Card className="mb-4 shadow-sm">
+//         <Card.Header className="bg-transparent text-white">
+//           <h5 className="fs-4">
+//             {sections[step].icon} {sections[step].title}
+//           </h5>
+//         </Card.Header>
+//         <Card.Body>
+//           <ToastContainer />
+//           {fields.map((field, index) => (
+//             <div className="mb-3" key={index}>
+//               <label htmlFor={field.id} className="form-label">
+//                 {field.icon} {field.label}
+//               </label>
+//               {field.type === 'select' ? (
+//                 <select
+//                   id={field.id}
+//                   value={formData[field.name]}
+//                   onChange={(e) => handleInputChange(field.name, e.target.value)}
+//                   className="form-control"
+//                   required={field.required}
+//                 >
+//                   {field.options.map((option, idx) => (
+//                     <option key={idx} value={option}>
+//                       {option}
+//                     </option>
+//                   ))}
+//                 </select>
+//               ) : (
+//                 <input
+//                   id={field.id}
+//                   type={field.inputType || 'text'}
+//                   value={formData[field.name]}
+//                   onChange={(e) => handleInputChange(field.name, e.target.value)}
+//                   className="form-control"
+//                   required={field.required}
+//                 />
+//               )}
+//             </div>
+//           ))}
+//         </Card.Body>
+//       </Card>
+//     );
+
+//     switch (step) {
+//       case 0:
+//         return renderFormFields([
+//           { id: 'businessType', label: 'What type of business are you interested in buying?', name: 'businessType', icon: <FaBuilding />, type: 'select', options: ['SaaS', 'Content', 'Marketplace', 'Agency', 'Mobile App', 'Shopify App', 'Main Street', 'Ecommerce', 'Other'], required: true },
+//           { id: 'businessLocation', label: 'Preferred business location or region:', name: 'businessLocation', icon: <FaMapMarkerAlt />, type: 'text', required: true },
+//           { id: 'businessModel', label: 'What is your preferred business model?', name: 'businessModel', icon: <FaToolbox />, type: 'select', options: ['Independent', 'Franchise', 'Online', 'Hybrid'], required: true },
+//         ]);
+//       case 1:
+//         return renderFormFields([
+//           { id: 'budget', label: 'What is your budget for purchasing a business?', name: 'budget', icon: <FaMoneyBillWave />, type: 'select', options: ['Under $50k', '$50k - $100k', '$100k - $500k', '$500k - $1M', 'Over $1M'], required: true },
+//           { id: 'renovationInvestment', label: 'Are you open to investing in a business that requires renovation or additional investment?', name: 'renovationInvestment', icon: <FaBalanceScale />, type: 'select', options: ['Yes', 'No', 'Maybe'], required: true },
+//         ]);
+//       case 2:
+//         return renderFormFields([
+//           { id: 'timeline', label: 'What is your timeline for purchasing a business?', name: 'timeline', icon: <FaClock />, type: 'select', options: ['Immediately', '1-3 months', '6 months', '1 year', 'Flexible'], required: true },
+//           { id: 'growthOrStableCashFlow', label: 'Are you interested in a business with potential for growth or stable cash flow?', name: 'growthOrStableCashFlow', icon: <FaBalanceScale />, type: 'select', options: ['Growth', 'Stable Cash Flow', 'Both'], required: true },
+//         ]);
+//       case 3:
+//         return renderFormFields([
+//           { id: 'supportAfterPurchase', label: 'Are you interested in any support or training after the business purchase?', name: 'supportAfterPurchase', icon: <FaHandsHelping />, type: 'select', options: ['Yes', 'No', 'Maybe'], required: true },
+//           { id: 'ndaAgreement', label: 'Are you willing to sign a non-disclosure agreement (NDA) before receiving sensitive business information?', name: 'ndaAgreement', icon: <FaFileSignature />, type: 'select', options: ['Yes', 'No'], required: true },
+//         ]);
+//       case 4:
+//         return renderFormFields([
+//           { id: 'additionalInfo', label: 'Is there anything else you would like us to know about your business buying preferences?', name: 'additionalInfo', icon: <FaInfoCircle />, type: 'text', required: false },
+//         ]);
+//       default:
+//         return null;
+//     }
+//   };
+
+//   return (
+//     <div className="container mt-5">
+//       <h2 className="text-start mb-4">Entrepreneur (Interested in Acquiring a Startup.)</h2>
+
+//       <div className="d-flex justify-content-center mb-4">
+//         {sections.map((section, index) => (
+//           <button
+//             key={index}
+//             type="button"
+//             className="btn mx-2"
+//             style={{
+//               backgroundColor: step === index ? '#1ea1f2' : 'transparent',
+//               borderColor: '#1ea1f2',
+//               color: step === index ? 'white' : '#1ea1f2',
+//             }}
+//             onClick={() => setCurrentSection(index)}
+//           >
+//             {section.icon} {section.title}
+//           </button>
+//         ))}
+//       </div>
+
+//       <form onSubmit={handleSubmit} className="needs-validation" noValidate>
+//         {renderStep()}
+//         <div className="d-flex justify-content-between mt-4">
+//           <button type="button" className="btn btn-secondary btn-danger" onClick={handleSkip}>Skip</button>
+//           <ButtonGroup>
+//             {step > 0 && <button type="button" className="btn btn-secondary" onClick={() => setStep(step - 1)}>Previous</button>}
+//             {step < sections.length - 1 && <button type="button" className="btn btn-primary" onClick={() => setStep(step + 1)}>Next</button>}
+//             {step === sections.length - 1 && <button type="submit" className="btn btn-primary">Submit</button>}
+//           </ButtonGroup>
+//         </div>
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default BusinessPreferencesForm;
+
+
+
+//,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,//
+
+
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ButtonGroup, Card } from 'react-bootstrap';
-import { FaMapMarkerAlt, FaBuilding, FaMoneyBillWave, FaToolbox, FaClock, FaBalanceScale, FaHandsHelping, FaFileSignature, FaInfoCircle } from 'react-icons/fa';
+import { Card, Form, Row, Col } from 'react-bootstrap';
+import { 
+  FaMapMarkerAlt, FaBuilding, FaMoneyBillWave, FaToolbox, 
+  FaClock, FaBalanceScale, FaHandsHelping, FaFileSignature, 
+  FaInfoCircle, FaChartLine, FaUserTie, FaHandshake, FaBullseye 
+} from 'react-icons/fa';
 import { useAuthContext } from '@/context/useAuthContext';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { LIVE_URL } from '@/utils/api';
 
 const BusinessPreferencesForm = () => {
   const { user } = useAuthContext();
@@ -684,8 +909,8 @@ const BusinessPreferencesForm = () => {
     businessType: '',
     businessLocation: '',
     businessModel: '',
-    budget: "",
-    renovationInvestment: "",
+    budget: '',
+    renovationInvestment: '',
     timeline: '',
     growthOrStableCashFlow: '',
     supportAfterPurchase: '',
@@ -693,21 +918,35 @@ const BusinessPreferencesForm = () => {
     additionalInfo: '',
   });
 
-  const [step, setStep] = useState(0);
-  const sections = [
-    { title: "Business Type & Location", icon: <FaBuilding /> },
-    { title: "Financial & Investment Details", icon: <FaMoneyBillWave /> },
-    { title: "Timeline & Growth Preferences", icon: <FaClock /> },
-    { title: "Support & Confidentiality", icon: <FaHandsHelping /> },
-    { title: "Additional Information", icon: <FaInfoCircle /> },
+  const [step, setStep] = useState(1);
+
+  const tabs = [
+    { 
+      icon: <FaUserTie size={24} />,
+      title: "Business Details",
+      step: 1 
+    },
+    { 
+      icon: <FaChartLine size={24} />,
+      title: "Financial Details",
+      step: 2 
+    },
+    { 
+      icon: <FaHandshake size={24} />,
+      title: "Timeline & Growth",
+      step: 3 
+    },
+    { 
+      icon: <FaBullseye size={24} />,
+      title: "Additional Info",
+      step: 4 
+    }
   ];
 
-  const handleInputChange = (name, value) => {
-    // Remove any validation restrictions
-    setFormData((prev) => ({
+  const handleInputChange = (name: string, value: any) => {
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
-      UserId: user?.id
+      [name]: value
     }));
   };
 
@@ -718,8 +957,6 @@ const BusinessPreferencesForm = () => {
       toast.error("User ID is missing. Please log in again.");
       return;
     }
-  
-    toast.success("Form submitted successfully!");
   
     try {
       const response1 = await fetch(`http://13.216.146.100/api/v1/businessbuyer/create`, {
@@ -741,7 +978,7 @@ const BusinessPreferencesForm = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            UserId: user?.id,
+            UserId: user.id,
             SubRole: "BusinessBuyer"
           }),
         });
@@ -750,6 +987,7 @@ const BusinessPreferencesForm = () => {
           throw new Error("Failed to submit subrole data");
         }
   
+        toast.success("Form submitted successfully!");
         navigate('/');
       } catch (error) {
         console.error("Error in second request:", error);
@@ -761,123 +999,342 @@ const BusinessPreferencesForm = () => {
       toast.error("An error occurred while submitting the form.");
     }
   };
-  const handleSkip = () => {
-    navigate('/');
-  };
 
-  const setCurrentSection = (index) => {
-    setStep(index);
-  };
+  const handleSkip = () => navigate('/');
+  const nextStep = () => setStep(step + 1);
+  const prevStep = () => setStep(step - 1);
+  const handleTabClick = (tabStep: number) => setStep(tabStep);
 
   const renderStep = () => {
-    const renderFormFields = (fields) => (
-      <Card className="mb-4 shadow-sm">
-        <Card.Header className="bg-transparent text-white">
-          <h5 className="fs-4">
-            {sections[step].icon} {sections[step].title}
-          </h5>
-        </Card.Header>
-        <Card.Body>
-          <ToastContainer />
-          {fields.map((field, index) => (
-            <div className="mb-3" key={index}>
-              <label htmlFor={field.id} className="form-label">
-                {field.icon} {field.label}
-              </label>
-              {field.type === 'select' ? (
-                <select
-                  id={field.id}
-                  value={formData[field.name]}
-                  onChange={(e) => handleInputChange(field.name, e.target.value)}
-                  className="form-control"
-                  required={field.required}
-                >
-                  {field.options.map((option, idx) => (
-                    <option key={idx} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  id={field.id}
-                  type={field.inputType || 'text'}
-                  value={formData[field.name]}
-                  onChange={(e) => handleInputChange(field.name, e.target.value)}
-                  className="form-control"
-                  required={field.required}
-                />
-              )}
-            </div>
-          ))}
-        </Card.Body>
-      </Card>
-    );
-
     switch (step) {
-      case 0:
-        return renderFormFields([
-          { id: 'businessType', label: 'What type of business are you interested in buying?', name: 'businessType', icon: <FaBuilding />, type: 'select', options: ['SaaS', 'Content', 'Marketplace', 'Agency', 'Mobile App', 'Shopify App', 'Main Street', 'Ecommerce', 'Other'], required: true },
-          { id: 'businessLocation', label: 'Preferred business location or region:', name: 'businessLocation', icon: <FaMapMarkerAlt />, type: 'text', required: true },
-          { id: 'businessModel', label: 'What is your preferred business model?', name: 'businessModel', icon: <FaToolbox />, type: 'select', options: ['Independent', 'Franchise', 'Online', 'Hybrid'], required: true },
-        ]);
       case 1:
-        return renderFormFields([
-          { id: 'budget', label: 'What is your budget for purchasing a business?', name: 'budget', icon: <FaMoneyBillWave />, type: 'select', options: ['Under $50k', '$50k - $100k', '$100k - $500k', '$500k - $1M', 'Over $1M'], required: true },
-          { id: 'renovationInvestment', label: 'Are you open to investing in a business that requires renovation or additional investment?', name: 'renovationInvestment', icon: <FaBalanceScale />, type: 'select', options: ['Yes', 'No', 'Maybe'], required: true },
-        ]);
+        return (
+          <Card className="mb-4 shadow-sm">
+            <Card.Header className="bg-white">
+              <h5 className="mb-0">
+                <FaBuilding className="me-2" />
+                Business Details
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              <Form>
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaBuilding className="me-2" />
+                      What type of business are you interested in buying?
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.businessType}
+                      onChange={(e) => handleInputChange("businessType", e.target.value)}
+                      required
+                    >
+                      <option value="">Select business type</option>
+                      <option value="SaaS">SaaS</option>
+                      <option value="Content">Content</option>
+                      <option value="Marketplace">Marketplace</option>
+                      <option value="Agency">Agency</option>
+                      <option value="Mobile App">Mobile App</option>
+                      <option value="Shopify App">Shopify App</option>
+                      <option value="Main Street">Main Street</option>
+                      <option value="Ecommerce">Ecommerce</option>
+                      <option value="Other">Other</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaMapMarkerAlt className="me-2" />
+                      Preferred business location or region:
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={formData.businessLocation}
+                      onChange={(e) => handleInputChange("businessLocation", e.target.value)}
+                      placeholder="Enter preferred location"
+                      required
+                    />
+                  </Form.Group>
+                </Row>
+
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaToolbox className="me-2" />
+                      What is your preferred business model?
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.businessModel}
+                      onChange={(e) => handleInputChange("businessModel", e.target.value)}
+                      required
+                    >
+                      <option value="">Select business model</option>
+                      <option value="Independent">Independent</option>
+                      <option value="Franchise">Franchise</option>
+                      <option value="Online">Online</option>
+                      <option value="Hybrid">Hybrid</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+              </Form>
+            </Card.Body>
+          </Card>
+        );
+
       case 2:
-        return renderFormFields([
-          { id: 'timeline', label: 'What is your timeline for purchasing a business?', name: 'timeline', icon: <FaClock />, type: 'select', options: ['Immediately', '1-3 months', '6 months', '1 year', 'Flexible'], required: true },
-          { id: 'growthOrStableCashFlow', label: 'Are you interested in a business with potential for growth or stable cash flow?', name: 'growthOrStableCashFlow', icon: <FaBalanceScale />, type: 'select', options: ['Growth', 'Stable Cash Flow', 'Both'], required: true },
-        ]);
+        return (
+          <Card className="mb-4 shadow-sm">
+            <Card.Header className="bg-white">
+              <h5 className="mb-0">
+                <FaMoneyBillWave className="me-2" />
+                Financial Details
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              <Form>
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaMoneyBillWave className="me-2" />
+                      What is your budget for purchasing a business?
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.budget}
+                      onChange={(e) => handleInputChange("budget", e.target.value)}
+                      required
+                    >
+                      <option value="">Select budget range</option>
+                      <option value="Under $50k">Under $50k</option>
+                      <option value="$50k - $100k">$50k - $100k</option>
+                      <option value="$100k - $500k">$100k - $500k</option>
+                      <option value="$500k - $1M">$500k - $1M</option>
+                      <option value="Over $1M">Over $1M</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaBalanceScale className="me-2" />
+                      Are you open to investing in a business that requires renovation?
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.renovationInvestment}
+                      onChange={(e) => handleInputChange("renovationInvestment", e.target.value)}
+                      required
+                    >
+                      <option value="">Select option</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                      <option value="Maybe">Maybe</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+              </Form>
+            </Card.Body>
+          </Card>
+        );
+
       case 3:
-        return renderFormFields([
-          { id: 'supportAfterPurchase', label: 'Are you interested in any support or training after the business purchase?', name: 'supportAfterPurchase', icon: <FaHandsHelping />, type: 'select', options: ['Yes', 'No', 'Maybe'], required: true },
-          { id: 'ndaAgreement', label: 'Are you willing to sign a non-disclosure agreement (NDA) before receiving sensitive business information?', name: 'ndaAgreement', icon: <FaFileSignature />, type: 'select', options: ['Yes', 'No'], required: true },
-        ]);
+        return (
+          <Card className="mb-4 shadow-sm">
+            <Card.Header className="bg-white">
+              <h5 className="mb-0">
+                <FaClock className="me-2" />
+                Timeline & Growth
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              <Form>
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaClock className="me-2" />
+                      What is your timeline for purchasing a business?
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.timeline}
+                      onChange={(e) => handleInputChange("timeline", e.target.value)}
+                      required
+                    >
+                      <option value="">Select timeline</option>
+                      <option value="Immediately">Immediately</option>
+                      <option value="1-3 months">1-3 months</option>
+                      <option value="6 months">6 months</option>
+                      <option value="1 year">1 year</option>
+                      <option value="Flexible">Flexible</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaBalanceScale className="me-2" />
+                      Growth preference
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.growthOrStableCashFlow}
+                      onChange={(e) => handleInputChange("growthOrStableCashFlow", e.target.value)}
+                      required
+                    >
+                      <option value="">Select preference</option>
+                      <option value="Growth">Growth</option>
+                      <option value="Stable Cash Flow">Stable Cash Flow</option>
+                      <option value="Both">Both</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaHandsHelping className="me-2" />
+                      Are you interested in post-purchase support?
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.supportAfterPurchase}
+                      onChange={(e) => handleInputChange("supportAfterPurchase", e.target.value)}
+                      required
+                    >
+                      <option value="">Select option</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                      <option value="Maybe">Maybe</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+              </Form>
+            </Card.Body>
+          </Card>
+        );
+
       case 4:
-        return renderFormFields([
-          { id: 'additionalInfo', label: 'Is there anything else you would like us to know about your business buying preferences?', name: 'additionalInfo', icon: <FaInfoCircle />, type: 'text', required: false },
-        ]);
+        return (
+          <Card className="mb-4 shadow-sm">
+            <Card.Header className="bg-white">
+              <h5 className="mb-0">
+                <FaInfoCircle className="me-2" />
+                Additional Information
+              </h5>
+            </Card.Header>
+            <Card.Body>
+              <Form>
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaFileSignature className="me-2" />
+                      Are you willing to sign an NDA?
+                    </Form.Label>
+                    <Form.Select
+                      value={formData.ndaAgreement}
+                      onChange={(e) => handleInputChange("ndaAgreement", e.target.value)}
+                      required
+                    >
+                      <option value="">Select option</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Row>
+
+                <Row className="mb-3">
+                  <Form.Group as={Col}>
+                    <Form.Label>
+                      <FaInfoCircle className="me-2" />
+                      Additional Information
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={formData.additionalInfo}
+                      onChange={(e) => handleInputChange("additionalInfo", e.target.value)}
+                      placeholder="Any additional information you'd like to share"
+                    />
+                  </Form.Group>
+                </Row>
+              </Form>
+            </Card.Body>
+          </Card>
+        );
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-start mb-4">Entrepreneur (Interested in Acquiring a Startup.)</h2>
-
-      <div className="d-flex justify-content-center mb-4">
-        {sections.map((section, index) => (
-          <button
-            key={index}
-            type="button"
-            className="btn mx-2"
-            style={{
-              backgroundColor: step === index ? '#1ea1f2' : 'transparent',
-              borderColor: '#1ea1f2',
-              color: step === index ? 'white' : '#1ea1f2',
-            }}
-            onClick={() => setCurrentSection(index)}
-          >
-            {section.icon} {section.title}
-          </button>
-        ))}
+    <div className="container py-4">
+      <h2 className="mb-4 text-center">Business Buyer Profile</h2>
+      
+      <div className="mb-4">
+        <div className="d-flex justify-content-between align-items-center bg-white rounded-3 p-3 shadow-sm">
+          {tabs.map((tab) => (
+            <div
+              key={tab.step}
+              onClick={() => handleTabClick(tab.step)}
+              className={`flex-grow-1 text-center py-3 px-4 rounded-3 mx-2 tab-item ${
+                step === tab.step
+                  ? 'bg-primary text-white'
+                  : step > tab.step
+                  ? 'bg-light text-primary cursor-pointer'
+                  : 'text-muted'
+              }`}
+              style={{ 
+                cursor: tab.step <= step ? 'pointer' : 'pointer',
+                transition: 'all 0.3s ease',
+                minWidth: '200px'
+              }}
+            >
+              <div className="d-flex flex-column align-items-center justify-content-center">
+                {tab.icon}
+                <span className="mt-2 fw-semibold">{tab.title}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="needs-validation" noValidate>
-        {renderStep()}
-        <div className="d-flex justify-content-between mt-4">
-          <button type="button" className="btn btn-secondary btn-danger" onClick={handleSkip}>Skip</button>
-          <ButtonGroup>
-            {step > 0 && <button type="button" className="btn btn-secondary" onClick={() => setStep(step - 1)}>Previous</button>}
-            {step < sections.length - 1 && <button type="button" className="btn btn-primary" onClick={() => setStep(step + 1)}>Next</button>}
-            {step === sections.length - 1 && <button type="submit" className="btn btn-primary">Submit</button>}
-          </ButtonGroup>
+      {renderStep()}
+
+      <div className="d-flex justify-content-between mt-4">
+        {step > 1 && (
+          <button
+            className="btn btn-secondary"
+            onClick={prevStep}
+          >
+            Previous
+          </button>
+        )}
+        
+        <div className="ms-auto">
+          <button
+            className="btn btn-outline-secondary me-2"
+            onClick={handleSkip}
+          >
+            Skip
+          </button>
+          
+          {step < 4 ? (
+            <button
+              className="btn btn-primary"
+              onClick={nextStep}
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              className="btn btn-success"
+              onClick={handleSubmit}
+            >
+              Submit
+            </button>
+          )}
         </div>
-      </form>
+      </div>
     </div>
   );
 };
