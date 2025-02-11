@@ -1,5 +1,5 @@
 import { getAllUserConnections } from '@/helpers/data'
-import { Button, Card, CardBody, CardHeader } from 'react-bootstrap'
+import { Button, Card, CardBody, CardHeader, CardTitle } from 'react-bootstrap'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import avatar from '@/assets/images/avatar/default avatar.png'
@@ -45,7 +45,6 @@ const ConnectionsStatus = () => {
 
 
     const UserRequest = async (profileId: string) => {
-        // Set loading to true only for the specific profileId
         setLoadingStates((prev) => ({ ...prev, [profileId]: true }));
 
         const apiUrl = `${LIVE_URL}api/v1/connection/send-connection-request`;
@@ -119,25 +118,22 @@ const ConnectionsStatus = () => {
             >
               <span className="visually-hidden">Loading...</span>
             </div>
-          </div>          
+          </div>
         );
     }
 
     return (
 
-        <>
-        {allConnections.length === 0 ? (
+      <Card className="border-0 shadow-sm">
+      <CardHeader className="bg-light text-dark d-flex align-items-center">
+        <CardTitle className="mb-0 fw-semibold fs-5">
+          Total Requests Sent: {allConnections.length}
+        </CardTitle>
+      </CardHeader>
+      {allConnections.length === 0 ? (
         <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
           <div className="text-center">
-            <p
-              className="mb-0"
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: '600',
-                color: '#6c757d',
-                opacity: '0.8',
-              }}
-            >
+            <p className="mb-0 text-muted fw-semibold" style={{ fontSize: '1.25rem', opacity: '0.8' }}>
               No connection requests found
             </p>
             <p className="small text-muted">
@@ -146,61 +142,58 @@ const ConnectionsStatus = () => {
           </div>
         </div>
       ) : (
-        <Card className="rounded">
-        <CardBody>
+        <CardBody className="p-0">
           {allConnections.map((connection, idx) => (
-            <div 
-              key={idx} 
-              className={`p-3 d-flex align-items-center ${idx === allConnections.length - 1 ? '' : 'border-bottom'}`}
+            <div
+              key={idx}
+              className={`p-3 d-flex align-items-center bg-white ${idx !== allConnections.length - 1 ? 'border-bottom' : ''}`}
             >
               <div className="avatar me-3">
-            <span role="button">
-              <img
-                className="avatar-img rounded-circle"
-                src={connection.requester.profilePictureUrl || avatar}
-                alt={`${connection.requester.firstName} ${connection.requester.lastName}`}
-                style={{ width: "50px", height: "50px", objectFit: "cover" }}
-              />
-            </span>
+                <span role="button">
+                  <img
+                    className="avatar-img rounded-circle border"
+                    src={connection.requester.profilePictureUrl || avatar}
+                    alt={`${connection.requester.firstName} ${connection.requester.lastName}`}
+                    style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                  />
+                </span>
               </div>
               <div className="flex-grow-1">
-            <h6 className="mb-1">
-              <a href={`/profile/feed/${connection.receiver.id}#${connection.receiver.id}`} 
-                className="text-dark fw-semibold text-decoration-none">
-                {`${connection.receiver.firstName} ${connection.receiver.lastName}`}
-              </a>
-            </h6>
-            <p className="small text-muted mb-1">{connection.receiver.userRole}</p>
-            {/* <p className="small text-muted mb-0">{connection.meeted}</p> */}
+                <h6 className="mb-1">
+                  <a href={`/profile/feed/${connection.receiver.id}#${connection.receiver.id}`}
+                    className="text-dark fw-semibold text-decoration-none">
+                    {`${connection.receiver.firstName} ${connection.receiver.lastName}`}
+                  </a>
+                </h6>
+                <p className="small text-muted mb-0">{connection.receiver.userRole}</p>
               </div>
               <div className="ms-auto d-flex">
-            <Button
-              variant="outline-danger"
-              size="sm"
-              className="me-2"
-              onClick={() => handleCancel(connection.receiver.id)}
-              disabled={loadingStates[connection.receiver.id]}
-              style={{ minWidth: '120px', transition: "0.2s ease-in-out", fontSize: '15px' }}
-            >
-              {loadingStates[connection.receiver.id] ? <span>Loading...</span> : "Cancel"}
-            </Button>
-            <Button
-              variant="light"
-              size="sm"
-              className="border border-dark text-dark"
-              disabled
-              style={{ minWidth: '120px', transition: "0.2s ease-in-out" }}
-            >
-              {connection.status === 'pending' && 'Pending'}
-            </Button>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="me-2"
+                  onClick={() => handleCancel(connection.receiver.id)}
+                  disabled={loadingStates[connection.receiver.id]}
+                  style={{ minWidth: '120px', fontSize: '15px' }}
+                >
+                  {loadingStates[connection.receiver.id] ? <span>Loading...</span> : "Cancel"}
+                </Button>
+                <Button
+                  variant="light"
+                  size="sm"
+                  className="border border-dark text-dark"
+                  disabled
+                  style={{ minWidth: '120px' }}
+                >
+                  {connection.status === 'pending' && 'Pending'}
+                </Button>
               </div>
             </div>
           ))}
         </CardBody>
-          </Card>
-      
-         )}
-        </>
+      )}
+    </Card>
+    
     );
 };
 

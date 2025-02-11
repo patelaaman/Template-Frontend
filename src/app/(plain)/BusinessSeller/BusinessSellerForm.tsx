@@ -682,19 +682,6 @@ const BusinessSellerForm = () => {
     "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", 
     "Yemen", "Zambia", "Zimbabwe"
   ];
-
-
-
-
-
-
-
-
-
-
-
-
-
   const fetchUser = async () => {
     try {
       const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
@@ -730,21 +717,6 @@ const BusinessSellerForm = () => {
   })
 
   console.log("OwnerImage iiiiiiiiiii---------" , profile.profileImgUrl )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const [formData, setFormData] = useState({
     // Basic Information
     businessName: '',

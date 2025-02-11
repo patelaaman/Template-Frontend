@@ -1,6 +1,3 @@
-
-import PasswordFormInput from '@/components/form/PasswordFormInput'
-import PasswordStrengthMeter from '@/components/PasswordStrengthMeter'
 import { currentYear, developedBy, developedByLink } from '@/context/constants'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Link } from 'react-router-dom'
@@ -8,27 +5,26 @@ import { useEffect, useState } from 'react'
 import { Button } from 'react-bootstrap'
 import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
+import TextFormInput from '@/components/form/TextFormInput'
 
 const ForgotPassForm = () => {
-  const [firstPassword, setFirstPassword] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
 
   const forgotPassSchema = yup.object({
-    password: yup.string().required('Please enter your password'),
+    email : yup.string().required('Please enter your Email'),
   })
   const { control, handleSubmit, watch, getValues } = useForm({
     resolver: yupResolver(forgotPassSchema),
   })
 
   useEffect(() => {
-    setFirstPassword(getValues().password)
-  }, [watch('password')])
+    setEmail(getValues().email)
+  }, [watch('email')])
+  // console.log(email);
   return (
     <form className="mt-3" onSubmit={handleSubmit(() => {})}>
       <div className="mb-3">
-        <PasswordFormInput name="password" control={control} size="lg" placeholder="Enter Your Email Address" />
-        <div className="mt-2">
-          <PasswordStrengthMeter password={firstPassword} />
-        </div>
+        <TextFormInput name="email" control={control} type='string' placeholder="Enter Your Email Address" />
       </div>
       <div className="mb-3">
         <p>

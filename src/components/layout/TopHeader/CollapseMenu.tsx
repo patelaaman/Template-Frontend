@@ -102,7 +102,7 @@ const CollapseMenu = ({ isSearch }: { isSearch?: boolean }) => {
                         href={`/profile/feed/${result.id}`}
                         role="button" 
                         tabIndex={0} 
-                        onClick={() => handleNavigation(result.id)}
+                        // onClick={() => handleNavigation(result.id)}
                         key={result?.id} 
                         className="d-flex align-items-center p-2 cursor-pointer"
                       >

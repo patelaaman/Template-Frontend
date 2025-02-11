@@ -589,15 +589,6 @@ const PostModal = ({
                   <Repeat size={16} />
                   {/* <span>Repost</span> */}
                 </Button>
-            {/* {
-              <RepostModal
-                isOpen={showRepostOp}
-                onClose={() => setShowRepostOp(false)}
-                authorName={userInfo?.firstName}
-                item={item}
-                isCreated={isCreated}
-                setIsCreated={setIsCreated}
-              />} */}
               <Button
                 onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
                 variant="ghost"

@@ -274,37 +274,44 @@ const Messaging = () => {
   }, [page])
 
   const fetchMessages = useCallback(async () => {
-    if (!selectedUser) return
-    setIsLoading(true)
-
+    if (!selectedUser) return;
+    setIsLoading(true);
+  
     try {
       const response = await makeApiRequest<{ data: { messages: ChatMessageType[]; total: number } }>({
-        method: 'POST',
-        url: 'api/v1/chat/get-messages-user-wise',
+        method: "POST",
+        url: "api/v1/chat/get-messages-user-wise",
         data: {
           senderId: user?.id,
           receiverId: selectedUser.userId,
           page,
           limit: 100,
         },
-      })
+      });
+  
       if (response?.data?.messages) {
         if (response.data.total === 0) {
-          setHasMore(false)
+          setHasMore(false);
         } else {
-          const sortedMessages = response.data.messages.sort((a, b) => new Date(a.sentOn).getTime() - new Date(b.sentOn).getTime())
+          const sortedMessages = [...response.data.messages] // Ensure a new array
+            .sort((a, b) => new Date(a.sentOn).getTime() - new Date(b.sentOn).getTime())
+            .reverse(); // Reverse immediately
+  
+          // console.log("Final reversed messages:", sortedMessages);
+  
           setUserMessages((prevMessages) => ({
             ...prevMessages,
-            [selectedUser.userId]: sortedMessages.reverse(),
-          }))
+            [selectedUser.userId]: sortedMessages,
+          }));
         }
       }
     } catch (error) {
-      console.error('Error fetching messages:', error)
+      console.error("Error fetching messages:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [selectedUser?.userId, page, user])
+  }, [selectedUser?.userId, page, user]);
+  
 
   const sendChatMessage = async (values, chatUser) => {
     // console.log('values', values)

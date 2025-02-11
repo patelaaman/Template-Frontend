@@ -101,7 +101,6 @@ const AppRouter = (props: RouteProps) => {
       socket.emit("userOffline", user?.id); // Mark user as offline
       // socket.emit("userOffline", user?.id); // Mark user as offline
     };
-
     // Add 'beforeunload' event listener to handle tab closure
     window.addEventListener('beforeunload', handleBeforeUnload);
 

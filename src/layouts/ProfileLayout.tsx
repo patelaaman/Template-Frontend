@@ -55,6 +55,7 @@ import Followers from '@/app/(social)/feed/(container)/home/components/Followers
 import { set } from 'react-hook-form'
 import { LIVE_URL } from '@/utils/api';
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page';
+import ImageZoom from '@/components/cards/ImageZoom';
 
 const Experience = () => {
   return null;
@@ -254,70 +255,80 @@ export const ConnectionRequest = () => {
   }
 
   return (
-    <Card className="rounded">
-  {allFollowers.length === 0 ? (
-    <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-      <div className="text-center">
-        <p className="mb-0" style={{ fontSize: '1.25rem', fontWeight: '600', color: '#6c757d', opacity: '0.8' }}>
-          No connection requests found
-        </p>
-        <p className="small text-muted">
-          It looks like you have no new connection requests at the moment.
-        </p>
-      </div>
-    </div>
-  ) : (
-    <CardBody>
-      {allFollowers.map((follower, idx) => (
-        <div 
-          key={idx} 
-          className={`p-3 d-flex align-items-center ${idx === allFollowers.length - 1 ? '' : 'border-bottom'}`}
-        >
-          <div className="avatar me-3">
-            <span role="button">
-              <img
-                className="avatar-img rounded-circle"
-                src={follower.profilePictureUploadUrl || avatar7}
-                alt={`${follower?.requesterDetails?.firstName} ${follower?.requesterDetails?.lastName}`}
-                style={{ width: "50px", height: "50px", objectFit: "cover" }}
-              />
-            </span>
-          </div>
-          <div className="flex-grow-1">
-            <h6 className="mb-1">
-              <Link className="text-dark fw-semibold text-decoration-none" to="">
-                {follower?.requesterDetails?.firstName} {follower?.requesterDetails?.lastName}
-              </Link>
-            </h6>
-            <p className="small text-muted mb-1">{follower?.requesterDetails?.userRole}</p>
-          </div>
-          <div className="ms-auto d-flex">
-            <Button
-              onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'rejected')}
-              variant="outline-danger"
-              size="sm"
-              className="me-2"
-              disabled={loadingStates[follower?.requesterDetails?.id] === 'rejected'}
-              style={{ minWidth: '120px', transition: "0.2s ease-in-out", fontSize: '15px' }}
-            >
-              {loadingStates[follower?.requesterDetails?.id] === 'rejected' ? <Loading size={15} loading={true} /> : "Decline"}
-            </Button>
-            <Button
-              onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'accepted')}
-              variant="success"
-              size="sm"
-              className="text-white"
-              disabled={loadingStates[follower?.requesterDetails?.id] === 'accepted'}
-              style={{ minWidth: '120px', transition: "0.2s ease-in-out" }}
-            >
-              {loadingStates[follower?.requesterDetails?.id] === 'accepted' ? <Loading size={15} loading={true} /> : "Approve"}
-            </Button>
-          </div>
+    <Card className="border-0 shadow-sm">
+    <CardHeader className="bg-light text-dark d-flex align-items-center">
+      <CardTitle className="mb-0 fw-semibold fs-5">
+        Total Request Received: {allFollowers.length}
+      </CardTitle>
+    </CardHeader>
+    {allFollowers.length === 0 ? (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
+        <div className="text-center">
+          <p className="mb-0 text-muted fw-semibold" style={{ fontSize: '1.25rem', opacity: '0.8' }}>
+            No follower requests found
+          </p>
+          <p className="small text-muted">
+            It looks like you have no new follower requests at the moment.
+          </p>
         </div>
-      ))}
-    </CardBody>
-  )}
-</Card>
+      </div>
+    ) : (
+      <CardBody className="p-0">
+        {allFollowers.map((follower, idx) => (
+          <div 
+            key={idx} 
+            className={`p-3 d-flex align-items-center bg-white ${idx !== allFollowers.length - 1 ? 'border-bottom' : ''}`}
+          >
+            {/* Profile Image */}
+            <div className="avatar me-3">
+              <span role="button">
+                <img
+                  className="avatar-img rounded-circle border"
+                  src={follower.profilePictureUploadUrl || avatar7}
+                  alt={`${follower?.requesterDetails?.firstName} ${follower?.requesterDetails?.lastName}`}
+                  style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                />
+              </span>
+            </div>
+  
+            {/* User Info */}
+            <div className="flex-grow-1">
+              <h6 className="mb-1">
+                <Link className="text-dark fw-semibold text-decoration-none" to="">
+                  {follower?.requesterDetails?.firstName} {follower?.requesterDetails?.lastName}
+                </Link>
+              </h6>
+              <p className="small text-muted mb-0">{follower?.requesterDetails?.userRole}</p>
+            </div>
+  
+            {/* Buttons */}
+            <div className="ms-auto d-flex">
+              <Button
+                onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'rejected')}
+                variant="outline-danger"
+                size="sm"
+                className="me-2"
+                disabled={loadingStates[follower?.requesterDetails?.id] === 'rejected'}
+                style={{ minWidth: '120px', fontSize: '15px' }}
+              >
+                {loadingStates[follower?.requesterDetails?.id] === 'rejected' ? <Loading size={15} loading={true} /> : "Decline"}
+              </Button>
+              <Button
+                onClick={() => handleStatusUpdate(follower?.requesterDetails?.id, 'accepted')}
+                variant="success"
+                size="sm"
+                className="text-white"
+                disabled={loadingStates[follower?.requesterDetails?.id] === 'accepted'}
+                style={{ minWidth: '120px' }}
+              >
+                {loadingStates[follower?.requesterDetails?.id] === 'accepted' ? <Loading size={15} loading={true} /> : "Approve"}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </CardBody>
+    )}
+  </Card>  
 
   );
 };
@@ -358,7 +369,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
   }, [user?.id, msg, count, skeletonLoading]); 
 
   
-
+  console.log('---This is the status---',profile.connectionsStatus);
   // useEffect(() => {
   //   if(hasMount.current)  {window.location.reload()}
   //   hasMount.current = true
@@ -552,7 +563,6 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
       parentKey: 'pages-profile',
     },
   ]
-
   return (
     <div style={{}}>
     <ToastContainer />
@@ -629,26 +639,15 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                         {skeletonLoading ? (
                           <Skeleton circle width={120} height={120} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
                         ) : (
-                          <div
-                          onClick={() => {if(user?.id === id)setShowModal(true)}}
-                          style={{
-                            border : '3px solid white',
-                            width: "120px",
-                            height: "120px",
-                            borderRadius: "50%",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <Image
-                            src={profile.profileImgUrl || avatar7} // Replace with your actual image source
-                            alt="Profile"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              transform: `scale(${(profile?.personalDetails?.zoomProfile || 50)  / 50}) rotate(${(profile?.personalDetails?.rotateProfile || 50) - 50}deg)`,
-                            }}
-                          />
-                        </div>
+                          
+                          <ImageZoom
+                            src={profile.profileImgUrl || avatar7}
+                            width={'120px'}
+                            height={'120px'}
+                            zoom={profile?.personalDetails?.zoomProfile}
+                            rotate={profile?.personalDetails?.rotateProfile}
+                           />
+                      
                         )}
                       </div>
                     </div>
@@ -690,7 +689,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
       : user.country}{' '}
     {profile?.personalDetails?.permanentAddress?.state}
   </li>
-</ul>
+                      </ul>
                     </div>
 
                     {/* Action Buttons */}
@@ -706,12 +705,15 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                         </>
                       ) : !profile.connectionsStatus ? (
                         <>
-                          {!sent && (
+                          { (
                             <Button
-                              variant={sent ? 'success-soft' : 'primary-soft'}
+                              variant={sent ? 'success-soft' : 'success-soft'}
                               className="me-2"
                               type="button"
-                              onClick={() => UserRequest(profile?.personalDetails?.id)}
+                              onClick={() => {
+                                UserRequest(profile?.personalDetails?.id)
+                                setSent(true);
+                              }}
                               disabled={loading || sent}>
                               {loading ? (
                                 <Loading size={15} loading={true} />
@@ -736,8 +738,9 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                                 : profile.connectionsStatus === 'rejected'
                                   ? 'danger-soft'
                                   : 'secondary-soft'}
-                            className="me-2"
-                            type="button">
+                              className="me-2"
+                              type="button"
+                            >
                             {profile.connectionsStatus === 'accepted' ? (
                               <>
                                 <MessageCircleMore className="me-2 text-success" /> Send Message
@@ -748,32 +751,6 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                           </Button>
                         </>
                       )}
-
-                      {/* <Dropdown>
-                        <DropdownToggle
-                          as="a"
-                          className="icon-md btn btn-light content-none"
-                          id="profileAction2"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false">
-                          <BsThreeDots />
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-end" aria-labelledby="profileAction2">
-                          <DropdownItem>
-                            <BsBookmark size={22} className="fa-fw pe-2" /> Share profile in a message
-                          </DropdownItem>
-                          <DropdownItem>
-                            <BsFileEarmarkPdf size={22} className="fa-fw pe-2" /> Save your profile to PDF
-                          </DropdownItem>
-                          <DropdownItem>
-                            <BsLock size={22} className="fa-fw pe-2" /> Lock profile
-                          </DropdownItem>
-                          <hr className="dropdown-divider" />
-                          <DropdownItem>
-                            <BsGear size={22} className="fa-fw pe-2" /> Profile settings
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown> */}
                     </div>
                   </div>
                   {/* Profile Details */}
