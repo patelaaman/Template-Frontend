@@ -257,7 +257,7 @@ export const ConnectionRequest = () => {
     <Card className="border-0 shadow-sm">
     <CardHeader className="bg-light text-dark d-flex align-items-center">
       <CardTitle className="mb-0 fw-semibold fs-5">
-        Total Followers: {allFollowers.length}
+        Total Request Received: {allFollowers.length}
       </CardTitle>
     </CardHeader>
     {allFollowers.length === 0 ? (

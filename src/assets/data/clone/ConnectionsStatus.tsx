@@ -127,7 +127,7 @@ const ConnectionsStatus = () => {
       <Card className="border-0 shadow-sm">
       <CardHeader className="bg-light text-dark d-flex align-items-center">
         <CardTitle className="mb-0 fw-semibold fs-5">
-          Total Requests: {allConnections.length}
+          Total Requests Sent: {allConnections.length}
         </CardTitle>
       </CardHeader>
       {allConnections.length === 0 ? (

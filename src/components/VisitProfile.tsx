@@ -11,7 +11,7 @@ import { FaEye, FaUserAlt } from 'react-icons/fa'
 import { LIVE_URL } from '@/utils/api'
 
 export const formatTimestamp = (createdAt: Date): string => {
-  console.log('createdAt:', createdAt)
+  // console.log('createdAt:', createdAt)
   const now = Date.now()
   const createdTime = new Date(createdAt).getTime()
   const secondsAgo = Math.floor((now - createdTime) / 1000)
@@ -56,6 +56,7 @@ const ProfileVisits = () => {
 
         if (response.ok) {
           const data = await response.json()
+          console.log(data,"hola_______")
           setVisits(data?.data || [])
         } else {
           console.error('Failed to fetch profile visits')
@@ -159,7 +160,7 @@ const ProfileVisits = () => {
                             <span className="badge text-success small">{visit.visitCount}</span>
                           </h6>
                           <p className="mb-0 text-muted">{visit.visitor.userRole}</p>
-                          <p className="mb-0 text-muted">{formattedDate}</p> {/* Formatted Time Ago */}
+                          <p className="mb-0 text-muted">{visit.visitor.visitedAt}</p> {/* Formatted Time Ago */}
                         </div>
                       </Link>
                       <div className="d-flex align-items-center">
