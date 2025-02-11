@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash } from 'react-icons/bs';
 import { MdComment, MdThumbUp } from "react-icons/md";
-import { Link, useNavigate } from 'react-router-dom';
-import { Copy, MessageSquare, Repeat, Share, ThumbsUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Copy, EyeOff, MessageSquare, Repeat, Share, ThumbsUp } from 'lucide-react';
 import { Button, ButtonGroup, Card, CardBody, CardFooter, CardHeader, Image } from 'react-bootstrap';
 import CommentItem from './components/CommentItem';
 import LoadContentButton from '../LoadContentButton';
@@ -24,7 +24,7 @@ import LinkPreview from '@ashwamegh/react-link-preview'
 // If you're using built in layout, you will need to import this css
 import '@ashwamegh/react-link-preview/dist/index.css'
 import LikeListModal from './components/LikeListModal';
-import formatContent from './components/ContentFormating';
+import FormatContent from './components/ContentFormating';
 export interface Like {
   id: string;
   occupation: string;
@@ -71,6 +71,8 @@ export interface Post {
   repostedFrom?: string;
   repostText?: string;
   likeStatus: boolean;
+  originalPostedAt? : string;
+  createdAt : string;
 }
 export interface UserDetails {
   postedId: string;
@@ -105,12 +107,12 @@ const PostCard = ({
   isCreated,
   setIsCreated
 }:
-  {
-    item: PostSchema;
-    profile: UserProfile;
-    isCreated: boolean;
-    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
-  }) => {
+{
+  item: PostSchema;
+  profile: UserProfile;
+  isCreated: boolean;
+  setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
   //  console.log('---profile in post card---',profile);
   const [comments, setComments] = useState<[]>([]);
   const [commentText, setCommentText] = useState('');
@@ -557,28 +559,27 @@ const PostCard = ({
     });
     return processedText;
   };
-
+  if(isDeleted) return null;
   if (isRepostWithText()) {
     return (
-      isDeleted ? null :
-        <Card className="mb-4">
-          <LikeListModal
-            isOpen={showList}
-            onClose={() => setShowList(false)}
-            likes={allLikes}
-          />
-          <CardHeader className="border-0 pb-0">
-            <div className="d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center">
-                <div className="avatar me-2">
-                  <Link to={`/profile/feed/${post?.userId}`} role="button">
-                    <div
-                      style={{
-                        border: '3px solid white',
-                        width: "55px",
-                        height: "55px",
-                        borderRadius: "50%",
-                        overflow: "hidden",
+      <Card className="mb-4">
+        <LikeListModal
+          isOpen={showList}
+          onClose={() => setShowList(false)}
+          likes={allLikes}
+        />
+        <CardHeader className="border-0 pb-0">
+          <div className="d-flex align-items-center justify-content-between">
+            <div className="d-flex align-items-center">
+              <div className="avatar me-2">
+                <Link to={`/profile/feed/${post?.userId}`} role="button">
+                  <div
+                    style={{
+                      border: '3px solid white',
+                      width: "55px",
+                      height: "55px",
+                      borderRadius: "50%",
+                      overflow: "hidden",
 
                       }}
                     >
@@ -642,74 +643,96 @@ const PostCard = ({
                 </div>
               </div>
 
-              {
-                post.userId === user?.id &&
-
-                <div style={{ position: "relative" }}>
-                  <button
-                    className="btn btn-link p-0 text-dark"
-                    style={{ fontSize: "1.5rem", lineHeight: "1", marginTop: '-25px', marginRight: '15px' }}
-                    onClick={() => setMenuVisible(!menuVisible)}
-                  >
-                    <BsThreeDots />
-                  </button>
-                  {menuVisible && (
-                    <div
-                      className="dropdown-menu show"
-                      style={{
-                        position: "absolute",
-                        top: "100%",
-                        right: 0,
-                        zIndex: 1000,
-                        display: "block",
-                        backgroundColor: "white",
-                        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                        borderRadius: "0.25rem",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <button
-                        className="dropdown-item text-danger d-flex align-items-center"
-                        onClick={() => handleDeletePost(post?.Id)}
-                        style={{ gap: "0.5rem" }}
-                      >
-                        <BsTrash /> Delete Post
-                      </button>
-                    </div>
-                  )}
-                </div>
-              }
-            </div>
-          </CardHeader>
-          <CardBody>
-            {post?.repostText && (
-              <div className="mb-1 p-1 bg-gray-100 rounded-lg">
-                <div
-                  id={post.Id}
-                  className="w-full"
-                  style={{
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word',
-                    lineHeight: '19px',
-                    color: 'black',
-                    fontSize: '16px',
-                    // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
-                    maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
-                    overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
-                  }}
+            {
+              <div style={{ position: "relative" }}>
+                <button
+                  className="btn btn-link p-0 text-dark"
+                  style={{ fontSize: "1.5rem", lineHeight: "1", marginTop: '-25px', marginRight: '15px' }}
+                  onClick={() => setMenuVisible(!menuVisible)}
                 >
-                  {formatContent(post.repostText)}
-                </div>
-                {!isExpanded && post.repostText.length > 230 && (
-                  <span
-                    className="text-blue-500 mt-1 cursor-pointer"
-                    onClick={() => setIsExpanded(true)}
+                  <BsThreeDots />
+                </button>
+                {menuVisible && (
+                  <>
+                 { post.userId === user?.id && <div
+                    className="dropdown-menu show"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 1000,
+                      display: "block",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "0.25rem",
+                      overflow: "hidden",
+                    }}
                   >
-                    ...read more
-                  </span>
+                    <button
+                      className="dropdown-item text-danger d-flex align-items-center"
+                      onClick={() => handleDeletePost(post?.Id)}
+                      style={{ gap: "0.5rem" }}
+                    >
+                      <BsTrash /> Delete Post
+                    </button>
+                  </div> }
+                  { post.userId !== user?.id && <div
+                    className="dropdown-menu show"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 1000,
+                      display: "block",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "0.25rem",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      className="dropdown-item text-danger d-flex align-items-center"
+                      onClick={() => handleDeletePost(post?.Id)}
+                      style={{ gap: "0.5rem" }}
+                    >
+                      <EyeOff /> Hide Post
+                    </button>
+                  </div> }
+                  </>
                 )}
               </div>
-            )}
+            }
+          </div>
+        </CardHeader>
+        <CardBody>
+          {post?.repostText && (
+            <div className="mb-1 p-1 bg-gray-100 rounded-lg">
+              <div
+                id={post.Id}
+                className="w-full"
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  lineHeight: '19px',
+                  color: 'black',
+                  fontSize: '16px',
+                  // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
+                  maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
+                  overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
+                }}
+              >
+                {<FormatContent content={post.repostText}  />}
+              </div>
+              {!isExpanded && post.repostText.length > 230 && (
+                <span
+                  className="text-blue-500 mt-1 cursor-pointer"
+                  onClick={() => setIsExpanded(true)}
+                >
+                  ...read more
+                </span>
+              )}
+            </div>
+          )}
 
             <Card className="mb-4">
               <CardHeader className="border-0 pb-0">
@@ -740,84 +763,84 @@ const PostCard = ({
 
                       </Link>
 
-                    </div>
-                    <div>
-                      <div className="nav nav-divider">
-                        <h6
-                          className="nav-item card-title mb-0"
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            flexDirection: "column",
-                          }}
-                        >
-                          <Link to={`/profile/feed/${post?.repostedFrom}`} role="button" className="nav-item text-start mx-3">
-                            {repostProfile?.personalDetails?.firstName} {repostProfile?.personalDetails?.lastName}
-                          </Link>
-                          <div style={{ flex: 1, flexDirection: 'row' }}>
-                            <span className="small mx-3" style={{ color: "#8b959b" }}>
-                              {/* {console.log(post, '---userInfo---')} */}
-                              {/* {userInfo?.userRole ? userInfo?.userRole : null} */}
-                              {repostProfile?.personalDetails?.userRole}
-                              <span className='mx-2'></span>
-                            </span>
-                            <span className="nav-item small mx-3" style={{ color: "#8b959b" }}>
-                              {userInfo?.timestamp}
-                              <span
-                                className='nav-item small'
-                                style={{
-                                  borderRadius: '100%',
-                                  width: '3px', // Adjust size of the dot as needed
-                                  height: '3px', // Adjust size of the dot as needed
-                                  backgroundColor: '#8b959b',
-                                  marginLeft: '8px', // Space between dot and icon
-                                }}
-                              />
-                              <FaGlobe
-                                style={{
-                                  color: '#8b959b', // Adjust the color of the globe icon as needed
-                                  fontSize: '12px', // Adjust the size of the globe icon as needed
-                                  marginLeft: '6px', // Space between dot and icon
-                                }}
-                              />
-                            </span>
-                          </div>
-                        </h6>
-                      </div>
+                  </div>
+                  <div>
+                    <div className="nav nav-divider">
+                      <h6
+                        className="nav-item card-title mb-0"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <Link to={`/profile/feed/${post?.repostedFrom}`} role="button" className="nav-item text-start mx-3">
+                          {repostProfile?.personalDetails?.firstName} {repostProfile?.personalDetails?.lastName}
+                        </Link>
+                        <div style={{ flex: 1, flexDirection: 'row' }}>
+                          <span className="small mx-3" style={{ color: "#8b959b" }}>
+                            {/* {console.log(post, '---userInfo---')} */}
+                            {/* {userInfo?.userRole ? userInfo?.userRole : null} */}
+                            {repostProfile?.personalDetails?.userRole}
+                            <span className='mx-2'></span>
+                          </span>
+                          <span className="nav-item small mx-3" style={{ color: "#8b959b" }}>
+                            {post?.originalPostedAt}
+                            <span
+                              className='nav-item small'
+                              style={{
+                                borderRadius: '100%',
+                                width: '3px', // Adjust size of the dot as needed
+                                height: '3px', // Adjust size of the dot as needed
+                                backgroundColor: '#8b959b',
+                                marginLeft: '8px', // Space between dot and icon
+                              }}
+                            />
+                            <FaGlobe
+                              style={{
+                                color: '#8b959b', // Adjust the color of the globe icon as needed
+                                fontSize: '12px', // Adjust the size of the globe icon as needed
+                                marginLeft: '6px', // Space between dot and icon
+                              }}
+                            />
+                          </span>
+                        </div>
+                      </h6>
                     </div>
                   </div>
                 </div>
-              </CardHeader>
-              <CardBody>
-                {post?.content && (
-                  <div className="mb-1 p-1 bg-gray-100 rounded-lg">
-                    <div
-                      id={post.Id}
-                      className="w-full"
-                      style={{
-                        whiteSpace: 'pre-wrap',
-                        wordWrap: 'break-word',
-                        lineHeight: '19px',
-                        color: 'black',
-                        fontSize: '16px',
-                        // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
-                        maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
-                        overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
-                      }}
-                    >
-                      {formatContent(post.content)}
-                    </div>
-                    {!isExpanded && post.content.length > 230 && (
-                      <span
-                        className="text-blue-500 mt-1 cursor-pointer"
-                        onClick={() => setIsExpanded(true)}
-                      >
-                        ...read more
-                      </span>
-                    )}
+              </div>
+            </CardHeader>
+            <CardBody>
+              {post?.content && (
+                <div className="mb-1 p-1 bg-gray-100 rounded-lg">
+                  <div
+                    id={post.Id}
+                    className="w-full"
+                    style={{
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                      lineHeight: '19px',
+                      color: 'black',
+                      fontSize: '16px',
+                      // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
+                      maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
+                      overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
+                    }}
+                  >
+                    {<FormatContent content={post.content}  />}
                   </div>
-                )}
+                  {!isExpanded && post.content.length > 230 && (
+                    <span
+                      className="text-blue-500 mt-1 cursor-pointer"
+                      onClick={() => setIsExpanded(true)}
+                    >
+                      ...read more
+                    </span>
+                  )}
+                </div>
+              )}
 
 
 
@@ -971,7 +994,7 @@ const PostCard = ({
                     padding: "5px 10px",
                   }}
                   rows={1}
-                  placeholder="Add a comment... sachin"
+                  placeholder="Add a comment..."
                   value={commentText}
                   onChange={handleChange}
                   onKeyDown={(e) => {
@@ -1048,29 +1071,28 @@ const PostCard = ({
   }
 
   return (
-    isDeleted ? null :
-      <>
-        <Card className="mb-4">
-          <LikeListModal
-            isOpen={showList}
-            onClose={() => setShowList(false)}
-            likes={allLikes}
-          />
-          <CardHeader className="border-0 pb-0">
-            {(post.repostedFrom && close) &&
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "8px 12px",
-                  }}
-                >
-                  {/* Left Section: Avatar and Name */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: '-10px' }}>
-                    {/* Avatar */}
-                    <Link to={`/profile/feed/${post?.userId}`} role="button" style={{ paddingBottom: '3px', paddingRight: '4px' }}>
+    <>
+      <Card className="mb-4">
+        <LikeListModal
+          isOpen={showList}
+          onClose={() => setShowList(false)}
+          likes={allLikes}
+        />
+        <CardHeader className="border-0 pb-0">
+          {(post.repostedFrom && close) &&
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 12px",
+                }}
+              >
+                {/* Left Section: Avatar and Name */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: '-10px' }}>
+                  {/* Avatar */}
+                  <Link to={`/profile/feed/${post?.userId}`} role="button" style={{ paddingBottom: '3px', paddingRight: '4px' }}>
 
                       <div
                         style={{
@@ -1135,28 +1157,52 @@ const PostCard = ({
                         <BsThreeDots />
                       </button>
                       {menuVisible && (
-                        <div
-                          className="dropdown-menu show"
-                          style={{
-                            position: "absolute",
-                            top: "100%",
-                            right: 0,
-                            zIndex: 1000,
-                            display: "block",
-                            backgroundColor: "white",
-                            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                            borderRadius: "0.25rem",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {<button
-                            className="dropdown-item text-danger d-flex align-items-center"
-                            onClick={() => handleDeletePost(post?.Id)}
-                            style={{ gap: "0.5rem" }}
-                          >
-                            <BsTrash /> Delete Post
-                          </button>}
-                        </div>
+                  <>
+                 { post.userId === user?.id && <div
+                    className="dropdown-menu show"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 1000,
+                      display: "block",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "0.25rem",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      className="dropdown-item text-danger d-flex align-items-center"
+                      onClick={() => handleDeletePost(post?.Id)}
+                      style={{ gap: "0.5rem" }}
+                    >
+                      <BsTrash /> Delete Post
+                    </button>
+                  </div> }
+                  { post.userId !== user?.id && <div
+                    className="dropdown-menu show"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 1000,
+                      display: "block",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "0.25rem",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      className="dropdown-item text-danger d-flex align-items-center"
+                      onClick={() => handleDeletePost(post?.Id)}
+                      style={{ gap: "0.5rem" }}
+                    >
+                      <EyeOff /> Hide Post
+                    </button>
+                  </div> }
+                  </>
                       )}
                     </div>
                   }
@@ -1228,7 +1274,7 @@ const PostCard = ({
               </div>
 
               {
-                post.userId === user?.id && !post.repostedFrom &&
+                
 
                 <div style={{ position: "relative" }}>
                   <button
@@ -1239,63 +1285,87 @@ const PostCard = ({
                     <BsThreeDots />
                   </button>
                   {menuVisible && (
-                    <div
-                      className="dropdown-menu show"
-                      style={{
-                        position: "absolute",
-                        top: "100%",
-                        right: 0,
-                        zIndex: 1000,
-                        display: "block",
-                        backgroundColor: "white",
-                        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                        borderRadius: "0.25rem",
-                        overflow: "hidden",
-                      }}
+                  <>
+                 { post.userId === user?.id && <div
+                    className="dropdown-menu show"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 1000,
+                      display: "block",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "0.25rem",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      className="dropdown-item text-danger d-flex align-items-center"
+                      onClick={() => handleDeletePost(post?.Id)}
+                      style={{ gap: "0.5rem" }}
                     >
-                      <button
-                        className="dropdown-item text-danger d-flex align-items-center"
-                        onClick={() => handleDeletePost(post?.Id)}
-                        style={{ gap: "0.5rem" }}
-                      >
-                        <BsTrash /> Delete Post
-                      </button>
-                    </div>
-                  )}
+                      <BsTrash /> Delete Post
+                    </button>
+                  </div> }
+                  { post.userId !== user?.id && <div
+                    className="dropdown-menu show"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      zIndex: 1000,
+                      display: "block",
+                      backgroundColor: "white",
+                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                      borderRadius: "0.25rem",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <button
+                      className="dropdown-item text-danger d-flex align-items-center"
+                      onClick={() => handleDeletePost(post?.Id)}
+                      style={{ gap: "0.5rem" }}
+                    >
+                      <EyeOff /> Hide Post
+                    </button>
+                  </div> }
+                  </>
+                      )}
                 </div>
               }
             </div>
           </CardHeader>
 
-          <CardBody>
-            {post?.content && (
-              <div className="mb-1 p-1 bg-gray-100 rounded-lg">
-                <div
-                  id={post.Id}
-                  className="w-full"
-                  style={{
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word',
-                    lineHeight: '19px',
-                    color: 'black',
-                    fontSize: '16px',
-                    // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
-                    maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
-                    overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
-                  }}
-                >
-                  {formatContent(post.content)}
-                </div>
-                {!isExpanded && post.content.length > 230 && (
-                  <span
-                    className="text-blue-500 mt-1 cursor-pointer"
-                    onClick={() => setIsExpanded(true)}
-                  >
-                    ...read more
-                  </span>
-                )}
+        <CardBody>
+          {post?.content && (
+            <div className="mb-1 p-1 bg-gray-100 rounded-lg">
+              <div
+                id={post.Id}
+                className="w-full"
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  lineHeight: '19px',
+                  color: 'black',
+                  fontSize: '16px',
+                  // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
+                  maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
+                  overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
+                }}
+              >
+                {<FormatContent content={post.content}  />}
               </div>
-            )}
+              {!isExpanded && post.content.length > 230 && (
+                <span
+                  className="text-blue-500 mt-1 cursor-pointer"
+                  onClick={() => setIsExpanded(true)}
+                >
+                  ...read more
+                </span>
+              )}
+            </div>
+          )}
 
 
             {media?.length > 0 && (

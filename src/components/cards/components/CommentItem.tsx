@@ -10,7 +10,7 @@ import ImageZoom from '../ImageZoom'
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
 import { GetAllLikesResponse, Like, Post } from '../PostCard'
 import LikeListModal from './LikeListModal'
-import formatContent from './ContentFormating'
+import FormatContent from './ContentFormating'
 
 interface DeleteCommentResponse {
   message: string
@@ -410,7 +410,7 @@ const CommentItem = ({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}>
-            {formatContent(comment.text)}
+            {<FormatContent content={comment.text}/>}
           </p>
 
           {/* Actions */}
