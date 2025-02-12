@@ -80,7 +80,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const [awsIds, setAwsIds] = useState<any>([])
   const [skeletonLoading, setSkeletonLoading] = useState(true)
   const { isTrue: isOpenPost, toggle: togglePost } = useToggle()
-  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
   const [profile, setProfile] = useState<UserProfile>({})
 
   useEffect(() => {
@@ -135,61 +134,73 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
 
 
 
-  // This function will be triggered when files are uploaded
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
+
   const handleFileUpload = (files: FileUpload[]) => {
-    setUploadedFiles([...files])
-  }
+    console.log('📸 Files received for upload:', files);
+    setUploadedFiles([...files]);
+  };
+  
+  
+
 
   const handleUpload = async () => {
     try {
-      const response = await uploadMulti(uploadedFiles, user?.id) 
-      return response
+      if (uploadedFiles.length === 0) {
+        toast.error('No Photos are Uploaded');
+        return null;
+      }
+      const mediaKeys = await uploadMulti(uploadedFiles, user?.id);
+      return mediaKeys.length > 0 ? mediaKeys : null;
     } catch (err) {
-      console.error('Error in the createpostcard:', err)
-      return false 
+      console.error('Error in handleUpload:', err);
+      return null;
     }
-  }
+  };
+  
 
   const handlePhotoSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      toast.error('No Photos are Uploaded');
+      toast.error("No Photos are Uploaded");
       return;
     }
+  
     setIsSubmittingPhoto(true);
-    const uploadSuccess = await handleUpload()
-
+  
     try {
-      if (uploadSuccess) {
+      const mediaKeys = await handleUpload();
+  
+      if (mediaKeys && mediaKeys.length > 0) {
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
-          method: 'POST',
+          method: "POST",
           url: CREATE_POST,
           data: {
             userId: user?.id,
             content: thoughts,
-            mediaKeys: uploadSuccess,
+            mediaKeys: mediaKeys, // Ensure correct mediaKeys are sent
           },
         });
-
+  
         if (response.data) {
-          toast.success('Post submitted successfully!'); 
-          setThoughts(''); 
+          toast.success("Post submitted successfully!");
+          setThoughts("");
           togglePhotoModel();
         }
       } else {
-        toast.error('Upload failed. Post not submitted.'); 
-        console.log('Upload failed. Post not submitted.');
+        toast.error("Upload failed. Post not submitted.");
+        console.log("Upload failed. Post not submitted.");
       }
     } catch (err) {
-      console.log('Error in the posting', err);
-      toast.error('Error in the posting. Please try again.'); 
-    }
-    finally {
-      setIsCreated(() => !isCreated);
+      console.log("Error in the posting", err);
+      toast.error("Error in the posting. Please try again.");
+    } finally {
+      setIsCreated(prev => !prev);
       setIsSubmittingPhoto(false);
       setUploadedFiles([]);
-      setThoughts('');
+      setThoughts("");
     }
-  }
+  };
+  
 
   const handleVideoSubmit = async () => {
     if (uploadedFiles.length === 0) {
@@ -581,7 +592,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
               onFileUpload={handleFileUpload}
               showPreview
               text="Drag here or click to upload photo."
-              uploadedFiles={uploadedFiles}
             />
           </div>
         </ModalBody>
@@ -661,8 +671,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
               icon={BsCameraReels}
               showPreview
               text="Drag here or click to upload video."
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={uploadedFiles}
             />
           </div>
         </ModalBody>

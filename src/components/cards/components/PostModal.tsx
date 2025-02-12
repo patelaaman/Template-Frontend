@@ -19,7 +19,6 @@ import "swiper/css/navigation";
 import { UtilType } from "./MediaGallery";
 import { toast } from "react-toastify";
 import RepostModal from "../RepostModal";
-
 const PostModal = ({
   show,
   handleClose,
@@ -28,8 +27,7 @@ const PostModal = ({
   profile,
   media,
   setShowRepostOp,
-  utils,
-  initialSlide = 0
+  utils
 }:
   {
     show: boolean;
@@ -40,8 +38,7 @@ const PostModal = ({
     media: string[];
     showRepostOp : boolean
     setShowRepostOp: React.Dispatch<React.SetStateAction<boolean>>
-    utils: UtilType;
-    initialSlide?: number;
+    utils: UtilType
   }) => {
   const { user } = useAuthContext();
   const post: Post = item?.post;
@@ -301,19 +298,6 @@ const PostModal = ({
       </span>
     </p>
   }
-
-  const [currentIndex, setCurrentIndex] = useState(initialSlide);
-
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % media.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? media.length - 1 : prevIndex - 1
-    );
-  };
-
   return (
     <Modal show={show} onHide={handleClose} size="xl" centered>
       <Modal.Body>
@@ -321,98 +305,118 @@ const PostModal = ({
           <Row>
             {/* Left Side - Post Image */}
             <Col md={7} className="p-0 position-relative">
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: "700px",
-          height: "600px",
-          backgroundColor: "#1b1f23",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-        }}
-      >
-        <img
-          src={media[currentIndex]}
-          alt={`Slide ${currentIndex}`}
-          style={{
-            width: "auto",
-            height: "auto",
-            maxWidth: "100%",
-            maxHeight: "100%",
-            objectFit: "contain",
-            zIndex: 7,
-            transition: "opacity 0.5s ease-in-out",
-          }}
-        />
-      </div>
+              <Swiper
+                modules={[Navigation]}
+                spaceBetween={10}
+                slidesPerView={1}
+                initialSlide={imageIndex}
+                onSwiper={(swiper) => {
+                  swiperRef.current = swiper;
+                  swiper.slideTo(imageIndex);
+                }}
+              // onSlideChange={(swiper) => {
+              //   // Force a re-render to update button visibility
+              //   setRefresh(prev => prev + 1);
+              // }}
+              >
+                {media.map((image, index) => (
+                  <SwiperSlide key={index} style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      maxWidth: "700px",
+                      height: "600px",
+                      backgroundColor: "#1b1f23",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden"
+                    }}
+                  >
+                    <img
+                      src={image}
+                      alt={`Slide ${index}`}
+                      style={{
+                        width: "auto",
+                        height: "auto",
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        objectFit: "contain",
+                        zIndex: 7
+                      }}
+                    />
+                  </div>
+                </SwiperSlide>
+                
+                ))}
+              </Swiper>
 
-      {/* Left Navigation Button */}
-      {media.length > 1 && (
-        <button
-          onClick={prevSlide}
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "10px",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            padding: "12px",
-            borderRadius: "50%",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            backdropFilter: "blur(8px)",
-            border: "1px solid rgba(255, 255, 255, 0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "background-color 0.3s ease",
-            cursor: "pointer",
-          }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)")
-          }
-          onMouseOut={(e) =>
-            (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)")
-          }
-        >
-          <ChevronLeft size={24} color="white" />
-        </button>
-      )}
+              {/* Left Navigation Button */}
+              {media.length > 1 && (
+                <button
+                  onClick={() => swiperRef.current?.slidePrev()}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '10px',
+                    transform: 'translateY(-50%)',
+                    zIndex: 10,
+                    padding: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  }}
+                >
+                  <ChevronLeft size={24} color="white" />
+                </button>
+              )}
 
-      {/* Right Navigation Button */}
-      {media.length > 1 && (
-        <button
-          onClick={nextSlide}
-          style={{
-            position: "absolute",
-            top: "50%",
-            right: "10px",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            padding: "12px",
-            borderRadius: "50%",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            backdropFilter: "blur(8px)",
-            border: "1px solid rgba(255, 255, 255, 0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "background-color 0.3s ease",
-            cursor: "pointer",
-          }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)")
-          }
-          onMouseOut={(e) =>
-            (e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)")
-          }
-        >
-          <ChevronRight size={24} color="white" />
-        </button>
-      )}
-    </Col>
+              {/* Right Navigation Button */}
+              {media.length > 1 &&   (
+                <button
+                  onClick={() => swiperRef.current?.slideNext()}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    right: '10px',
+                    transform: 'translateY(-50%)',
+                    zIndex: 10,
+                    padding: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255, 255, 255, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  }}
+                >
+                  <ChevronRight size={24} color="white" />
+                </button>
+              )}
+            </Col>
+
 
             {/* Right Side - Post Text Content */}
             <Col md={5} className="p-3 d-flex flex-column" style={{ overflowY: 'scroll', height: '600px' }}>
