@@ -232,7 +232,7 @@ const CommentItem = ({
   const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleCommentSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -404,15 +404,26 @@ const CommentItem = ({
           </div>
 
           <p
-            className="small mb-2"
-            style={{
-              whiteSpace: 'pre-wrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}>
-            {<FormatContent content={comment.text}/>}
-          </p>
-
+      className="small mb-2"
+      style={{
+        whiteSpace: 'pre-wrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      }}
+    >
+      <div style={{ display: isExpanded ? 'block' : '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: isExpanded ? 'none' : 3, overflow: 'hidden' }}>
+        <FormatContent content={comment.text} />
+      </div>
+      
+      {!isExpanded && comment.text.length > 100 && (
+        <span
+          onClick={() => setIsExpanded(true)}
+          style={{ color: '#0a66c2', fontWeight: '500', cursor: 'pointer', marginLeft: '5px' }}
+        >
+          Read More
+        </span>
+      )}
+    </p>
           {/* Actions */}
           <div className="d-flex align-items-center gap-3 small">
             <span role="button" className="text-primary d-flex align-items-center">
@@ -458,8 +469,8 @@ const CommentItem = ({
               <span role="button">
                 <ImageZoom
                   src={(myProfile && myProfile.profileImgUrl) || fallBackAvatar}
-                  zoom={myProfile?.personalDetails?.zoom}
-                  rotate={myProfile?.personalDetails?.rotate}
+                  zoom={myProfile?.personalDetails?.zoom || 50}
+                  rotate={myProfile?.personalDetails?.rotate || 50} 
                   width="35px"
                   height="35px"
                 />
