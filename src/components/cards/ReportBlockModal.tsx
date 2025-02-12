@@ -80,7 +80,7 @@ const ReportBlockModal = ({ show, handleClose }) => {
                 </p>
                 <textarea
                   className="input-box"
-                  rows="10"
+                  rows={10}
                   placeholder="Enter reason (optional)"
                   value={blockReason}
                   onChange={(e) => setBlockReason(e.target.value)}
@@ -90,8 +90,8 @@ const ReportBlockModal = ({ show, handleClose }) => {
                     className="cancel-btn"
                     onClick={handleClose}
                     style={{ transition: "background-color 0.3s" }}
-                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#d4d4d4")}
-                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#e4e6eb")}
+                    onMouseEnter={(e) => ((e.target as HTMLButtonElement).style.backgroundColor = "#d4d4d4")}
+                    onMouseLeave={(e) => ((e.target as HTMLButtonElement).style.backgroundColor = "#e4e6eb")}
                   >
                     Cancel
                   </button>
@@ -99,8 +99,8 @@ const ReportBlockModal = ({ show, handleClose }) => {
                     className="confirm-btn"
                     style={{ backgroundColor: "#007bff", color: "white", transition: "background-color 0.3s" }}
                     onClick={handleSubmit}
-                    onMouseEnter={(e) => (e.target.style.backgroundColor = "#0056b3")}
-                    onMouseLeave={(e) => (e.target.style.backgroundColor = "#007bff")}
+                    onMouseEnter={(e) => ((e.target as HTMLButtonElement).style.backgroundColor = "#0056b3")}
+                    onMouseLeave={(e) => ((e.target as HTMLButtonElement).style.backgroundColor = "#007bff")}
                   >
                     Block
                   </button>
@@ -125,7 +125,7 @@ const ReportBlockModal = ({ show, handleClose }) => {
                     </div>
                     <textarea
                         className="input-box mt-3"
-                        rows="2"
+                        rows={2}
                         placeholder="Additional details (optional)"
                         value={blockReason}
                         onChange={(e) => setBlockReason(e.target.value)}
@@ -144,7 +144,7 @@ const ReportBlockModal = ({ show, handleClose }) => {
           </div>
         </div>
       </div>
-      <style jsx>{`
+      <style>{`
         .custom-modal {
           display: ${show ? "flex" : "none"};
           justify-content: center;

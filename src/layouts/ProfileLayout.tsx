@@ -711,18 +711,18 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                         </Button>
                       </>
                     )}
-                  </div>
-                </div>
-                {user?.id !== id && (
+                     {user?.id !== id && (
                   <div>
                   <button
-                    className="btn btn-light border rounded-pill px-4 py-2 fw-semibold text-secondary"
+                    className="btn btn-light border px-4 py-2 fw-semibold text-secondary"
                     onClick={() => setModalOpen(true)}>
                     More
                   </button>
                   {modalOpen && <ReportBlockModal show={modalOpen} handleClose={() => setModalOpen(false)} />}
                   </div>
                 )}
+                  </div>
+                </div>
                 <ul className="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
                   <li className="list-inline-item">
                     {/* <BsBriefcase className="me-1" /> {profile?.personalDetails?.occupation ? profile?.personalDetails?.occupation.replace(/^entrepreneur$/i, 'Entrepreneur') : user.userRole.replace(/^entrepreneur$/i, 'Entrepreneur')} */}
