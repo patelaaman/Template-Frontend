@@ -22,6 +22,7 @@
     "axios": "^1.7.9",
     "axios-mock-adapter": "^1.22.0",
     "bootstrap": "^5.3.3",
+    "browser-image-compression": "^2.0.2",
     "buffer": "^6.0.3",
     "cache": "^3.0.0",
     "choices.js": "^10.2.0",
