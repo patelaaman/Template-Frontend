@@ -1,34 +1,37 @@
-import { useState } from 'react'
-import { Card, Col, FormLabel, FormText } from 'react-bootstrap'
+import React, { useState } from 'react'
 import Dropzone from 'react-dropzone'
+import imageCompression from 'browser-image-compression'
+import { toast } from 'react-toastify'
 import { BsUpload } from 'react-icons/bs'
 import { FaTimes } from 'react-icons/fa'
-import { toast } from 'react-toastify'
+import { FormLabel, FormText, Col, Card } from 'react-bootstrap'
 
-import imageCompression from "browser-image-compression";
-
+// File Upload Interface
 interface FileUpload {
-  key: string;
-  fileType: string;
-  fileObject: string;
-  documentType: "image" | "video";
-  documentName: string;
-  documentDescription: string;
-  fileSize: number;
-  preview?: string;
+  key: string
+  fileType: string
+  fileObject: string
+  documentType: 'image' | 'video'
+  documentName: string
+  documentDescription: string
+  fileSize: number
+  preview?: string
 }
 
+// Props for DropzoneFormInput
 type DropzoneFormInputProps = {
-  label?: string;
-  labelClassName?: string;
-  helpText?: string;
-  showPreview?: boolean;
-  icon?: React.ComponentType<any>;
-  iconProps?: React.ComponentProps<any>;
-  text?: string;
-  textClassName?: string;
-  onFileUpload?: (files: FileUpload[]) => void;
-};
+  label?: string
+  labelClassName?: string
+  helpText?: string
+  showPreview?: boolean
+  icon?: React.ComponentType<any>
+  iconProps?: React.ComponentProps<any>
+  text?: string
+  textClassName?: string
+  onFileUpload?: (files: FileUpload[]) => void
+}
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 
 const DropzoneFormInput = ({
   label,
@@ -41,98 +44,101 @@ const DropzoneFormInput = ({
   textClassName,
   onFileUpload,
 }: DropzoneFormInputProps) => {
-  const [selectedFiles, setSelectedFiles] = useState<FileUpload[]>([]);
-  const [alert, setAlert] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<FileUpload[]>([])
+  const [alert, setAlert] = useState('')
 
-  // Compress Image
-  const compressImage = async (file: File) => {
+  // Compress image
+  const compressImage = async (file: File): Promise<File> => {
     const options = {
-      maxSizeMB: 2, // Target size in MB
-      maxWidthOrHeight: 1920, // Resize dimensions
+      maxSizeMB: 1, // 1MB max size
+      maxWidthOrHeight: 1920,
       useWebWorker: true,
-    };
-
-    try {
-      const compressedFile = await imageCompression(file, options);
-      return compressedFile;
-    } catch (error) {
-      console.error("Image compression error:", error);
-      return file; // Return original if compression fails
     }
-  };
+    try {
+      return await imageCompression(file, options)
+    } catch (error) {
+      console.error('Image compression error:', error)
+      return file
+    }
+  }
 
-  // Handle file uploads
+  // Process uploaded files
   const handleAcceptedFiles = async (files: File[]) => {
-    if (files.length === 0) return;
+    if (files.length === 0) return
 
-    const validFiles = files.filter((file) => file.type.startsWith("image/") || file.type.startsWith("video/"));
+    const validFiles = files.filter(
+      (file) =>
+        (file.type.startsWith('image/') || file.type.startsWith('video/')) &&
+        file.size <= MAX_FILE_SIZE
+    )
+
+    if (validFiles.length !== files.length) {
+      toast.error('Only image and video files under 100MB are allowed.')
+      setAlert('Only image and video files under 100MB are allowed.')
+      return
+    }
 
     if (validFiles.length + selectedFiles.length > 10) {
-      toast.info("You can upload a maximum of 10 media files.");
-      setAlert("You can upload a maximum of 10 media files.");
-      return;
+      toast.info('You can upload a maximum of 10 media files.')
+      setAlert('You can upload a maximum of 10 media files.')
+      return
     }
 
-    const filePromises = validFiles.map(async (file) => {
-      if (file.size > 100 * 1024 * 1024) { // 100MB limit
-        toast.error(`File ${file.name} exceeds the 100MB limit.`);
-        return null;
-      }
+    const filePromises = validFiles.map(
+      (file) =>
+        new Promise<FileUpload>(async (resolve) => {
+          let processedFile = file
+          if (file.type.startsWith('image/')) {
+            processedFile = await compressImage(file)
+          }
 
-      let processedFile = file;
+          const reader = new FileReader()
+          reader.onloadend = () => {
+            resolve({
+              key: processedFile.name,
+              fileType: processedFile.type,
+              fileObject: reader.result as string,
+              documentType: processedFile.type.startsWith('image/') ? 'image' : 'video',
+              documentName: processedFile.name,
+              documentDescription: 'Uploaded media file',
+              fileSize: processedFile.size,
+              preview: processedFile.type.startsWith('image/') ? URL.createObjectURL(processedFile) : undefined,
+            })
+          }
+          reader.readAsDataURL(processedFile)
+        })
+    )
 
-      // Compress images if needed
-      if (file.type.startsWith("image/") && file.size > 2 * 1024 * 1024) { // Compress only if >2MB
-        processedFile = await compressImage(file);
-      }
-
-      return new Promise<FileUpload>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve({
-            key: processedFile.name,
-            fileType: processedFile.type,
-            fileObject: reader.result as string,
-            documentType: processedFile.type.startsWith("image/") ? "image" : "video",
-            documentName: processedFile.name,
-            documentDescription: "Uploaded media file",
-            fileSize: processedFile.size,
-            preview: processedFile.type.startsWith("image/") ? URL.createObjectURL(processedFile) : undefined,
-          });
-        };
-        reader.readAsDataURL(processedFile);
-      });
-    });
-
-    const uploadedFiles = (await Promise.all(filePromises)).filter(Boolean) as FileUpload[];
+    const uploadedFiles = await Promise.all(filePromises)
 
     // Remove duplicates based on file name
-    const uniqueFiles = [...selectedFiles, ...uploadedFiles.filter((newFile) => !selectedFiles.some((f) => f.key === newFile.key))];
+    const uniqueFiles = [
+      ...selectedFiles,
+      ...uploadedFiles.filter((newFile) => !selectedFiles.some((f) => f.key === newFile.key)),
+    ]
 
-    if (uniqueFiles.length < 1) {
-      toast.info("You must upload at least one media file.");
-      setAlert("You must upload at least one media file.");
-      return;
-    }
-
-    setSelectedFiles(uniqueFiles);
-    onFileUpload?.(uniqueFiles);
-  };
+    setSelectedFiles(uniqueFiles)
+    onFileUpload?.(uniqueFiles)
+  }
 
   // Remove file
   const removeFile = (file: FileUpload) => {
-    const updatedFiles = selectedFiles.filter((f) => f.key !== file.key);
-    setSelectedFiles(updatedFiles);
-    onFileUpload?.(updatedFiles);
-  };
+    const updatedFiles = selectedFiles.filter((f) => f.key !== file.key)
+    setSelectedFiles(updatedFiles)
+    onFileUpload?.(updatedFiles)
+  }
 
-  const Icon = icon ?? BsUpload;
+  const Icon = icon ?? BsUpload
 
   return (
     <>
       <FormLabel className={labelClassName}>{label}</FormLabel>
-      <p className="text-danger">{alert}</p>
-      <Dropzone onDrop={handleAcceptedFiles} maxFiles={10} accept={{ "image/*": [], "video/*": [] }}>
+      <p className='text-danger'>{alert}</p>
+      <Dropzone
+        onDrop={handleAcceptedFiles}
+        maxFiles={10}
+        accept={{ 'image/*': [], 'video/*': [] }}
+      >
         {({ getRootProps, getInputProps }) => (
           <div className="dropzone dropzone-custom cursor-pointer">
             <div className="dz-message" {...getRootProps()}>
@@ -148,7 +154,9 @@ const DropzoneFormInput = ({
                       {file.preview ? (
                         <img alt={file.documentName} src={file.preview} className="rounded bg-light w-100" />
                       ) : (
-                        <div className="rounded bg-light text-center">{file.documentType.toUpperCase()}</div>
+                        <div className="rounded bg-light text-center">
+                          {file.documentType.toUpperCase()}
+                        </div>
                       )}
                       <div className="mt-2">
                         <p className="mb-0 small">{(file.fileSize / 1024).toFixed(2)} KB</p>
@@ -169,9 +177,10 @@ const DropzoneFormInput = ({
           </div>
         )}
       </Dropzone>
+
       {helpText && <FormText>{helpText}</FormText>}
     </>
-  );
-};
+  )
+}
 
-export default DropzoneFormInput;
+export default DropzoneFormInput
