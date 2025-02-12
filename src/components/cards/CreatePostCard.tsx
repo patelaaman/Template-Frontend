@@ -118,22 +118,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     }
   }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    const options = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-    }
-    return date.toLocaleString('en-GB', options).replace(',', ' at')
-  }
-
-
-
   const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
 
   const handleFileUpload = (files: FileUpload[]) => {
