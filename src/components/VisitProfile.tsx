@@ -160,7 +160,7 @@ const ProfileVisits = () => {
                             <span className="badge text-success small">{visit.visitCount}</span>
                           </h6>
                           <p className="mb-0 text-muted">{visit.visitor.userRole}</p>
-                          <p className="mb-0 text-muted">{visit.visitor.visitedAt}</p> {/* Formatted Time Ago */}
+                          <p className="mb-0 text-muted">{visit.visitor.visitedAt}</p>
                         </div>
                       </Link>
                       <div className="d-flex align-items-center">
