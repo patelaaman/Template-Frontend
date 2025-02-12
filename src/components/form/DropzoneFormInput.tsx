@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Dropzone from 'react-dropzone'
+import Dropzone, { DropEvent, FileRejection } from 'react-dropzone'
 import imageCompression from 'browser-image-compression'
 import { toast } from 'react-toastify'
 import { BsUpload } from 'react-icons/bs'
@@ -138,6 +138,12 @@ const DropzoneFormInput = ({
         onDrop={handleAcceptedFiles}
         maxFiles={10}
         accept={{ 'image/*': [], 'video/*': [] }}
+        onDropRejected={() => {
+            toast.error("Cannot select more than 10 files");
+        }} 
+        // onError={() => {
+        //   toast.error("Cannont select more than 10 files");
+        // }}
       >
         {({ getRootProps, getInputProps }) => (
           <div className="dropzone dropzone-custom cursor-pointer">
