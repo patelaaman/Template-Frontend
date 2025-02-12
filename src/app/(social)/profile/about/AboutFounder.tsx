@@ -704,7 +704,7 @@ const StartupCard: React.FC<{ profile: StartupProfile }> = ({ profile }) => {
             padding: '12px 24px',
             fontWeight: '500'
           }}
-          onClick={() => navigate(`/profile/editfounder/${id}`)}
+          onClick={() => navigate(`/profile/editgeneral/${id}`)}
         >
           Edit Profile
         </button>

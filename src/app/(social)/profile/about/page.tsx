@@ -9,6 +9,7 @@ import AboutBusinessBuyer from './AboutBusinessBuyer'
 import AboutFounder from './AboutFounder'
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '@/context/useAuthContext'
+import AboutGeneral from './AboutGeneral'
 
 const Interests = () => {
   return (
@@ -99,7 +100,7 @@ const handledelete = async () => {
   useEffect(() => {
     const fetchSubrole = async () => {
       try {
-        const response = await fetch(`http://13.216.146.100/api/v1/subrole/get/${id}`);
+        const response = await fetch(`http://localhost:5000/v1/subrole/get/${id}`);
         console.log("----------" ,user?.id)
         const data = await response.json();
         console.log("-------ddd----------" , data.data.SubRole )
@@ -124,6 +125,7 @@ const handledelete = async () => {
       {subrole === "BusinessBuyer" && <AboutBusinessBuyer />}
       {subrole === "Investor" && <InvestorCards />}
       {subrole === "Founder" && <AboutFounder />}
+      {subrole ==="General" && <AboutGeneral></AboutGeneral>}
       {subrole === "BusinessSeller" && (
         <><div>
               <p>Business Seller</p>

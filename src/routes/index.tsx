@@ -8,6 +8,7 @@ import path from 'path'
 import EditAbout from '@/app/(social)/profile/about/EditAbout'
 import EditInvestor from '@/app/(social)/profile/about/EditInvestor'
 import EditFounder from '@/app/(social)/profile/about/EditFounder'
+import EditGeneral from '@/app/(social)/profile/about/EditGeneral'
 
 // profiles for seller //
 // const BusinessSeller = lazy(() => import('@/app/(plain)/BusinessSeller/BusinessSeller'))
@@ -344,6 +345,11 @@ export const profilePagesRoutes: RoutesProps[] = [
     path: '/profile/editfounder/:id', 
     name: 'Feed',
     element: <EditFounder></EditFounder>,
+  },
+  {
+    path: '/profile/editgeneral/:id', 
+    name: 'Feed',
+    element: <EditGeneral></EditGeneral>,
   },
   {
     path: '/profile/about/:id',
