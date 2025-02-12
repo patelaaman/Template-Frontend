@@ -22,7 +22,7 @@ const UserModel = () => {
     const { user } = useAuthContext();
 
     const schema = yup.object({
-        fName: yup.string().required('Please enter your first name').default('Sachin'),
+        fName: yup.string().required('Please enter your first name').default(''),
         lName: yup.string().required('Please enter your last name'),
         occupation: yup.string().required('Please enter your occupation'),
         dob: yup.date().required('Please enter your date of birth'),
