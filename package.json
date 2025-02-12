@@ -16,6 +16,7 @@
     "@emoji-mart/react": "^1.1.1",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.0",
+    "@shadcn/ui": "^0.0.4",
     "@types/swiper": "^5.4.3",
     "@zegocloud/zego-uikit-prebuilt": "^2.14.1",
     "@zegocloud/zego-uikit-prebuilt-live-streaming-rn": "^2.5.2",
