@@ -1,14 +1,16 @@
-import { useState } from 'react'
-import { Card, Col, FormLabel, FormText } from 'react-bootstrap'
+import React, { useState } from 'react'
 import Dropzone from 'react-dropzone'
+import imageCompression from 'browser-image-compression'
+import { toast } from 'react-toastify'
 import { BsUpload } from 'react-icons/bs'
 import { FaTimes } from 'react-icons/fa'
-import { toast } from 'react-toastify'
+import { FormLabel, FormText, Col, Card } from 'react-bootstrap'
 
+// File Upload Interface
 interface FileUpload {
   key: string
   fileType: string
-  fileObject: string // Base64 encoded content
+  fileObject: string
   documentType: 'image' | 'video'
   documentName: string
   documentDescription: string
@@ -16,6 +18,7 @@ interface FileUpload {
   preview?: string
 }
 
+// Props for DropzoneFormInput
 type DropzoneFormInputProps = {
   label?: string
   labelClassName?: string
@@ -27,6 +30,8 @@ type DropzoneFormInputProps = {
   textClassName?: string
   onFileUpload?: (files: FileUpload[]) => void
 }
+
+const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
 
 const DropzoneFormInput = ({
   label,
@@ -42,16 +47,36 @@ const DropzoneFormInput = ({
   const [selectedFiles, setSelectedFiles] = useState<FileUpload[]>([])
   const [alert, setAlert] = useState('')
 
-  // Function to read and process files
-  const handleAcceptedFiles = async (files: File[]) => {
-    if (files.length === 0) {
-      return
+  // Compress image
+  const compressImage = async (file: File): Promise<File> => {
+    const options = {
+      maxSizeMB: 1, // 1MB max size
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
     }
+    try {
+      return await imageCompression(file, options)
+    } catch (error) {
+      console.error('Image compression error:', error)
+      return file
+    }
+  }
+
+  // Process uploaded files
+  const handleAcceptedFiles = async (files: File[]) => {
+    if (files.length === 0) return
 
     const validFiles = files.filter(
       (file) =>
-        file.type.startsWith('image/') || file.type.startsWith('video/')
+        (file.type.startsWith('image/') || file.type.startsWith('video/')) &&
+        file.size <= MAX_FILE_SIZE
     )
+
+    if (validFiles.length !== files.length) {
+      toast.error('Only image and video files under 100MB are allowed.')
+      setAlert('Only image and video files under 100MB are allowed.')
+      return
+    }
 
     if (validFiles.length + selectedFiles.length > 10) {
       toast.info('You can upload a maximum of 10 media files.')
@@ -61,21 +86,26 @@ const DropzoneFormInput = ({
 
     const filePromises = validFiles.map(
       (file) =>
-        new Promise<FileUpload>((resolve) => {
+        new Promise<FileUpload>(async (resolve) => {
+          let processedFile = file
+          if (file.type.startsWith('image/')) {
+            processedFile = await compressImage(file)
+          }
+
           const reader = new FileReader()
           reader.onloadend = () => {
             resolve({
-              key: file.name,
-              fileType: file.type,
+              key: processedFile.name,
+              fileType: processedFile.type,
               fileObject: reader.result as string,
-              documentType: file.type.startsWith('image/') ? 'image' : 'video',
-              documentName: file.name,
+              documentType: processedFile.type.startsWith('image/') ? 'image' : 'video',
+              documentName: processedFile.name,
               documentDescription: 'Uploaded media file',
-              fileSize: file.size,
-              preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+              fileSize: processedFile.size,
+              preview: processedFile.type.startsWith('image/') ? URL.createObjectURL(processedFile) : undefined,
             })
           }
-          reader.readAsDataURL(file)
+          reader.readAsDataURL(processedFile)
         })
     )
 
@@ -87,17 +117,11 @@ const DropzoneFormInput = ({
       ...uploadedFiles.filter((newFile) => !selectedFiles.some((f) => f.key === newFile.key)),
     ]
 
-    if (uniqueFiles.length < 1) {
-      toast.info('You must upload at least one media file.')
-      setAlert('You must upload at least one media file.')
-      return
-    }
-
     setSelectedFiles(uniqueFiles)
     onFileUpload?.(uniqueFiles)
   }
 
-  // Function to remove a file
+  // Remove file
   const removeFile = (file: FileUpload) => {
     const updatedFiles = selectedFiles.filter((f) => f.key !== file.key)
     setSelectedFiles(updatedFiles)
@@ -109,7 +133,7 @@ const DropzoneFormInput = ({
   return (
     <>
       <FormLabel className={labelClassName}>{label}</FormLabel>
-<p className='text-danger'>{alert}</p>
+      <p className='text-danger'>{alert}</p>
       <Dropzone
         onDrop={handleAcceptedFiles}
         maxFiles={10}
@@ -124,20 +148,17 @@ const DropzoneFormInput = ({
             </div>
             {showPreview && selectedFiles.length > 0 && (
               <div className="dz-preview row g-4">
-                {selectedFiles.map((file, idx) => (
+                {selectedFiles.map((file) => (
                   <Col md={4} sm={6} key={file.key}>
                     <Card className="p-2 mb-0 shadow-none border position-relative h-100">
-                      {file.preview ? ( 
-                        <img alt={file.documentName} src={file.preview} className="rounded bg-light w-100"  />
+                      {file.preview ? (
+                        <img alt={file.documentName} src={file.preview} className="rounded bg-light w-100" />
                       ) : (
                         <div className="rounded bg-light text-center">
                           {file.documentType.toUpperCase()}
                         </div>
                       )}
                       <div className="mt-2">
-                        {/* <p role="button" className="text-body-secondary fw-bold">
-                          {file.documentName}
-                        </p> */}
                         <p className="mb-0 small">{(file.fileSize / 1024).toFixed(2)} KB</p>
                       </div>
                       <div className="position-absolute top-0 start-100 translate-middle">
