@@ -1165,7 +1165,9 @@ const EntrepreneurForm = () => {
         return <BusinessBuyerForm></BusinessBuyerForm>; // Replace with the actual form component
       case 'founder':
         return <Founderforms></Founderforms>; // Replace with the actual form component
-      default:
+      case 'founder2':
+      return <Founderforms></Founderforms>
+        default:
         return null;
     }
   };
@@ -1217,9 +1219,9 @@ const EntrepreneurForm = () => {
                     type="radio" 
                     name="ComRadio" 
                     id="ComRadio2"
-                    value="founder"
+                    value="founder2"
                     onChange={handleRoleChange}
-                    checked={selectedRole === 'business-acquirer'}
+                    checked={selectedRole === 'founder'}
                   />
                   <label className="form-check-label" htmlFor="ComRadio2">
                   <label className="form-check-label" htmlFor="ComRadio3">
