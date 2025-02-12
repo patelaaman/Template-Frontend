@@ -100,7 +100,7 @@ const handledelete = async () => {
   useEffect(() => {
     const fetchSubrole = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/v1/subrole/get/${id}`);
+        const response = await fetch(`http://13.216.146.100/api/v1/subrole/get/${id}`);
         console.log("----------" ,user?.id)
         const data = await response.json();
         console.log("-------ddd----------" , data.data.SubRole )
