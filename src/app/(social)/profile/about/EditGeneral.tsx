@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Form, Row, Col, ButtonGroup } from 'react-bootstrap';
 import { 
   FaUser, FaBuilding, FaGlobe, FaBriefcase, FaLightbulb, 
@@ -10,7 +10,31 @@ import { useAuthContext } from '@/context/useAuthContext';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const GeneralForm = () => {
+const EditGeneral = () => {
+
+const {id} = useParams()
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const response = await fetch(`http://13.216.146.100/api/v1/general/get/${id}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch data");
+            }
+            const data = await response.json();
+            setFormData(data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            toast.error("Failed to load details.");
+        }
+    };
+    
+    if (id) fetchData();
+}, [id]);
+
+
+
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -63,52 +87,42 @@ const GeneralForm = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+
+
+
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
     
-    if (!user?.id) {
-      toast.error("User ID is missing. Please log in again.");
-      return;
-    }
-
-    try {
-      const response = await fetch('http://13.216.146.100/api/v1/general/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          UserId: user.id
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit profile data");
+      if (!user?.id) {
+        toast.error("User ID is missing. Please log in again.");
+        return;
       }
+    
+      toast.success("Form submitted successfully!");
+    
+      try {
+        const response1 = await fetch(`http://13.216.146.100/api/v1/general/update/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...formData }),
+        });
+    
+        if (!response1.ok) {
+          throw new Error("Failed to submit business buyer data");
+        }
+    
+      } catch (error) {
+        console.error("Error in first request:", error);
+        toast.error("An error occurred while submitting the form.");
+      }
+    };
+  
 
-            const response2 = await fetch(`http://13.216.146.100/api/v1/subrole/create`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                UserId: user.id,
-                SubRole: "General"
-              }),
-            });
-      
-            if (!response2.ok) {
-              throw new Error("Failed to submit subrole data");
-            }
-      
-            toast.success("Form submitted successfully!");
-            navigate('/');
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("An error occurred while submitting the form.");
-    }
-  };
+
+
+
 
   const handleSkip = () => navigate('/');
 
@@ -406,7 +420,7 @@ const GeneralForm = () => {
 
   return (
     <div className="container py-4">
-      <h2 className="mb-4 text-center">General Profile</h2>
+      <h2 className="mb-4 text-center">Complete Your Profile</h2>
       
       <div className="mb-4">
         <div className="d-flex justify-content-center align-items-center bg-white rounded-3 p-3 shadow-sm">
@@ -489,4 +503,4 @@ const GeneralForm = () => {
   );
 };
 
-export default GeneralForm;
+export default EditGeneral;

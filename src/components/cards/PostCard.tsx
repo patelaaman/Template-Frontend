@@ -185,6 +185,31 @@ const PostCard = ({
     return post.repostedFrom !== null && post.repostedFrom !== undefined
   }
 
+  async function hidePost(userId : string | undefined, postId : string) {
+    if (!userId) return;
+    try {
+        const response = await fetch(`${LIVE_URL}api/v1/post/block-post`, { // Adjust the URL according to your server's API route
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, postId }),
+        });
+
+        const data = await response.json();
+
+        if (response.status === 200) {
+            toast.success(data.message); // Display success toast
+            setIsDeleted(true);
+        } else {
+            toast.error(data.message); // Display error toast
+        }
+    } catch (error) {
+        console.error("Error hiding post:", error);
+        toast.error("Error hiding post"); // Display error toast
+    }
+}
+
   // LINK Part
   // const extractFirstUrl = (text: string): string | null => {
   //   const urlRegex = /(https?:\/\/[^\s]+)/; // Regular expression to match URLs
@@ -672,7 +697,8 @@ const PostCard = ({
                       <BsTrash /> Delete Post
                     </button>
                   </div> }
-                  { post.userId !== user?.id && <div
+                  { post.userId !== user?.id && 
+                  <div
                     className="dropdown-menu show"
                     style={{
                       position: "absolute",
@@ -685,11 +711,16 @@ const PostCard = ({
                       borderRadius: "0.25rem",
                       overflow: "hidden",
                     }}
+                    
                   >
                     <button
                       className="dropdown-item text-danger d-flex align-items-center"
-                      onClick={() => handleDeletePost(post?.Id)}
+                      onClick={() => {
+                        console.log('clicking')
+                        hidePost(user?.id,post?.Id)
+                      }}
                       style={{ gap: "0.5rem" }}
+                      
                     >
                       <EyeOff /> Hide Post
                     </button>
@@ -1176,7 +1207,8 @@ const PostCard = ({
                       <BsTrash /> Delete Post
                     </button>
                   </div> }
-                  { post.userId !== user?.id && <div
+                  { post.userId !== user?.id && 
+                  <div
                     className="dropdown-menu show"
                     style={{
                       position: "absolute",
@@ -1189,10 +1221,14 @@ const PostCard = ({
                       borderRadius: "0.25rem",
                       overflow: "hidden",
                     }}
+                    
                   >
                     <button
                       className="dropdown-item text-danger d-flex align-items-center"
-                      onClick={() => handleDeletePost(post?.Id)}
+                      onClick={() => {
+                        console.log('clicking..')
+                        hidePost(user?.id,post.Id);
+                      }}
                       style={{ gap: "0.5rem" }}
                     >
                       <EyeOff /> Hide Post
@@ -1320,7 +1356,10 @@ const PostCard = ({
                   >
                     <button
                       className="dropdown-item text-danger d-flex align-items-center"
-                      onClick={() => handleDeletePost(post?.Id)}
+                      onClick={() => {
+                        console.log('clicking..')
+                        hidePost(user?.id,post.Id);
+                      }}
                       style={{ gap: "0.5rem" }}
                     >
                       <EyeOff /> Hide Post
