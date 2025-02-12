@@ -24,6 +24,7 @@ import { SOCKET_URL } from '@/utils/api'
 import { LIVE_URL } from '@/utils/api'
 import { useOnlineUsers } from '@/context/OnlineUser.'
 import { useUnreadMessages } from '@/context/UnreadMessagesContext'
+import GeneralForm from '@/app/(plain)/GeneralForm.tsx/GeneralForm'
 
 
 //api/v1/chat/get-messages-unread
@@ -234,6 +235,7 @@ const AppRouter = (props: RouteProps) => {
       <Route path='/founder' element={<Founderforms></Founderforms>} />
       <Route path='/marketplacedetails/:id' element={<MarketplaceDetails/>}></Route>
       <Route path='/profile-visitors' element={<VisitProfile/>}></Route>
+      <Route path='/generalprofile' element={<GeneralForm></GeneralForm>}></Route>
     </Routes>
   )
 }

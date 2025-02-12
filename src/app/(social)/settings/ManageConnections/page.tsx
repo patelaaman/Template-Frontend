@@ -34,7 +34,7 @@ const ManageConnections = () => {
   return (
     <div className="container-fluid px-0">
       <PageMetaData title="Manage Connections" />
-      <div className="tabs-container">
+      <div className="tabs-container" style={{width:"100%"}}>
       {sections.map((section, index) => (
         <button
         key={index}
