@@ -55,6 +55,7 @@ import Followers from '@/app/(social)/feed/(container)/home/components/Followers
 import { set } from 'react-hook-form'
 import { LIVE_URL } from '@/utils/api';
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page';
+import ImageZoom from '@/components/cards/ImageZoom';
 
 const Experience = () => {
   return null;
@@ -257,7 +258,7 @@ export const ConnectionRequest = () => {
     <Card className="border-0 shadow-sm">
     <CardHeader className="bg-light text-dark d-flex align-items-center">
       <CardTitle className="mb-0 fw-semibold fs-5">
-        Total Followers: {allFollowers.length}
+        Total Request Received: {allFollowers.length}
       </CardTitle>
     </CardHeader>
     {allFollowers.length === 0 ? (
@@ -368,7 +369,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
   }, [user?.id, msg, count, skeletonLoading]); 
 
   
-
+  console.log('---This is the status---',profile.connectionsStatus);
   // useEffect(() => {
   //   if(hasMount.current)  {window.location.reload()}
   //   hasMount.current = true
@@ -562,7 +563,6 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
       parentKey: 'pages-profile',
     },
   ]
-
   return (
     <div style={{}}>
     <ToastContainer />
@@ -639,26 +639,15 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                         {skeletonLoading ? (
                           <Skeleton circle width={120} height={120} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
                         ) : (
-                          <div
-                          onClick={() => {if(user?.id === id)setShowModal(true)}}
-                          style={{
-                            border : '3px solid white',
-                            width: "120px",
-                            height: "120px",
-                            borderRadius: "50%",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <Image
-                            src={profile.profileImgUrl || avatar7} // Replace with your actual image source
-                            alt="Profile"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              transform: `scale(${(profile?.personalDetails?.zoomProfile || 50)  / 50}) rotate(${(profile?.personalDetails?.rotateProfile || 50) - 50}deg)`,
-                            }}
-                          />
-                        </div>
+                          
+                          <ImageZoom
+                            src={profile.profileImgUrl || avatar7}
+                            width={'120px'}
+                            height={'120px'}
+                            zoom={profile?.personalDetails?.zoomProfile}
+                            rotate={profile?.personalDetails?.rotateProfile}
+                           />
+                      
                         )}
                       </div>
                     </div>
@@ -700,7 +689,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
       : user.country}{' '}
     {profile?.personalDetails?.permanentAddress?.state}
   </li>
-</ul>
+                      </ul>
                     </div>
 
                     {/* Action Buttons */}
@@ -716,12 +705,15 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                         </>
                       ) : !profile.connectionsStatus ? (
                         <>
-                          {!sent && (
+                          { (
                             <Button
-                              variant={sent ? 'success-soft' : 'primary-soft'}
+                              variant={sent ? 'success-soft' : 'success-soft'}
                               className="me-2"
                               type="button"
-                              onClick={() => UserRequest(profile?.personalDetails?.id)}
+                              onClick={() => {
+                                UserRequest(profile?.personalDetails?.id)
+                                setSent(true);
+                              }}
                               disabled={loading || sent}>
                               {loading ? (
                                 <Loading size={15} loading={true} />
@@ -746,8 +738,9 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                                 : profile.connectionsStatus === 'rejected'
                                   ? 'danger-soft'
                                   : 'secondary-soft'}
-                            className="me-2"
-                            type="button">
+                              className="me-2"
+                              type="button"
+                            >
                             {profile.connectionsStatus === 'accepted' ? (
                               <>
                                 <MessageCircleMore className="me-2 text-success" /> Send Message
@@ -758,32 +751,6 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                           </Button>
                         </>
                       )}
-
-                      {/* <Dropdown>
-                        <DropdownToggle
-                          as="a"
-                          className="icon-md btn btn-light content-none"
-                          id="profileAction2"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false">
-                          <BsThreeDots />
-                        </DropdownToggle>
-                        <DropdownMenu className="dropdown-menu-end" aria-labelledby="profileAction2">
-                          <DropdownItem>
-                            <BsBookmark size={22} className="fa-fw pe-2" /> Share profile in a message
-                          </DropdownItem>
-                          <DropdownItem>
-                            <BsFileEarmarkPdf size={22} className="fa-fw pe-2" /> Save your profile to PDF
-                          </DropdownItem>
-                          <DropdownItem>
-                            <BsLock size={22} className="fa-fw pe-2" /> Lock profile
-                          </DropdownItem>
-                          <hr className="dropdown-divider" />
-                          <DropdownItem>
-                            <BsGear size={22} className="fa-fw pe-2" /> Profile settings
-                          </DropdownItem>
-                        </DropdownMenu>
-                      </Dropdown> */}
                     </div>
                   </div>
                   {/* Profile Details */}

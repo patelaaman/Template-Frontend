@@ -12,6 +12,7 @@ const FormatContent = ({ content }: { content: string }) => {
   const navigate = useNavigate();
 
   const handleMentionClick = async (username: string) => {
+
     try {
       const res = await fetch("http://13.216.146.100/api/v1/auth/get-user-userName", {
         method: "POST",
@@ -28,6 +29,9 @@ const FormatContent = ({ content }: { content: string }) => {
   };
 
   useEffect(() => {
+    if(!mentionMap){
+      return
+    }
     const fetchMentions = async () => {
       const uniqueMentions = Object.keys(mentionMap).filter((mention) => mentionMap[mention] === mention);
 
@@ -80,11 +84,11 @@ const FormatContent = ({ content }: { content: string }) => {
       {content.split(/(\s+)/).map((word, index) => {
         if (mentionRegex.test(word)) {
           const username = word.substring(1);
-    
+
           if (!mentionMap[username]) {
             setMentionMap((prev) => ({ ...prev, [username]: username })); // Add mention only if not already present
           }
-    
+
           return (
             <span
               key={index}
@@ -94,18 +98,19 @@ const FormatContent = ({ content }: { content: string }) => {
               {mentionMap[username] || username}
             </span>
           );
-        } 
+        }
         else if (hashtagRegex.test(word)) {
           return (
             <span
               key={index}
-              style={{color: '#0a66c2', fontWeight: '500', cursor: 'pointer' 
+              style={{
+                color: '#0a66c2', fontWeight: '500', cursor: 'pointer'
               }}
             >
               {word}
             </span>
           );
-        } 
+        }
         else if (youtubeRegex.test(word)) {
           const videoId = word.match(youtubeRegex)?.[2];
           return (
@@ -121,12 +126,14 @@ const FormatContent = ({ content }: { content: string }) => {
           );
         } else if (imageRegex.test(word)) {
           return (
+            <a href={word} target="_blank">
             <img
               key={index}
               src={word}
               alt="User shared image"
               style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }}
             />
+            </a>
           );
         } else if (videoRegex.test(word)) {
           return (
@@ -157,13 +164,13 @@ const FormatContent = ({ content }: { content: string }) => {
               ></iframe>
             </div>
           );
-        } 
+        }
         else if (googleDocsRegex.test(word)) {
           const match = word.match(googleDocsRegex);
           if (match) {
             const docType = match[1];
             const docId = match[2];
-    
+
             let embedUrl = '';
             if (docType === 'document') {
               embedUrl = `https://docs.google.com/document/d/${docId}/preview`;
@@ -172,7 +179,7 @@ const FormatContent = ({ content }: { content: string }) => {
             } else if (docType === 'presentation') {
               embedUrl = `https://docs.google.com/presentation/d/${docId}/embed`;
             }
-    
+
             return (
               <iframe
                 key={index}
@@ -189,14 +196,14 @@ const FormatContent = ({ content }: { content: string }) => {
             );
           }
         } else if (urlRegex.test(word)) {
-          
-         return (   <a href={word} target="_blank">
-              <CustomLinkPreview
-                key={index}
-                url={word}
-              />
-            </a>
-         );
+
+          return (<a href={word} target="_blank">
+            <CustomLinkPreview
+              key={index}
+              url={word}
+            />
+          </a>
+          );
         }
 
         return word;

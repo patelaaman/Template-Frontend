@@ -17,14 +17,10 @@ import { LIVE_URL } from '@/utils/api';
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page';
 import { toast } from 'react-toastify';
 import ImageZoom from './ImageZoom';
-// import { LinkPreview } from '@dhaiwat10/react-link-preview';
-
-import LinkPreview from '@ashwamegh/react-link-preview'
-
-// If you're using built in layout, you will need to import this css
-import '@ashwamegh/react-link-preview/dist/index.css'
 import LikeListModal from './components/LikeListModal';
 import FormatContent from './components/ContentFormating';
+
+import avatar from '@/assets/images/avatar/default avatar.png'
 export interface Like {
   id: string;
   occupation: string;
@@ -1027,7 +1023,7 @@ const PostCard = ({
                       >
                         <div className="avatar">
                           <img 
-                            src={user.avatar || "default-avatar.png"}
+                            src={user.avatar || avatar}
                             alt={user.fullName}
                             className="avatar-img rounded-circle border border-white border-3"
                             width={34}
@@ -1536,7 +1532,7 @@ const PostCard = ({
                       >
                         <div className="avatar">
                           <img
-                            src={user.avatar || "default-avatar.png"}
+                            src={user.avatar || avatar}
                             alt={user.fullName}
                             className="avatar-img rounded-circle border border-white border-3"
                             width={34}

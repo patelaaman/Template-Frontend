@@ -45,6 +45,7 @@ interface CreatePostCardProps {
 import { useAuthContext } from '@/context/useAuthContext'
 import { Spinner } from "react-bootstrap";
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
+import { toast } from 'react-toastify'
 interface ApiResponse<T> {
   status: number
   data: T
@@ -132,68 +133,58 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     return date.toLocaleString('en-GB', options).replace(',', ' at')
   }
 
-  
+
 
   // This function will be triggered when files are uploaded
   const handleFileUpload = (files: FileUpload[]) => {
     setUploadedFiles([...files])
   }
 
-  // console.log('---- photo uploading -----', uploadedFiles)
-
   const handleUpload = async () => {
     try {
-      const response = await uploadMulti(uploadedFiles, user?.id) // Await the uploadDoc promise
-      console.log('---- response in the upload doc function ----', response)
+      const response = await uploadMulti(uploadedFiles, user?.id) 
       return response
     } catch (err) {
       console.error('Error in the createpostcard:', err)
-      return false // Indicate failure
+      return false 
     }
   }
 
   const handlePhotoSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      alert('No Photos are Uploaded');
+      toast.error('No Photos are Uploaded');
       return;
     }
     setIsSubmittingPhoto(true);
     const uploadSuccess = await handleUpload()
 
-
     try {
-      // Wait for handleUpload to complete before proceeding
-
       if (uploadSuccess) {
-        // Regular expression to match hashtags
-        const hashtagRegex = /#\w+/g
-        const hashtags = photoQuote.match(hashtagRegex) || []
-
-        // console.log('-------------awsIds----------------------------- :', awsIds)
-        // Making the API request
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
           method: 'POST',
           url: CREATE_POST,
           data: {
             userId: user?.id,
             content: thoughts,
-            hashtags: hashtags,
             mediaKeys: uploadSuccess,
           },
-        })
+        });
+
         if (response.data) {
-          console.log('went inside')
-          setThoughts('') // Reset thoughts after successful post
-          togglePhotoModel()
+          toast.success('Post submitted successfully!'); 
+          setThoughts(''); 
+          togglePhotoModel();
         }
       } else {
-        console.log('Upload failed. Post not submitted.')
+        toast.error('Upload failed. Post not submitted.'); 
+        console.log('Upload failed. Post not submitted.');
       }
     } catch (err) {
-      console.log('Error in the posting', err)
+      console.log('Error in the posting', err);
+      toast.error('Error in the posting. Please try again.'); 
     }
     finally {
-      setIsCreated(() => !isCreated)
+      setIsCreated(() => !isCreated);
       setIsSubmittingPhoto(false);
       setUploadedFiles([]);
       setThoughts('');
@@ -202,57 +193,54 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
 
   const handleVideoSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      alert('You must add a Video');
+      toast.error('You must add a Video'); // Show error toast instead of alert
       return;
     }
     setIsSubmittingVideo(true);
     try {
       // Wait for handleUpload to complete before proceeding
-      const uploadSuccess = await handleUpload()
-      // console.log('video upload success', uploadSuccess)
+      const uploadSuccess = await handleUpload();
 
       if (uploadSuccess) {
         // Regular expression to match hashtags
-        const hashtagRegex = /#\w+/g
-        const hashtags = videoQuote.match(hashtagRegex) || []
-        // console.log('hashtags match', hashtags)
-        // console.log('---videoupload----', videoQuote)
-        // console.log('---upload success---', uploadSuccess)
+        const hashtagRegex = /#\w+/g;
+        const hashtags = videoQuote.match(hashtagRegex) || [];
+
         // Making the API request
         const data = {
           userId: user?.id,
           content: thoughts,
           hashtags: hashtags,
           mediaKeys: uploadSuccess || [],
-        }
-        console.log('video request data', data)
+        };
+
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
           method: 'POST',
           url: CREATE_POST,
           data: data,
-        })
+        });
 
         if (response.data) {
-          setThoughts('') // Reset thoughts after successful post
-
-          console.log('isCreated before', isCreated)
-
-          console.log('isCreated after', isCreated)
+          toast.success('Video posted successfully!'); // Show success toast
+          setThoughts(''); // Reset thoughts after successful post
         }
       } else {
-        console.log('Upload failed. Post not submitted.')
+        toast.error('Upload failed. Post not submitted.'); // Show error toast if upload failed
+        console.log('Upload failed. Post not submitted.');
       }
     } catch (err) {
-      console.log('Error in the posting', err)
+      console.log('Error in the posting', err);
+      toast.error('Error in the posting. Please try again.'); // Show error toast in case of exception
     }
     finally {
       setIsSubmittingVideo(false);
       toggleVideoModel();
       setUploadedFiles([]);
       setThoughts('');
-      setIsCreated(() => !isCreated)
+      setIsCreated(() => !isCreated);
     }
   }
+
   // console.log("profile", profile);
 
   const [show, setShow] = useState(true)
@@ -276,15 +264,15 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const handlePostClick = async (values) => {
     // Check if thoughts is empty
     if (!thoughts.trim()) {
-      console.log('Thoughts cannot be empty.')
-      alert('Thoughts cannot be empty.')
-      return
+      console.log('Thoughts cannot be empty.');
+      toast.error('Thoughts cannot be empty.'); // Show error toast instead of alert
+      return;
     }
     setIsSubmittingPost(true);
 
     try {
-      const hashtagRegex = /#\w+/g
-      const hashtags = thoughts.match(hashtagRegex) || []
+      const hashtagRegex = /#\w+/g;
+      const hashtags = thoughts.match(hashtagRegex) || [];
       const response = await makeApiRequest<ApiResponse<{ url: string }>>({
         method: 'POST',
         url: CREATE_POST,
@@ -293,16 +281,18 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           content: processMentionsForSubmission(values),
           hashtags: hashtags,
         },
-      })
+      });
 
       if (response.data) {
-        setThoughts('')
-        console.log('isCreated before', isCreated)
-        setIsCreated(() => !isCreated)
-        console.log('isCreated after', isCreated)
+        setThoughts('');
+        console.log('isCreated before', isCreated);
+        setIsCreated(() => !isCreated);
+        console.log('isCreated after', isCreated);
+        toast.success('Post created successfully!'); // Show success toast when post is created
       }
     } catch (err) {
-      console.log('Error in the posting', err)
+      console.log('Error in the posting', err);
+      toast.error('Error creating the post. Please try again.'); // Show error toast for any error during the posting
     }
     finally {
       setIsSubmittingPost(false);
@@ -314,12 +304,12 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false);
   const textareaRef = useRef(null);
 
-// Function to handle textarea change
-const handleChange = (e: any) => {
-  const value = e.target.value;
-  setThoughts(value);
-  checkForMention(value);
-};
+  // Function to handle textarea change
+  const handleChange = (e: any) => {
+    const value = e.target.value;
+    setThoughts(value);
+    checkForMention(value);
+  };
 
   // Function to handle photo quote change
   const handleChangePhotoQuote = (e: any) => {
@@ -333,58 +323,58 @@ const handleChange = (e: any) => {
     checkForMention(e.target.value);
   };
 
- // Function to check if user is typing a mention
-const checkForMention = (text: string) => {
-  const match = text.match(/@\S*$/);
-  if (text.endsWith("@")) {
-    fetchUsers("");
-  } else if (match) {
-    fetchUsers(match[0].slice(1));
-  } else {
-    setMentionDropdownVisible(false);
-  }
-};
+  // Function to check if user is typing a mention
+  const checkForMention = (text: string) => {
+    const match = text.match(/@\S*$/);
+    if (text.endsWith("@")) {
+      fetchUsers("");
+    } else if (match) {
+      fetchUsers(match[0].slice(1));
+    } else {
+      setMentionDropdownVisible(false);
+    }
+  };
 
-// Function to fetch users when '@' is typed
-const fetchUsers = async (query: string) => {
-  if (!query) return;
+  // Function to fetch users when '@' is typed
+  const fetchUsers = async (query: string) => {
+    if (!query) return;
 
-  try {
-    const response = await fetch("http://13.216.146.100/api/v1/post/mention", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user?.id, query: query }),
-    });
+    try {
+      const response = await fetch("http://13.216.146.100/api/v1/post/mention", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user?.id, query: query }),
+      });
 
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-    const data = await response.json();
-    setSearchResults(data?.data || []);
-    setMentionDropdownVisible(data?.data.length > 0);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-  }
-};
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const data = await response.json();
+      setSearchResults(data?.data || []);
+      setMentionDropdownVisible(data?.data.length > 0);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   // Function to insert mention correctly
-const handleMentionClick = (mentionedUser: any) => {
-  const mentionDisplay = `@${mentionedUser.fullName}`;
-  const mentionActual = `@${mentionedUser.userName}`;
-  setMentionMap((prev) => ({ ...prev, [mentionDisplay]: mentionActual }));
-  setThoughts((prev) => prev.replace(/@\S*$/, mentionDisplay + " "));
-  setMentionDropdownVisible(false);
-};
+  const handleMentionClick = (mentionedUser: any) => {
+    const mentionDisplay = `@${mentionedUser.fullName}`;
+    const mentionActual = `@${mentionedUser.userName}`;
+    setMentionMap((prev) => ({ ...prev, [mentionDisplay]: mentionActual }));
+    setThoughts((prev) => prev.replace(/@\S*$/, mentionDisplay + " "));
+    setMentionDropdownVisible(false);
+  };
 
-// Function to process text before submitting
-const processMentionsForSubmission = (text: string) => {
-  let processedText = text;
-  
-  // Replace each mention display with actual username
-  Object.entries(mentionMap).forEach(([display, actual]) => {
-    processedText = processedText.replace(display, actual);
-  });
+  // Function to process text before submitting
+  const processMentionsForSubmission = (text: string) => {
+    let processedText = text;
 
-  return processedText;
-};
+    // Replace each mention display with actual username
+    Object.entries(mentionMap).forEach(([display, actual]) => {
+      processedText = processedText.replace(display, actual);
+    });
+
+    return processedText;
+  };
 
 
   return (
@@ -394,26 +384,26 @@ const processMentionsForSubmission = (text: string) => {
           <Link to={`/profile/feed/${user?.id}`}>
             <div className="me-2" style={{ marginTop: "-25px" }}>
               <span role="button">
-              <div
+                <div
+                  style={{
+                    border: '3px solid white',
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    marginTop: '30px'
+                  }}
+                >
+                  <Image
+                    src={profile.profileImgUrl || avatar7} // Replace with your actual image source
+                    alt="Profile"
                     style={{
-                      border : '3px solid white',
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-                      marginTop : '30px'
+                      width: "100%",
+                      height: "100%",
+                      transform: `scale(${(profile.personalDetails?.zoomProfile || 50) / 50}) rotate(${(profile.personalDetails?.rotateProfile || 50) - 50}deg)`,
                     }}
-                  >
-                    <Image
-                      src={profile.profileImgUrl || avatar7} // Replace with your actual image source
-                      alt="Profile"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        transform: `scale(${(profile.personalDetails?.zoomProfile || 50)  / 50}) rotate(${(profile.personalDetails?.rotateProfile || 50) - 50}deg)`,
-                      }}
-                    />
-                  </div>
+                  />
+                </div>
               </span>
             </div>
           </Link>
@@ -586,14 +576,13 @@ const processMentionsForSubmission = (text: string) => {
           </div>
           <div>
             <label className="form-label">Upload attachment</label>
-            <DropzoneFormInput 
-              icon={BsImages} 
-              onFileUpload={handleFileUpload} 
-              showPreview 
+            <DropzoneFormInput
+              icon={BsImages}
+              onFileUpload={handleFileUpload}
+              showPreview
               text="Drag here or click to upload photo."
               uploadedFiles={uploadedFiles}
-              setUploadedFiles={uploadedFiles}
-              />
+            />
           </div>
         </ModalBody>
         <ModalFooter>
