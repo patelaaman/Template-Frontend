@@ -77,6 +77,7 @@ const ForgotPass = lazy(() => import('@/app/(plain)/(authentication)/auth/forgot
 const SignInAdvance = lazy(() => import('@/app/(plain)/(authentication)/auth-advance/sign-in/page'))
 const SignUpAdvance = lazy(() => import('@/app/(plain)/(authentication)/auth-advance/sign-up/page'))
 const ForgotPassAdvance = lazy(() => import('@/app/(plain)/(authentication)/auth-advance/forgot-pass/page'))
+const ChangePass = lazy(() => import('@/app/(plain)/(authentication)/auth/change-pass/page'))
 
 const NotFoundPage = lazy(() => import('@/app/(social)/(with-topbar)/not-found/page'))
 const OfflinePage = lazy(() => import('@/app/(plain)/offline/page'))
@@ -381,6 +382,11 @@ export const authRoutes: RoutesProps[] = [
     path: '/auth/sign-in', // change according to  auth/verify-email/verify?token=${verificationToken}
     name: 'Sign In',
     element: <SignIn />,
+  },
+  {
+    path : '/auth/change-password',
+    name : 'Change Password',
+    element : <ChangePass/>
   },
   {
     path: '/auth/verify-email',

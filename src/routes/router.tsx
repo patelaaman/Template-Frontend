@@ -39,7 +39,7 @@ const AppRouter = (props: RouteProps) => {
   const { isAuthenticated } = useAuthContext()
   const {fetchOnlineUsers} = useOnlineUsers()
   const {fetchUnreadMessages} = useUnreadMessages()
-
+  // isAuthenticated = true
 
   
     // useEffect(() => {
