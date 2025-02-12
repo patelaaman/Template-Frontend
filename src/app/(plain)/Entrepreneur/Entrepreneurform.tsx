@@ -1134,22 +1134,43 @@ const EntrepreneurForm = () => {
 export default EntrepreneurForm
 
 */
-
-
-import PageMetaData from '@/components/PageMetaData';
-import { Accordion, AccordionBody, AccordionHeader, AccordionItem, Button, Card, CardBody, CardFooter, CardHeader, CardTitle } from 'react-bootstrap';
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Card, Row, Col, Button, Form } from 'react-bootstrap';
 import BusinessSellerForm from '../BusinessSeller/BusinessSellerForm';
-import BusinessBuyerForm from '../BusinessBuyer/BusinessBuyer';
-import Founderforms from '../Founderform/Founderform';
-
+import GeneralForm from '../GeneralForm.tsx/GeneralForm';
+import BusinessPreferencesForm from '../BusinessBuyer/BusinessBuyer';
+import FounderForm from '../Founderform/Founderform';
+import PageMetaData from '@/components/PageMetaData';
 const EntrepreneurForm = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  const handleRoleChange = (event) => {
-    setSelectedRole(event.target.value);
-  };
+  const roleOptions = [
+    {
+      id: 'founder',
+      title: 'Exploring Business Ideas',
+      description: 'Connect with industry experts and get guidance for your business ideas',
+      icon: '💡',
+    },
+    {
+      id: 'general',
+      title: 'Seeking Connections',
+      description: 'Find co-founders, investors, and industry connections',
+      icon: '👥',
+    },
+    {
+      id: 'business-seller',
+      title: 'Selling a Startup',
+      description: 'List your startup for sale and connect with potential buyers',
+      icon: '💰',
+    },
+    {
+      id: 'business-acquirer',
+      title: 'Acquiring a Startup',
+      description: 'Browse and connect with startups available for acquisition',
+      icon: '🏢',
+    },
+  ];
 
   const handleSubmit = () => {
     if (selectedRole) {
@@ -1160,126 +1181,114 @@ const EntrepreneurForm = () => {
   const renderForm = () => {
     switch (selectedRole) {
       case 'business-seller':
-        return <BusinessSellerForm></BusinessSellerForm>; // Replace with the actual form component
+        return <BusinessSellerForm />;
       case 'business-acquirer':
-        return <BusinessBuyerForm></BusinessBuyerForm>; // Replace with the actual form component
+        return <BusinessPreferencesForm />;
       case 'founder':
-        return <Founderforms></Founderforms>; // Replace with the actual form component
-      case 'founder2':
-      return <Founderforms></Founderforms>
-        default:
+        return <FounderForm />;
+      case 'general':
+        return <GeneralForm />;
+      default:
         return null;
     }
   };
 
   if (formSubmitted) {
     return (
-      <>
+      <div className="container py-5">
         <PageMetaData title="Business Profile" />
         {renderForm()}
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="container py-3">
       <PageMetaData title="Business Profile" />
-      <Card>
-        <CardHeader className="border-0 pb-0">
-          <CardTitle>Entrepreneur Form</CardTitle>
-          <p className="mb-0">
-            Select any sub-role for yourself and you will be redirected to the Forms according to your choice
+      <Card style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
+        <Card.Header style={{ background: '#f8f9fa', border: 'none' }}>
+          <Card.Title style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>
+            Entrepreneur Profile
+          </Card.Title>
+          <p className="text-muted mb-0">
+            Select your entrepreneurial journey path to get personalized guidance and connections
           </p>
-        </CardHeader>
-        <CardBody>
-          <Accordion defaultActiveKey="0" id="communications">
-            <AccordionItem eventKey="0" className="bg-transparent">
-              <AccordionHeader id="communicationOne">
-                <div className="mb-0 h6">Select Your Role</div>
-              </AccordionHeader>
-              <AccordionBody>
-              <div className="form-check">
-                  <input 
-                    className="form-check-input" 
-                    type="radio" 
-                    name="ComRadio" 
-                    id="ComRadio3"
-                    value="founder"
-                    onChange={handleRoleChange}
-                    checked={selectedRole === 'founder'}
-                  />
-                   <label className="form-check-label" htmlFor="ComRadio3">
-                    Entrepreneur (Exploring Business Ideas - Industry Connections)
-                  </label>
-                        
-                </div>
-                <div className="form-check">
-                  <input 
-                    className="form-check-input" 
-                    type="radio" 
-                    name="ComRadio" 
-                    id="ComRadio2"
-                    value="founder2"
-                    onChange={handleRoleChange}
-                    checked={selectedRole === 'founder'}
-                  />
-                  <label className="form-check-label" htmlFor="ComRadio2">
-                  <label className="form-check-label" htmlFor="ComRadio3">
-                    Entrepreneur (Seeking Industry Connections - Co-Founders & Investors. )
-                  </label>
-                  </label>
-                </div>
-                <div className="form-check">
-                  <input 
-                    className="form-check-input" 
-                    type="radio" 
-                    name="ComRadio" 
-                    id="ComRadio5"
-                    value="business-seller"
-                    onChange={handleRoleChange}
-                    checked={selectedRole === 'business-seller'}
-                  />
-                  <label className="form-check-label" htmlFor="ComRadio5">
-                    Entrepreneur (Intrested in Selling a Startup)
-                  </label>
-                </div>
-                <div className="form-check">
-                  <input 
-                    className="form-check-input" 
-                    type="radio" 
-                    name="ComRadio" 
-                    id="ComRadio2"
-                    value="business-acquirer"
-                    onChange={handleRoleChange}
-                    checked={selectedRole === 'business-acquirer'}
-                    
-                  />
-                  <label className="form-check-label" htmlFor="ComRadio2" >
-                  Entrepreneur (Interested in Acquiring a Startup.)
-                  </label>
-                </div>
-
-               
-               
-               
-              </AccordionBody>
-            </AccordionItem>
-          </Accordion>
-        </CardBody>
-        <CardFooter className="pt-0 text-end border-0">
-          <Button 
-            variant="primary" 
-            size="sm" 
+        </Card.Header>
+        <Card.Body style={{ padding: '2rem' }}>
+          <Form>
+            <Row xs={1} md={2} className="g-4">
+              {roleOptions.map((option) => (
+                <Col key={option.id}>
+                  <Card 
+                    onClick={() => setSelectedRole(option.id)}
+                    style={{ 
+                      cursor: 'pointer',
+                      height: '100%',
+                      transition: 'all 0.3s ease',
+                      transform: selectedRole === option.id ? 'translateY(-2px)' : 'none',
+                      boxShadow: selectedRole === option.id 
+                        ? '0 4px 12px rgba(0, 123, 255, 0.2)' 
+                        : '0 2px 4px rgba(0, 0, 0, 0.05)',
+                      border: selectedRole === option.id 
+                        ? '2px solid #007bff' 
+                        : '1px solid #dee2e6'
+                    }}
+                    className="h-100"
+                  >
+                    <Card.Body>
+                      <Form.Check
+                        type="radio"
+                        id={option.id}
+                        name="role"
+                        checked={selectedRole === option.id}
+                        onChange={() => setSelectedRole(option.id)}
+                        label={
+                          <div>
+                            <div className="d-flex align-items-center mb-2">
+                              <span style={{ fontSize: '24px', marginRight: '10px' }}>
+                                {option.icon}
+                              </span>
+                              <h5 className="mb-0" style={{ fontWeight: '600' }}>
+                                {option.title}
+                              </h5>
+                            </div>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
+                              {option.description}
+                            </p>
+                          </div>
+                        }
+                        style={{ marginBottom: 0 }}
+                      />
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Form>
+        </Card.Body>
+        <Card.Footer 
+          style={{ 
+            background: '#f8f9fa', 
+            border: 'none',
+            padding: '1rem 2rem'
+          }}
+          className="text-end"
+        >
+          <Button
             onClick={handleSubmit}
-            className="mb-0"
             disabled={!selectedRole}
+            style={{ 
+              paddingLeft: '1.5rem', 
+              paddingRight: '1.5rem',
+              fontWeight: '500'
+            }}
           >
-            Next
+            Continue →
           </Button>
-        </CardFooter>
+        </Card.Footer>
       </Card>
-    </>
+    </div>
   );
-}
+};
 
 export default EntrepreneurForm;

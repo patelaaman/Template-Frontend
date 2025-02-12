@@ -9,6 +9,7 @@ import AboutBusinessBuyer from './AboutBusinessBuyer'
 import AboutFounder from './AboutFounder'
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '@/context/useAuthContext'
+import AboutGeneral from './AboutGeneral'
 
 const Interests = () => {
   return (
@@ -124,6 +125,7 @@ const handledelete = async () => {
       {subrole === "BusinessBuyer" && <AboutBusinessBuyer />}
       {subrole === "Investor" && <InvestorCards />}
       {subrole === "Founder" && <AboutFounder />}
+      {subrole ==="General" && <AboutGeneral></AboutGeneral>}
       {subrole === "BusinessSeller" && (
         <><div>
               <p>Business Seller</p>
