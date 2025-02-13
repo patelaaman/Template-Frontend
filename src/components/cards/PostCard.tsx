@@ -487,7 +487,7 @@ const PostCard = ({
       <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
 
         <MdComment size={16} onClick={() => setOpenComment(!openComment)} />
-        {commentCount !== 0 && <span>{commentCount}</span>}
+        {commentCount !== 0 && <span>{commentCount} comment</span>}
       </span>
     </p>
   }
@@ -1497,7 +1497,7 @@ const PostCard = ({
                 <Share size={16} />
               </Button>
             </ButtonGroup>
-            {openComment && <div className="d-flex mb-4 px-3">
+            {<div className="d-flex mb-4 px-3">
               <div className="avatar avatar-xs me-3">
                 <Link to={`/profile/feed/${user?.id}`}>
                   <span role="button">
@@ -1589,7 +1589,7 @@ const PostCard = ({
               </form>
             </div>}
 
-            {openComment && (isLoading ? (
+            {(isLoading ? (
               <p>Loading comments...</p>
             ) : (
               <ul className="comment-wrap list-unstyled px-3">
@@ -1610,7 +1610,7 @@ const PostCard = ({
             ))}
           </CardBody>
 
-          {openComment && (
+          {(
             comments.length > 2 && (
               <CardFooter
                 className="border-0 pt-0"
