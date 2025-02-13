@@ -718,7 +718,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                     onClick={() => setModalOpen(true)}>
                     More
                   </button>
-                  {modalOpen && <ReportBlockModal show={modalOpen} handleClose={() => setModalOpen(false)} />}
+                  {modalOpen && user?.id && id && <ReportBlockModal show={modalOpen} handleClose={() => setModalOpen(false)} userId={user.id} targetId={id} />}
                   </div>
                 )}
                   </div>

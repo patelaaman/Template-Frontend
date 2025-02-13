@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const ReportBlockModal = ({ show, handleClose }) => {
+interface ReportBlockModalProps {
+  show: boolean;
+  handleClose: () => void;
+  userId:string;
+  targetId:string;
+}
+
+const ReportBlockModal: React.FC<ReportBlockModalProps> = ({ show, handleClose, userId, targetId }) => {
   const [action, setAction] = useState(null);
   const [blockReason, setBlockReason] = useState("");
   const [reportReason, setReportReason] = useState("");
@@ -26,7 +33,7 @@ const ReportBlockModal = ({ show, handleClose }) => {
     if (action === "block" && blockReason) {
       console.log("Block reason:", blockReason);
     } else if (action === "report" && reportReason) {
-        console.log("Additional details:", blockReason);
+      console.log("Additional details:", blockReason);
       console.log("Report reason:", reportReason);
     }
     handleClose();

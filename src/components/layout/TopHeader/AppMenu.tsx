@@ -80,9 +80,9 @@ const MenuItemLink = ({ item, linkClassName , count}: SubMenus) => {
       to={item.url ?? ''}
       target={item.target}
       style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
-    >
+        >
       {item.url==="/settings/ManageConnections"? <><p className='bg-danger px-1 rounded-pill' style={{position:"absolute", top:0 , left:42, color:"white", zIndex:9999, fontSize:12 , fontWeight:"bold" }}>{count}</p></>:""}
-    <div
+        <div
       style={{
         padding: '8px',
         borderRadius : '10%',
@@ -102,7 +102,7 @@ const MenuItemLink = ({ item, linkClassName , count}: SubMenus) => {
         setAbout(false);
       }}
     >
-      {Icon && <Icon style={{ color: '#1ea1f2' }} />}
+      {Icon && <Icon style={{ color: '#0c59bd' }} />}
     </div>
       {about && <span
         style={{
