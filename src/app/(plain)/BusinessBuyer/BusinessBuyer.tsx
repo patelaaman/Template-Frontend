@@ -901,8 +901,91 @@ import {
 import { useAuthContext } from '@/context/useAuthContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Lightbulb, Users } from 'lucide-react';
 
 const BusinessPreferencesForm = () => {
+
+
+
+
+
+  const containerStyle = {
+    backgroundColor: '#f8f9fa',
+    border: '1px solid #dee2e6',
+    borderRadius: '12px',
+    padding: '24px',
+    width: '100%',
+    maxWidth: '100vw', // Full-screen width
+    margin: '-47px auto 10px ', // Top, Right, Bottom, Left
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+  };
+  
+
+  const headerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '20px',
+    borderBottom: '1px solid #dee2e6',
+    paddingBottom: '16px'
+    
+  };
+
+  const titleStyle = {
+    fontSize: '24px',
+    fontWeight: '600',
+    color: '#2c3e50',
+    margin: 0
+  };
+
+  const descriptionStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    color: '#6c757d',
+    fontSize: '16px',
+    marginBottom: '20px'
+  };
+
+  const iconContainerStyle = {
+    display: 'flex',
+    gap: '24px',
+    marginTop: '20px'
+  };
+
+  const iconBoxStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 16px',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    color: '#495057'
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -1267,8 +1350,55 @@ const BusinessPreferencesForm = () => {
   };
 
   return (
-    <div className="container py-4">
-      <h2 className="mb-4 text-center">Business Buyer Profile</h2>
+    <div className="container ">
+<div style={containerStyle}  >
+      <div style={headerStyle}>
+        <Users 
+          size={32} 
+          color="#0d6efd"
+          style={{ strokeWidth: 1.5 }}
+        />
+        <h2 style={titleStyle}>Business Acquirer </h2>
+      </div>
+      
+      <div style={descriptionStyle}>
+        <Lightbulb 
+          size={20} 
+          color="#6c757d"
+          style={{ strokeWidth: 1.5 }}
+        />
+        <p style={{ margin: 0 }}>
+        Browse and connect with startups available for acquisition
+        </p>
+      </div>
+           
+      <div style={iconContainerStyle}>
+        {/* <div style={iconBoxStyle}>
+          <TrendingUp 
+            size={18} 
+            color="#0d6efd"
+            style={{ strokeWidth: 1.5 }}
+          />
+          <span>Growth Strategy</span>
+        </div> */}
+        {/* <div style={iconBoxStyle}>
+          <Users 
+            size={18} 
+            color="#0d6efd"
+            style={{ strokeWidth: 1.5 }}
+          />
+          <span>Mentorship</span>
+        </div>
+        <div style={iconBoxStyle}>
+          <Lightbulb 
+            size={18} 
+            color="#0d6efd"
+            style={{ strokeWidth: 1.5 }}
+          />
+          <span>Innovation</span>
+        </div> */}
+      </div>
+    </div>
       
       <div className="mb-4">
         <div className="d-flex justify-content-between align-items-center bg-white rounded-3 p-3 shadow-sm">
@@ -1278,10 +1408,10 @@ const BusinessPreferencesForm = () => {
               onClick={() => handleTabClick(tab.step)}
               className={`flex-grow-1 text-center py-3 px-4 rounded-3 mx-2 tab-item ${
                 step === tab.step
-                  ? 'bg-primary text-white'
+                  ? 'bg-white text-primary p-4 border border-primary rounded-3 shadow'
                   : step > tab.step
-                  ? 'bg-light text-primary cursor-pointer'
-                  : 'text-muted'
+                  ? 'bg-white text-blue p-4 border border-light rounded-3 shadow'
+                  : 'bg-white text-blue p-4 border border-light rounded-3 shadow'
               }`}
               style={{ 
                 cursor: tab.step <= step ? 'pointer' : 'pointer',
@@ -1300,7 +1430,7 @@ const BusinessPreferencesForm = () => {
 
       {renderStep()}
 
-      <div className="d-flex justify-content-between mt-4">
+      <div className="d-flex justify-content-between mt-4 p-3  border rounded-2" style={{backgroundColor:"#f8f9fa"}}>
         {step > 1 && (
           <button
             className="btn btn-secondary"
