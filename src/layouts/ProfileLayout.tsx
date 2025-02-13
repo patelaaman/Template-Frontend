@@ -655,20 +655,21 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
       </main>
     </div>
     <div className="d-none d-lg-block">
-        <a
+      <a
           onClick={messagingOffcanvas.toggle}
-          style={{marginRight : '26px'}}
+          style={{ marginRight: '76px', width: '85px', height: '45px', backgroundColor: '#0c59bd' }}
           className="icon-md btn btn-primary position-fixed end-0 bottom-0 mb-5"
           role="button"
-          aria-controls="offcanvasChat">
-            {countM > 0 && (
-              <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ padding: '0.5em', width: '1.5em', height: '1.5em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {countM}
-              </span>
-            )}
-          <span>
-            <BsChatLeftTextFill />
+          aria-controls="offcanvasChat"
+          >
+        {count > 0 && (
+          <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ padding: '0.5em', width: '1.5em', height: '1.5em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {count}
           </span>
+        )}
+            <span>
+              <BsChatLeftTextFill/> Chat
+            </span>
         </a>
         <Offcanvas
           show={messagingOffcanvas.open}
