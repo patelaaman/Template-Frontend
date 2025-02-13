@@ -110,7 +110,7 @@ const TopHeader = () => {
                   setMessageAbout(false)
                 }}>
                 {/* Message Icon */}
-                <MessageSquareText style={{ color: '#1ea1f2', fontSize: '24px' }} />
+                <MessageSquareText style={{ color: '#0c59bd', fontSize: '24px' }} />
 
                 {/* Notification Badge */}
                 {messageCount > 0 && (
@@ -177,7 +177,7 @@ const TopHeader = () => {
                   e.currentTarget.style.background = 'transparent'
                   setSettingsAbout(false)
                 }}>
-                <Settings style={{ color: '#1ea1f2' }} />
+                <Settings style={{ color: '#0c59bd' }} />
               </div>
               {settingsAbout && (
                 <span
@@ -202,7 +202,7 @@ const TopHeader = () => {
           </li>
 
           {/* 🔔 Notification Dropdown */}
-          <NotificationDropdown count={Notificount} />
+          <NotificationDropdown count={Notificount}/>
 
           {/* 👤 Profile Dropdown */}
           <ProfileDropdown />
