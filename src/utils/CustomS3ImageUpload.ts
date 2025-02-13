@@ -5,7 +5,7 @@ import { useAuthContext } from '@/context/useAuthContext';
 export interface FileUpload {
   key: string;
   fileType: string;
-  fileObject: string; // Base64 encoded file content
+  fileObject: string; 
   documentType: string;
   documentName: string;
   documentDescription: string;
