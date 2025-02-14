@@ -197,7 +197,7 @@ useEffect(() => {
             }}
           >
 
-            {<Bell style={{ color: '#0c59bd' }} />}
+            {<Bell style={{ color: '#1ea1f2' }} />}
 
           </div>
           {notiAbout &&

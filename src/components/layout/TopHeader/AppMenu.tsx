@@ -102,7 +102,7 @@ const MenuItemLink = ({ item, linkClassName , count}: SubMenus) => {
         setAbout(false);
       }}
     >
-      {Icon && <Icon style={{ color: '#0c59bd' }} />}
+      {Icon && <Icon style={{ color: '#1ea1f2' }} />}
     </div>
       {about && <span
         style={{
