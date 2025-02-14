@@ -25,7 +25,7 @@ const LikeListModal: React.FC<LikeListModalProps> = ({ isOpen, onClose, likes,fo
   return (
     <Modal show={isOpen} onHide={onClose} centered backdrop="static" keyboard={false} >
       <Modal.Header closeButton>
-        <Modal.Title>People who liked this</Modal.Title>
+        <Modal.Title>People who Reacted on this</Modal.Title>
       </Modal.Header>
       <Modal.Body style={{ maxHeight: "400px", overflowY: "auto" }}>
         {likes.length === 0 ? (
