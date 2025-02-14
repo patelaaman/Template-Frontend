@@ -743,7 +743,6 @@ const PostCard = ({
                   lineHeight: '19px',
                   color: 'black',
                   fontSize: '16px',
-                  // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
                   maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
                   overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
                 }}
