@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
-// If you're using built-in layout, you will need to import this CSS
-import "@ashwamegh/react-link-preview/dist/index.css";
 import CustomLinkPreview from "./CustomLinkPreview";
-import Loading from "@/components/Loading";
-
 const FormatContent = ({ content }: { content: string }) => {
   const [mentionMap, setMentionMap] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();

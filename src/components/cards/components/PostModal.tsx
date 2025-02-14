@@ -57,6 +57,13 @@ const PostModal = ({
   const hasMount = useRef(false);
   const swiperRef = useRef(null);
   const [repostProfile, setRepostProfile] = useState<UserProfile>({});
+
+  const [errorIndexes, setErrorIndexes] = useState([]);
+
+  // Function to handle media errors
+  const handleMediaError = (index) => {
+    setErrorIndexes((prev) => [...prev, index]);
+  };
   // console.log('---profile in post modal---',profile?.profileImgUrl);
   const { likeCount, setLikeCount, commentCount, setCommentCount, likeStatus, setLikeStatus, allLikes, setAllLikes } = utils
 
@@ -305,7 +312,7 @@ const PostModal = ({
           <Row>
             {/* Left Side - Post Image */}
             <Col md={7} className="p-0 position-relative">
-              <Swiper
+            <Swiper
                 modules={[Navigation]}
                 spaceBetween={10}
                 slidesPerView={1}
@@ -314,44 +321,84 @@ const PostModal = ({
                   swiperRef.current = swiper;
                   swiper.slideTo(imageIndex);
                 }}
-              // onSlideChange={(swiper) => {
-              //   // Force a re-render to update button visibility
-              //   setRefresh(prev => prev + 1);
-              // }}
               >
-                {media.map((image, index) => (
-                  <SwiperSlide key={index} style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                  <div
+                {media.map((item, index) => (
+                  <SwiperSlide
+                    key={index}
                     style={{
-                      position: "relative",
-                      width: "100%",
-                      maxWidth: "700px",
-                      height: "600px",
-                      backgroundColor: "#1b1f23",
                       display: "flex",
-                      alignItems: "center",
                       justifyContent: "center",
-                      overflow: "hidden"
+                      alignItems: "center",
                     }}
                   >
-                    <img
-                      src={image}
-                      alt={`Slide ${index}`}
+                    <div
                       style={{
-                        width: "auto",
-                        height: "auto",
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        objectFit: "contain",
-                        zIndex: 7
+                        position: "relative",
+                        width: "100%",
+                        maxWidth: "700px",
+                        height: "600px",
+                        backgroundColor: "#1b1f23",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
-                    />
-                  </div>
-                </SwiperSlide>
-                
+                    >
+                      {errorIndexes.includes(index) ? (
+                         <video
+                         controls
+                         style={{
+                           width: "auto",
+                           height: "auto",
+                           maxWidth: "100%",
+                           maxHeight: "100%",
+                           objectFit: "contain",
+                         }}
+                         onError={() => handleMediaError(index)}
+                       >
+                         <source src={item} type="video/mp4" />
+                         <source src={item} type="video/webm" />
+                         <source src={item} type="video/ogg" />
+                         Your browser does not support the video tag.
+                       </video>
+                      ) : item.endsWith(".mp4") ||
+                        item.endsWith(".webm") ||
+                        item.endsWith(".ogg") ? (
+                        <video
+                          controls
+                          style={{
+                            width: "auto",
+                            height: "auto",
+                            maxWidth: "100%",
+                            maxHeight: "100%",
+                            objectFit: "contain",
+                          }}
+                          onError={() => handleMediaError(index)}
+                        >
+                          <source src={item} type="video/mp4" />
+                          <source src={item} type="video/webm" />
+                          <source src={item} type="video/ogg" />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : (
+                        <img
+                          src={item}
+                          alt={`Slide ${index}`}
+                          style={{
+                            width: "auto",
+                            height: "auto",
+                            maxWidth: "100%",
+                            maxHeight: "100%",
+                            objectFit: "contain",
+                            zIndex: 7,
+                          }}
+                          onError={() => handleMediaError(index)}
+                        />
+                      )}
+                    </div>
+                  </SwiperSlide>
                 ))}
               </Swiper>
-
               {/* Left Navigation Button */}
               {media.length > 1 && (
                 <button
