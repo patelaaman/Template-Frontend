@@ -1,56 +1,77 @@
-import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { BsExclamationTriangle, BsPencil } from "react-icons/bs";
-
+import React, { useState } from 'react'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import { BsExclamationTriangle, BsPencil } from 'react-icons/bs'
+import { LIVE_URL } from '@/utils/api'
+import {toast} from 'react-toastify'
 interface ReportModalProps {
-  show: boolean;
-  handleClose: () => void;
+  show: boolean
+  handleClose: () => void
+  userId: string
+  postId: string
 }
 
-const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
-  const [step, setStep] = useState(1); // Step 1: Selection, Step 2: Report Form, Step 3: Don't want to see this
-  const [reportReason, setReportReason] = useState("");
-  const [additionalDetails, setAdditionalDetails] = useState("");
+const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose, userId, postId }) => {
+  const [step, setStep] = useState(1) // Step 1: Selection, Step 2: Report Form, Step 3: Don't want to see this
+  const [reportReason, setReportReason] = useState<string[]>([])
+  const [additionalDetails, setAdditionalDetails] = useState('')
 
   const reportOptions = [
-    "Spam or misleading content",
-    "Hate speech or discrimination",
-    "Harassment or bullying",
-    "False information",
-    "Violence or harmful content",
-    "Scam or fraud",
-    "Nudity or explicit content",
-    "Copyright violation",
-    "Something else",
-  ];
+    'Spam or misleading content',
+    'Hate speech or discrimination',
+    'Harassment or bullying',
+    'False information',
+    'Violence or harmful content',
+    'Scam or fraud',
+    'Nudity or explicit content',
+    'Copyright violation',
+    'Something else',
+  ]
 
   const dontWantToSeeOptions = [
     "I'm not interested in the author",
     "I'm not interested in this topic",
     "I've seen too many posts on this topic",
     "I've seen this post before",
-    "This post is old",
+    'This post is old',
     "It's something else",
-  ];
+  ]
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (step === 2 && reportReason) {
-      console.log("Report reason:", reportReason);
-      console.log("Additional details:", additionalDetails);
+      try {
+        await fetch(`${LIVE_URL}api/v1/post/report-post`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            reportedPost: postId,
+            reason: reportReason,
+            additionalDetails,
+          }),
+        })
+        toast.success('Post reported successfully')
+      } catch (error) {
+        console.error('Error reporting post:', error)
+      }
     } else if (step === 3) {
-      console.log("Don't want to see this reason:", reportReason);
+      console.log("Don't want to see this reason:", reportReason)
+      console.log('User ID:', userId)
+      console.log('Post ID:', postId)
     }
-    handleClose();
-  };
+    handleClose()
+    setStep(1)
+    setReportReason([])
+    setAdditionalDetails('')
+  }
 
   return (
-    <div className={`custom-modal ${show ? "show" : ""}`}>
+    <div className={`custom-modal ${show ? 'show' : ''}`}>
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">
-              {step === 1 ? "Report this post" : step === 2 ? "Report content for review" : "Don't want to see this"}
-            </h5>
+            <h5 className="modal-title">{step === 1 ? 'Report this post' : step === 2 ? 'Report content for review' : "Don't want to see this"}</h5>
             <button type="button" className="close-btn" onClick={handleClose}>
               &times;
             </button>
@@ -65,9 +86,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
                   <BsPencil className="icon" />
                   <div>
                     <h6>Change your feed</h6>
-                    <p className="text-muted">
-                      If you think this is inappropriate, you can give us feedback instead of reporting.
-                    </p>
+                    <p className="text-muted">If you think this is inappropriate, you can give us feedback instead of reporting.</p>
                   </div>
                 </div>
 
@@ -75,9 +94,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
                   <BsExclamationTriangle className="icon" />
                   <div>
                     <h6>Report content for review</h6>
-                    <p className="text-muted">
-                      Tell us how this goes against our policies or request help for someone.
-                    </p>
+                    <p className="text-muted">Tell us how this goes against our policies or request help for someone.</p>
                   </div>
                 </div>
               </>
@@ -86,16 +103,19 @@ const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
             {/* Step 2: Report Form */}
             {step === 2 && (
               <>
-                <p className="text-muted">Select a reason for reporting this post:</p>
+                <p className="text-muted">Select reasons for reporting this post:</p>
                 <div className="d-flex flex-wrap gap-2">
                   {reportOptions.map((option, index) => (
                     <button
                       key={index}
-                      className={`btn btn-outline-secondary rounded-pill px-3 py-2 ${
-                        reportReason === option ? "btn-primary text-white" : ""
-                      }`}
-                      onClick={() => setReportReason(option)}
-                    >
+                      className={`btn btn-outline-secondary rounded-pill px-3 py-2 ${reportReason.includes(option) ? 'btn-primary text-white' : ''}`}
+                      onClick={() => {
+                        if (reportReason.includes(option)) {
+                          setReportReason(reportReason.filter((reason) => reason !== option))
+                        } else {
+                          setReportReason([...reportReason, option])
+                        }
+                      }}>
                       {option}
                     </button>
                   ))}
@@ -111,7 +131,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
                   <button className="btn btn-light" onClick={() => setStep(1)}>
                     Back
                   </button>
-                  <button className="btn btn-primary" onClick={handleSubmit} disabled={!reportReason}>
+                  <button className="btn btn-primary" onClick={handleSubmit} disabled={reportReason.length === 0}>
                     Submit Report
                   </button>
                 </div>
@@ -126,11 +146,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
                   {dontWantToSeeOptions.map((option, index) => (
                     <button
                       key={index}
-                      className={`btn btn-outline-secondary rounded-pill px-3 py-2 ${
-                        reportReason === option ? "btn-primary text-white" : ""
-                      }`}
-                      onClick={() => setReportReason(option)}
-                    >
+                      className={`btn btn-outline-secondary rounded-pill px-3 py-2 ${reportReason.includes(option) ? 'btn-primary text-white' : ''}`}
+                      onClick={() => {
+                        if (reportReason.includes(option)) {
+                          setReportReason(reportReason.filter((reason) => reason !== option))
+                        } else {
+                          setReportReason([...reportReason, option])
+                        }
+                      }}>
                       {option}
                     </button>
                   ))}
@@ -151,7 +174,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
 
       <style jsx>{`
         .custom-modal {
-          display: ${show ? "flex" : "none"};
+          display: ${show ? 'flex' : 'none'};
           justify-content: center;
           align-items: center;
           position: fixed;
@@ -220,7 +243,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ show, handleClose }) => {
         }
       `}</style>
     </div>
-  );
-};
+  )
+}
 
-export default ReportModal;
+export default ReportModal

@@ -1009,7 +1009,7 @@ console.log("Business Details________________" ,businessDetails)
       <div className="d-none d-lg-block">
       <a
           onClick={messagingOffcanvas.toggle}
-          style={{ marginRight: '76px', width: '85px', height: '45px', backgroundColor: '#0c59bd' }}
+          style={{ marginRight: '76px', width: '85px', height: '45px'}}
           className="icon-md btn btn-primary position-fixed end-0 bottom-0 mb-5"
           role="button"
           aria-controls="offcanvasChat"

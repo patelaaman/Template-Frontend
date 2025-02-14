@@ -30,22 +30,25 @@ function base64ToBlob(base64: string, contentType: string): Blob {
   }
 }
 
-export const uploadDoc = async (file: FileUpload[], userId: string): Promise<string[] | null> => {
+export const uploadDoc = async (
+  file: FileUpload[],
+  userId: any,
+  onProgress?: (progress: number) => void 
+): Promise<string[] | null> => {
   const doc = file[0];
 
+  
   if (!doc || !doc.fileType || !doc.documentName) {
     console.error('🚨 Invalid file object:', doc);
     toast.error('Invalid file type or missing data.');
     return null;
   }
 
-  // 🔍 Generate a proper key
   const extension = doc.fileType.split('/')[1] || 'jpg';
-  // const key = `posts/${userId}/${Date.now()}.${extension}`; // issues fix by sachin pandey
   const key = `posts/${userId}/${Date.now()}-${Math.random().toString(36).substring(7)}-${extension}`;
 
   try {
-    // 🔹 Step 1: Generate the Upload URL
+    // Step 1: Generate the Upload URL
     const generateUrlResponse = await makeApiRequest<ApiResponse<{ url: string }>>({
       method: 'POST',
       url: 'api/v1/auth/generate-upload-url',
@@ -58,35 +61,52 @@ export const uploadDoc = async (file: FileUpload[], userId: string): Promise<str
       return null;
     }
 
-    console.log('🔗 Upload URL generated:', generateUrlResponse.data.url);
+    // console.log('🔗 Upload URL generated:', generateUrlResponse.data.url);
 
-    // 🔹 Step 2: Convert base64 to Blob (Ensure the function works correctly)
     if (!doc.fileObject) {
       throw new Error('File object is missing.');
     }
 
     const blob = base64ToBlob(doc.fileObject, doc.fileType);
 
-    // 🔹 Step 3: Perform the actual Upload
-    const uploadResponse = await fetch(generateUrlResponse.data.url, {
-      method: 'PUT',
-      body: blob,
-      headers: { 'Content-Type': doc.fileType },
+    // Step 2: Upload the file with progress tracking
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', generateUrlResponse.data.url, true);
+      xhr.setRequestHeader('Content-Type', doc.fileType);
+
+      // Track progress
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          console.log(`Upload Progress: ${percent}%`);
+          if (onProgress) onProgress(percent);
+        }
+      };
+
+      
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          console.log('✅ Upload successful');
+          resolve();
+        } else {
+          reject(new Error(`Upload failed with status: ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error during file upload.'));
+      xhr.send(blob);
     });
 
-    if (!uploadResponse.ok) {
-      throw new Error(`Upload failed with status: ${uploadResponse.status}`);
-    }
-
-    console.log('✅ Upload successful:', uploadResponse);
     return [key];
-
   } catch (error: any) {
     console.error('❌ Error in uploadDoc:', error.message);
     toast.error(error.message || 'Upload failed.');
     return null;
   }
 };
+
 
 
 

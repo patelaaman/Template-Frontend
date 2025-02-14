@@ -748,7 +748,7 @@ const PostCard = ({
                           style={{ gap: '0.5rem' }}>
                           <BsExclamationTriangle /> Report Post
                         </button>
-                        {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} />}
+                        {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} userId={user?.id || ''} postId={post?.Id || ''} />}
                       </div>
                     )}
                   </>
@@ -1279,19 +1279,19 @@ const PostCard = ({
                               style={{ gap: '0.5rem' }}>
                               <BsExclamationTriangle /> Report Post
                             </button>
-                            {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} />}
+                            {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} userId={user?.id || ''} postId={post?.Id || ''} />}
                           </div>
                         )}
                       </>
                     )}
                     <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} />
-                    <button
+                    {/* <button
                       className="dropdown-item text-danger d-flex align-items-center"
                       onClick={() => setShowReportModal(true)}
                       style={{ gap: '0.5rem' }}>
                       <BsExclamationTriangle /> Report Post
                     </button>
-                    {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} />}
+                    {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} />} */}
                   </div>
                 )}
               </div>
@@ -1433,7 +1433,7 @@ const PostCard = ({
                           style={{ gap: '0.5rem' }}>
                           <BsExclamationTriangle /> Report Post
                         </button>
-                        {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} />}
+                        {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} userId={user?.id || ''} postId={post?.Id || ''} />}
                       </div>
                     )}
                   </>

@@ -52,11 +52,11 @@ const MediaGallery = ({
   const [src, setSrc] = useState<number>(0);
   if (!media || media.length === 0) return null;
 
-  function handleClick(src: number): void {
-    console.log('click')
-    setSrc(src);
-    setShowPostModal(true);
-  }
+  // function handleClick(src: number): void {
+  //   console.log('click')
+  //   setSrc(src);
+  //   setShowPostModal(true);
+  // }
 
   const styles: StyleProps = {
     container: {
@@ -145,80 +145,141 @@ const MediaGallery = ({
     }
   };
 
+
+  const renderMedia = (mediaSrc: string, index: number) => {
+    return mediaSrc.endsWith(".mp4") || mediaSrc.endsWith(".webm") || mediaSrc.endsWith(".ogg") ? (
+      <video
+        key={index}
+        controls
+        onClick={() => handleClick(index)}
+        onError={(e) => {
+          console.error(`Error loading video: ${mediaSrc}`, e);
+          alert("This video format is not supported.");
+        }}
+        style={{
+          width: "100%",
+          height: "100%",
+          maxHeight: "600px",
+          objectFit: "contain",
+          position: "relative",
+          zIndex: 2,
+          cursor: "pointer",
+          margin: "1px",
+        }}
+        className="gallery-item"
+        data-src={mediaSrc}
+      >
+        <source src={mediaSrc} type="video/mp4" />
+        <source src={mediaSrc} type="video/webm" />
+        <source src={mediaSrc} type="video/ogg" />
+        Your browser does not support the video tag.
+      </video>
+    ) : (
+      <img
+        key={index}
+        src={mediaSrc}
+        onClick={() => handleClick(index)}
+        onError={() => setImageError(true)}
+        alt="unsupported format"
+        style={{
+          width: "100%",
+          height: "100%",
+          maxHeight: "600px",
+          objectFit: "contain",
+          position: "relative",
+          zIndex: 2,
+          cursor: "pointer",
+          margin: "1px",
+        }}
+        className="gallery-item"
+        data-src={mediaSrc}
+      />
+    );
+  };
+
+
+  const [errorStates, setErrorStates] = useState<boolean[]>(new Array(media.length).fill(false));
+
+  if (!media || media.length === 0) return null;
+
+  // Function to determine if a media item is an image or a video
+  const isVideo = (src: string) => {
+    return /\.(mp4|webm|ogg)$/i.test(src);
+  };
+
+  const handleError = (index: number) => {
+    setErrorStates((prev) => {
+      const newErrors = [...prev];
+      newErrors[index] = true;
+      return newErrors;
+    });
+  };
+
+  const handleClick = (index: number) => {
+    console.log("Clicked on media index:", index);
+    setSrc(index);
+    setShowPostModal(true);
+  };
+
+  const renderMediaItem = (src: string, index: number) => {
+    if (errorStates[index]) {
+      return  <video
+      key={index}
+      controls
+      onClick={() => handleClick(index)}
+      onError={() => handleError(index)}
+      className="gallery-item"
+      data-src={src}
+      style={{ width: "100%", height: "100%" }}
+    >
+      <source src={src} type="video/mp4" />
+      <source src={src} type="video/webm" />
+      <source src={src} type="video/ogg" />
+      Your browser does not support the video tag.
+    </video>;
+    }
+
+    return isVideo(src) ? (
+      <video
+        key={index}
+        controls
+        onClick={() => handleClick(index)}
+        onError={() => handleError(index)}
+        className="gallery-item"
+        data-src={src}
+        style={{ width: "100%", height: "100%" }}
+      >
+        <source src={src} type="video/mp4" />
+        <source src={src} type="video/webm" />
+        <source src={src} type="video/ogg" />
+        Your browser does not support the video tag.
+      </video>
+    ) : (
+      <img
+        key={index}
+        src={src}
+        alt={`Media ${index + 1}`}
+        onClick={() => handleClick(index)}
+        onError={() => handleError(index)}
+        className="gallery-item"
+        data-src={src}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    );
+  };
+
   const renderGallery = () => {
     switch (media.length) {
       case 1:
-        return (
-          <div style={styles.container}>
-            {!imageError ? (
-              <img
-                src={media[0]}
-                onClick={() => handleClick(0)}
-                onError={() => setImageError(true)}
-                alt="unsupported format"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  maxHeight: "600px",
-                  objectFit: "contain",
-                  position: "relative",
-                  zIndex: 2,
-                  cursor: "pointer",
-                  margin: "1px",
-                }}
-                className="gallery-item"
-                data-src={media[0]}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  maxHeight: "600px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#f0f0f0",
-                  color: "#555",
-                  fontSize: "16px",
-                  fontWeight: "bold",
-                  border: "1px solid #ccc",
-                }}
-              >
-                Image format unsupported
-              </div>
-            )}
-            {/* <div 
-              style={{ 
-                position: 'absolute', 
-                top: 0, 
-                left: 0, 
-                width: '100%', 
-                height: '100%', 
-                backgroundColor : `gray`, 
-                backgroundSize: 'cover',
-                backgroundPosition: 'center', 
-                filter: 'blur(20px)', // Adjust blur intensity
-                transform: 'scale(1.1)', // Slightly enlarge to avoid edge cut-off
-                zIndex: 0
-              }} 
-            /> */}
-          </div>
-        );
+        return <div style={styles.container}>{renderMediaItem(media[0], 0)}</div>;
 
       case 2:
         return (
           <div style={styles.twoImageContainer}>
             {media.map((src, index) => (
-              <img
-                key={index}
-                src={src}
-                alt={`Image ${index + 1}`}
-                onClick={() => handleClick(index)}
-                style={styles.twoImageItem}
-                className="gallery-item"
-                data-src={src}
-              />
+              <div key={index} style={styles.twoImageItem}>
+                {renderMediaItem(src, index)}
+              </div>
             ))}
           </div>
         );
@@ -226,31 +287,10 @@ const MediaGallery = ({
       case 3:
         return (
           <div style={styles.threeImageContainer}>
-            <img
-              src={media[0]}
-              alt="First image"
-              style={styles.threeImageMainImage}
-              onClick={() => handleClick(0)}
-              className="gallery-item"
-              data-src={media[0]}
-            />
+            <div style={styles.threeImageMainImage}>{renderMediaItem(media[0], 0)}</div>
             <div style={styles.threeImageSideContainer}>
-              <img
-                src={media[1]}
-                alt="Second image"
-                style={styles.threeImageTopImage}
-                className="gallery-item"
-                data-src={media[1]}
-                onClick={() => handleClick(1)}
-              />
-              <img
-                src={media[2]}
-                alt="Third image"
-                style={styles.threeImageBottomImageContainer}
-                className="gallery-item"
-                data-src={media[2]}
-                onClick={() => handleClick(2)}
-              />
+              <div style={styles.threeImageTopImage}>{renderMediaItem(media[1], 1)}</div>
+              <div style={styles.threeImageBottomImageContainer}>{renderMediaItem(media[2], 2)}</div>
             </div>
           </div>
         );
@@ -258,41 +298,16 @@ const MediaGallery = ({
       default:
         return (
           <div style={styles.threeImageContainer}>
-            <img
-              src={media[0]}
-              alt="First image"
-              style={styles.threeImageMainImage}
-              className="gallery-item"
-              data-src={media[0]}
-              onClick={() => handleClick(0)}
-
-            />
+            <div style={styles.threeImageMainImage}>{renderMediaItem(media[0], 0)}</div>
             <div style={styles.threeImageSideContainer}>
-              <img
-                src={media[1]}
-                alt="Second image"
-                style={styles.threeImageTopImage}
-                className="gallery-item"
-                data-src={media[1]}
-                onClick={() => handleClick(1)}
-              />
+              <div style={styles.threeImageTopImage}>{renderMediaItem(media[1], 1)}</div>
               <div style={styles.threeImageBottomImageContainer}>
-                <img
-                  src={media[2]}
-                  alt="Third image"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  className="gallery-item"
-                  data-src={media[2]}
-                  onClick={() => handleClick(2)}
-                />
-                <div
-                  style={styles.overlayContainer}
-                  onClick={() => handleClick(2)}
-                >
-                  <span style={styles.overlayText}>
-                    +{media.length - 3} More
-                  </span>
-                </div>
+                {renderMediaItem(media[2], 2)}
+                {media.length > 3 && (
+                  <div style={styles.overlayContainer} onClick={() => handleClick(2)}>
+                    <span style={styles.overlayText}>+{media.length - 3} More</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -300,16 +315,20 @@ const MediaGallery = ({
     }
   };
 
+ 
+
+
+
   return (
     <div style={{ marginBottom: '10px' }}>
       <PostModal
         show={showPostModal}
         handleClose={() => setShowPostModal(false)}
-        imageIndex={src} 
+        imageIndex={src}
         item={item}
         profile={profile}
         media={media}
-        showRepostOp={false} 
+        showRepostOp={false}
         utils={utils}
         setShowRepostOp={setShowRepostOp}
       />
@@ -329,6 +348,7 @@ const MediaGallery = ({
       )}
     </div>
   );
+  return <>{renderGallery()}</>;
 };
 
 export default MediaGallery;

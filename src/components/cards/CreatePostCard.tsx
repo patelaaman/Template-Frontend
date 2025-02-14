@@ -36,7 +36,7 @@ import { SendHorizontal } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import makeApiRequest from '@/utils/apiServer'
 import { CREATE_POST } from '@/utils/api'
-import { FileUpload, uploadMulti } from '@/utils/CustomS3ImageUpload'
+import { FileUpload, uploadDoc, uploadMulti } from '@/utils/CustomS3ImageUpload'
 
 interface CreatePostCardProps {
   isCreated: boolean,
@@ -62,6 +62,14 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [thoughts, setThoughts] = useState('')
+  const [photoQuote, setPhotoQuote] = useState('')
+  const [videoQuote, setVideoQuote] = useState('')
+  const [awsIds, setAwsIds] = useState<any>([])
+  const [skeletonLoading, setSkeletonLoading] = useState(true)
+  const { isTrue: isOpenPost, toggle: togglePost } = useToggle()
+  const [profile, setProfile] = useState<UserProfile>({})
+
   const eventFormSchema = yup.object({
     title: yup.string().required('Please enter event title'),
     description: yup.string().required('Please enter event description'),
@@ -74,13 +82,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     resolver: yupResolver(eventFormSchema),
   })
 
-  const [thoughts, setThoughts] = useState('')
-  const [photoQuote, setPhotoQuote] = useState('')
-  const [videoQuote, setVideoQuote] = useState('')
-  const [awsIds, setAwsIds] = useState<any>([])
-  const [skeletonLoading, setSkeletonLoading] = useState(true)
-  const { isTrue: isOpenPost, toggle: togglePost } = useToggle()
-  const [profile, setProfile] = useState<UserProfile>({})
 
   useEffect(() => {
     if (modelTime) {
@@ -88,8 +89,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     }
     fetchUser()
   }, [])
-
-
 
   const fetchUser = async () => {
     try {
@@ -120,40 +119,52 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
 
   const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
 
-  const handleFileUpload = (files: FileUpload[]) => {
-    console.log('📸 Files received for upload:', files);
-    setUploadedFiles([...files]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleFileUpload = async (files: FileUpload[]) => {
+    setUploadProgress(0); // Reset progress
+    setUploadedFiles(prevFiles => [...prevFiles, ...files]);
+    const result = await uploadDoc(files, user?.id, (progress) => {
+      setUploadProgress(progress); 
+    });
+
+    if (result) {
+      toast.success('File uploaded successfully!');
+    }
+
   };
-  
-  
 
 
   const handleUpload = async () => {
     try {
       if (uploadedFiles.length === 0) {
-        toast.error('No Photos are Uploaded');
+        toast.error("No Photos or Videos are Uploaded");
         return null;
       }
+
+      console.log("📤 Uploading files:", uploadedFiles);
+
       const mediaKeys = await uploadMulti(uploadedFiles, user?.id);
+      console.log("✅ Media uploaded, received keys:", mediaKeys);
+
       return mediaKeys.length > 0 ? mediaKeys : null;
     } catch (err) {
-      console.error('Error in handleUpload:', err);
+      console.error("Error in handleUpload:", err);
       return null;
     }
   };
-  
-
-  const handlePhotoSubmit = async () => {
+  const handleMediaSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      toast.error("No Photos are Uploaded");
+      toast.error("No Photos or Videos are Uploaded");
       return;
     }
-  
+
     setIsSubmittingPhoto(true);
-  
+
     try {
+      togglePhotoModel();
       const mediaKeys = await handleUpload();
-  
+
       if (mediaKeys && mediaKeys.length > 0) {
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
           method: "POST",
@@ -161,43 +172,40 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           data: {
             userId: user?.id,
             content: thoughts,
-            mediaKeys: mediaKeys, // Ensure correct mediaKeys are sent
+            mediaKeys: mediaKeys,
           },
         });
-  
+
         if (response.data) {
           toast.success("Post submitted successfully!");
           setThoughts("");
-          togglePhotoModel();
+
         }
       } else {
         toast.error("Upload failed. Post not submitted.");
         console.log("Upload failed. Post not submitted.");
       }
     } catch (err) {
-      console.log("Error in the posting", err);
+      console.error("Error in the posting", err);
       toast.error("Error in the posting. Please try again.");
     } finally {
-      setIsCreated(prev => !prev);
+      setIsCreated((prev) => !prev);
       setIsSubmittingPhoto(false);
       setUploadedFiles([]);
       setThoughts("");
     }
   };
-  
 
   const handleVideoSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      toast.error('You must add a Video'); // Show error toast instead of alert
+      toast.error('You must add a Video');
       return;
     }
     setIsSubmittingVideo(true);
     try {
-      // Wait for handleUpload to complete before proceeding
       const uploadSuccess = await handleUpload();
 
       if (uploadSuccess) {
-        // Regular expression to match hashtags
         const hashtagRegex = /#\w+/g;
         const hashtags = videoQuote.match(hashtagRegex) || [];
 
@@ -216,16 +224,16 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
         });
 
         if (response.data) {
-          toast.success('Video posted successfully!'); // Show success toast
-          setThoughts(''); // Reset thoughts after successful post
+          toast.success('Video posted successfully!');
+          setThoughts('');
         }
       } else {
-        toast.error('Upload failed. Post not submitted.'); // Show error toast if upload failed
+        toast.error('Upload failed. Post not submitted.');
         console.log('Upload failed. Post not submitted.');
       }
     } catch (err) {
       console.log('Error in the posting', err);
-      toast.error('Error in the posting. Please try again.'); // Show error toast in case of exception
+      toast.error('Error in the posting. Please try again.');
     }
     finally {
       setIsSubmittingVideo(false);
@@ -257,10 +265,9 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
 
 
   const handlePostClick = async (values) => {
-    // Check if thoughts is empty
     if (!thoughts.trim()) {
       console.log('Thoughts cannot be empty.');
-      toast.error('Thoughts cannot be empty.'); // Show error toast instead of alert
+      toast.error('Thoughts cannot be empty.');
       return;
     }
     setIsSubmittingPost(true);
@@ -283,11 +290,11 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
         console.log('isCreated before', isCreated);
         setIsCreated(() => !isCreated);
         console.log('isCreated after', isCreated);
-        toast.success('Post created successfully!'); // Show success toast when post is created
+        toast.success('Post created successfully!');
       }
     } catch (err) {
       console.log('Error in the posting', err);
-      toast.error('Error creating the post. Please try again.'); // Show error toast for any error during the posting
+      toast.error('Error creating the post. Please try again.');
     }
     finally {
       setIsSubmittingPost(false);
@@ -374,7 +381,18 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
 
   return (
     <>
-      <Card className="card-body" style={{ maxHeight: '10em' }}>
+      <Card className="card-body" style={{ maxHeight: '10em', position: "relative" }}>
+
+      {uploadProgress > 0 && uploadProgress < 99.95 && (
+  <div style={{ position: "absolute", zIndex: 999, top: "9.8em", left: "30%", textAlign: "center" }}>
+    <progress value={uploadProgress} max="100" style={{ width: "300px", height: "10px" }}></progress>
+    <div style={{ marginTop: -10, fontSize: "10px", fontWeight: "bold", color: "#333" }}>
+      {uploadProgress.toFixed(2)}%
+    </div>
+  </div>
+)}
+
+
         <div className="d-flex mb-3">
           <Link to={`/profile/feed/${user?.id}`}>
             <div className="me-2" style={{ marginTop: "-25px" }}>
@@ -463,13 +481,13 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           <li className="nav-item d-inline">
             <a className="nav-link bg-light py-2 px-4 mb-2" onClick={togglePhotoModel}>
               <BsImageFill size={20} className="text-success pe-2" />
-              Photo
+              Upload Media
             </a>
           </li>
           <li className="nav-item d-inline">
             <a className="nav-link bg-light py-2 px-4 mb-2" onClick={toggleVideoModel}>
               <BsCameraReelsFill size={20} className="text-info pe-2" />
-              Video
+              Goto Live
             </a>
           </li>
           <li className="nav-item d-inline">
@@ -493,7 +511,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
         aria-hidden="true">
         <ModalHeader closeButton>
           <h5 className="modal-title" id="feedActionPhotoLabel">
-            Add post photo
+            Add post media
           </h5>
         </ModalHeader>
         <ModalBody>
@@ -575,7 +593,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
               icon={BsImages}
               onFileUpload={handleFileUpload}
               showPreview
-              text="Drag here or click to upload photo."
+              text="Drag here or click to upload media."
             />
           </div>
         </ModalBody>
@@ -583,7 +601,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           <button type="button" className="btn btn-danger-soft me-2" data-bs-dismiss="modal" onClick={() => togglePhotoModel()}>
             Cancel
           </button>
-          <button type="submit" onClick={handlePhotoSubmit} className="btn btn-success-soft">
+          <button type="submit" onClick={handleMediaSubmit} className="btn btn-success-soft">
             {isSubmittingPhoto ? <Spinner size="sm" animation="border" /> : "Post"}
           </button>
         </ModalFooter>
@@ -593,7 +611,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
       <Modal centered show={isOpenVideo} onHide={toggleVideoModel} className="fade" id="feedActionVideo" tabIndex={-1}>
         <ModalHeader closeButton>
           <h5 className="modal-title" id="feedActionVideoLabel">
-            Add post video
+            Goto Live 
           </h5>
         </ModalHeader>
         <ModalBody>
@@ -601,7 +619,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
             <div className="avatar avatar-xs me-2">
               <img className="avatar-img rounded-circle" src={profile.profileImgUrl ? profile.profileImgUrl : avatar7} alt="" />
             </div>
-            <form className="w-100">
+            {/* <form className="w-100">
               <textarea
                 onChange={handleChangeVideoQuote}
                 value={thoughts}
@@ -646,9 +664,10 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
                 </div>
               )}
 
-            </form>
+            </form> */}
+            <h4>UpComming</h4>
           </div>
-          <div>
+          {/* <div>
             <DropzoneFormInput
               label="Upload attachment"
               onFileUpload={handleFileUpload}
@@ -656,15 +675,15 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
               showPreview
               text="Drag here or click to upload video."
             />
-          </div>
+          </div> */}
         </ModalBody>
         <ModalFooter>
           <Button variant="danger-soft" type="button" className="me-2">
             <BsCameraVideoFill className="pe-1" /> Live video
           </Button>
-          <button type="submit" onClick={handleVideoSubmit} className="btn btn-success-soft">
+          {/* <button type="submit" onClick={handleVideoSubmit} className="btn btn-success-soft">
             {isSubmittingVideo ? <Spinner size="sm" animation="border" /> : "Post"}
-          </button>
+          </button> */}
         </ModalFooter>
       </Modal>
 
