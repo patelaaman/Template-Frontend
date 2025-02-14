@@ -486,11 +486,12 @@ const PostCard = ({
         {/* Right side with comment count */}
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <MdComment size={16} onClick={() => setOpenComment(!openComment)} />
-          {commentCount !== 0 && <span>{commentCount}</span>}
+          {commentCount !== 0 && <span>{commentCount} comment</span>}
         </span>
       </p>
     )
   }
+
 
   const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false)
   const [searchResults, setSearchResults] = useState<any[]>([])
@@ -1411,41 +1412,42 @@ const PostCard = ({
               {/* <span>Comment</span> */}
             </Button>
 
-            <Button
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}
-              onClick={() => setShowRepostOp(true)}>
-              <Repeat size={16} />
-              {/* <span>Repost</span> */}
-            </Button>
-            {
-              <RepostModal
-                isOpen={showRepostOp}
-                onClose={() => setShowRepostOp(false)}
-                authorName={userInfo?.firstName}
-                item={item}
-                isCreated={isCreated}
-                setIsCreated={setIsCreated}
-              />
-            }
-            <Button
-              onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}>
-              <Copy size={16} />
-            </Button>
-            <Button
-              onClick={() => handleShare(post.Id)}
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}>
-              <Share size={16} />
-            </Button>
-          </ButtonGroup>
-          {openComment && (
-            <div className="d-flex mb-4 px-3">
+              <Button
+                variant="ghost"
+                className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                style={{ fontSize: "0.8rem" }}
+                onClick={() => setShowRepostOp(true)}
+              >
+                <Repeat size={16} />
+                {/* <span>Repost</span> */}
+              </Button>
+              {
+                <RepostModal
+                  isOpen={showRepostOp}
+                  onClose={() => setShowRepostOp(false)}
+                  authorName={userInfo?.firstName}
+                  item={item}
+                  isCreated={isCreated}
+                  setIsCreated={setIsCreated}
+                />}
+              <Button
+                onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
+                variant="ghost"
+                className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                style={{ fontSize: "0.8rem" }}
+              >
+                <Copy size={16} />
+              </Button>
+              <Button
+                onClick={() => handleShare(post.Id)}
+                variant="ghost"
+                className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                style={{ fontSize: "0.8rem" }}
+              >
+                <Share size={16} />
+              </Button>
+            </ButtonGroup>
+            {<div className="d-flex mb-4 px-3">
               <div className="avatar avatar-xs me-3">
                 <Link to={`/profile/feed/${user?.id}`}>
                   <span role="button">
@@ -1530,10 +1532,9 @@ const PostCard = ({
                 )}
               </form>
             </div>
-          )}
+          }
 
-          {openComment &&
-            (isLoading ? (
+            {(isLoading ? (
               <p>Loading comments...</p>
             ) : (
               <ul className="comment-wrap list-unstyled px-3">
@@ -1554,18 +1555,21 @@ const PostCard = ({
             ))}
         </CardBody>
 
-        {openComment && comments.length > 2 && (
-          <CardFooter
-            className="border-0 pt-0"
-            onClick={() => {
-              setLoadMore(!loadMore)
-            }}>
-            <LoadContentButton name={!loadMore ? 'Load more comments' : 'Close comments'} toggle={loadMore} />
-          </CardFooter>
-        )}
-      </Card>
-    </>
-  )
-}
+          {(
+            comments.length > 2 && (
+              <CardFooter
+                className="border-0 pt-0"
+                onClick={() => {
+                  setLoadMore(!loadMore);
+                }}
+              >
+                <LoadContentButton name={!loadMore ? "Load more comments" : "Close comments"} toggle={loadMore} />
+              </CardFooter>
+            )
+          )}
+        </Card>
+      </>
+  );
+};
 
 export default PostCard

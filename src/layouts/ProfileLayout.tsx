@@ -14,9 +14,9 @@ import { RiUserUnfollowFill } from 'react-icons/ri'
 import { Navigate } from 'react-router-dom'
 import clsx from 'clsx'
 import EditProfilePictureModal from '../components/cards/EditProfilePictureModal'
-import { Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Image, Row } from 'react-bootstrap'
-import { BsBriefcase, BsGeoAlt, BsPatchCheckFill, BsPencilFill } from 'react-icons/bs'
-import { FaPlus } from 'react-icons/fa6'
+import { Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Dropdown, DropdownDivider, DropdownItem, DropdownMenu, DropdownToggle, Image, Offcanvas, OffcanvasHeader, OffcanvasTitle, Row } from 'react-bootstrap'
+import { BsBell, BsBriefcase, BsChatLeftTextFill, BsCheckSquare, BsGear, BsGeoAlt, BsPatchCheckFill, BsPencilFill, BsPencilSquare, BsPeople, BsSlashCircle, BsThreeDots, BsVolumeUpFill } from 'react-icons/bs'
+import { FaPlus, FaXmark } from 'react-icons/fa6'
 
 // import { PROFILE_MENU_ITEMS } from '@/assets/data/menu-items'
 
@@ -41,134 +41,14 @@ import { set } from 'react-hook-form'
 import { LIVE_URL } from '@/utils/api'
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
 import ImageZoom from '@/components/cards/ImageZoom'
+import { useLayoutContext } from '@/context/useLayoutContext'
+import Messaging from '@/components/layout/Messaging'
+import { useUnreadMessages } from '@/context/UnreadMessagesContext'
 
 const Experience = () => {
   return null
-  return (
-    <Card style={{ marginTop: '25px' }}>
-      <CardHeader className="d-flex justify-content-between border-0">
-        <h5 className="card-title">Suggested Pages</h5>
-        <Button variant="primary-soft" size="sm">
-          <FaPlus />
-        </Button>
-      </CardHeader>
-      <CardBody className="position-relative pt-0">
-        {experienceData.map((experience, idx) => (
-          <div className="d-flex" key={idx}>
-            <div className="avatar me-3">
-              <span role="button">
-                <img className="avatar-img rounded-circle" src={experience.logo} alt="" />
-              </span>
-            </div>
-            <div>
-              <h6 className="card-title mb-0">
-                <Link to=""> {experience.title} </Link>
-              </h6>
-              <p className="small">
-                {experience.description}
-                <Link className="btn btn-primary-soft btn-xs ms-2" to="">
-                  Edit
-                </Link>
-              </p>
-            </div>
-          </div>
-        ))}
-      </CardBody>
-    </Card>
-  )
 }
 
-const Photos = () => {
-  return (
-    <Card>
-      <CardHeader className="d-sm-flex justify-content-between border-0">
-        <CardTitle>Photos</CardTitle>
-        <Button variant="primary-soft" size="sm">
-          See all photo
-        </Button>
-      </CardHeader>
-      <CardBody className="position-relative pt-0">
-        <Row className="g-2">
-          <Col xs={6}>
-            <GlightBox href={album1} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album1} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={6}>
-            <GlightBox href={album2} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album2} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={4}>
-            <GlightBox href={album3} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album3} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={4}>
-            <GlightBox href={album4} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album4} alt="album-image" />
-            </GlightBox>
-          </Col>
-          <Col xs={4}>
-            <GlightBox href={album5} data-gallery="image-popup">
-              <img className="rounded img-fluid" src={album5} alt="album-image" />
-            </GlightBox>
-          </Col>
-        </Row>
-      </CardBody>
-    </Card>
-  )
-}
-
-const Friends = () => {
-  const { pathname } = useLocation()
-  const { user } = useAuthContext()
-  const [profile, setProfile] = useState({})
-  const [sent, setSent] = useState(false)
-  const [allFollowers, setAllFollowers] = useState<any[]>([])
-  const [limit, setLimit] = useState(6)
-  const [skeletonLoading, setSkeletonLoading] = useState(true)
-  const [totalUsers, SetTotalUsers] = useState(0)
-  const [sentStatus, setSentStatus] = useState<{ [key: string]: boolean }>({})
-  const [loading, setLoading] = useState<string | null>(null) // Track loading state by user ID
-  const skeletonBaseColor = '#e3e3e3'
-  const skeletonHighlightColor = '#f2f2f2'
-  useEffect(() => {
-    if (allFollowers.length > 0) {
-      return
-    }
-    fetchConnectionSuggestions()
-  }, [allFollowers])
-
-  const fetchConnectionSuggestions = async () => {
-    try {
-      setSkeletonLoading(true)
-      const response = await fetch(`${LIVE_URL}api/v1/connection/get-connection-suggest`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user?.id,
-          page: 1,
-          limit: limit,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch connection suggestions')
-      }
-      setSkeletonLoading(false)
-      const data = await response.json()
-      setAllFollowers(data.data)
-      SetTotalUsers(data?.total)
-    } catch (error) {
-      console.error('Error fetching connection suggestions:', error)
-    } finally {
-      setSkeletonLoading(false)
-    }
-  }
-}
 export const ConnectionRequest = () => {
   const { user } = useAuthContext()
   const [allFollowers, setAllFollowers] = useState<any[]>([])
@@ -324,7 +204,9 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
   const [coverModal, setCoverModal] = useState<boolean>(false)
   const [count, setCount] = useState(0)
   const hasMount = useRef(false)
-
+  const { unreadMessages } = useUnreadMessages()
+    const countM = unreadMessages.length;
+  const { messagingOffcanvas, startOffcanvas } = useLayoutContext()
   useEffect(() => {
     if (profile?.coverImgUrl || profile?.personalDetails) {
       return
@@ -532,6 +414,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
     },
   ]
   return (
+    <>
     <div style={{}}>
       <ToastContainer />
       <Suspense fallback={<Preloader />}>
@@ -771,6 +654,101 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
         </Row>
       </main>
     </div>
+    <div className="d-none d-lg-block">
+      <a
+          onClick={messagingOffcanvas.toggle}
+          style={{ marginRight: '76px', width: '85px', height: '45px', backgroundColor: '#0c59bd' }}
+          className="icon-md btn btn-primary position-fixed end-0 bottom-0 mb-5"
+          role="button"
+          aria-controls="offcanvasChat"
+          >
+        {count > 0 && (
+          <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ padding: '0.5em', width: '1.5em', height: '1.5em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {count}
+          </span>
+        )}
+            <span>
+              <BsChatLeftTextFill/> Chat
+            </span>
+        </a>
+        <Offcanvas
+          show={messagingOffcanvas.open}
+          onHide={messagingOffcanvas.toggle}
+          placement="end"
+          className="offcanvas-end"
+          data-bs-scroll="true"
+          data-bs-backdrop="false"
+          tabIndex={-1}
+          id="offcanvasChat">
+          <OffcanvasHeader className="d-flex justify-content-between">
+            <OffcanvasTitle as="h5">Messaging</OffcanvasTitle>
+            <div className="d-flex">
+              <a role="button" className="btn btn-secondary-soft-hover py-1 px-2">
+                <BsPencilSquare />
+              </a>
+              <Dropdown>
+                <DropdownToggle
+
+                  as="a"
+                  className="content-none btn btn-secondary-soft-hover py-1 px-2"
+                  id="chatAction"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  <BsThreeDots />
+                </DropdownToggle>
+                <DropdownMenu className="dropdown-menu-end" aria-labelledby="chatAction">
+                  <li>
+                    <DropdownItem>
+                      <BsCheckSquare className="fa-fw pe-2" size={23} /> Mark all as read
+                    </DropdownItem>
+                  </li>
+                  <li>
+                    <DropdownItem>
+                      <BsGear className="fa-fw pe-2" size={23} /> Chat setting
+                    </DropdownItem>
+                  </li>
+                  <li>
+                    <DropdownItem>
+                      <BsBell className="fa-fw pe-2" size={23} /> Disable notifications
+                    </DropdownItem>
+                  </li>
+                  <li>
+                    <DropdownItem>
+                      <BsVolumeUpFill className="fa-fw pe-2" size={23} /> Message sounds
+                    </DropdownItem>
+                  </li>
+                  <li>
+                    <DropdownItem>
+                      <BsSlashCircle className="fa-fw pe-2" size={23} /> Block setting
+                    </DropdownItem>
+                  </li>
+                  <li>
+                    <DropdownDivider />
+                  </li>
+                  <li>
+                    <DropdownItem>
+                      <BsPeople className="fa-fw pe-2" size={23} /> Create a group chat
+                    </DropdownItem>
+                  </li>
+                </DropdownMenu>
+              </Dropdown>
+              <a role="button" className="btn btn-secondary-soft-hover py-1 px-2" onClick={messagingOffcanvas.toggle}>
+                <FaXmark />
+              </a>
+            </div>
+          </OffcanvasHeader>
+          <div className="offcanvas-body pt-0 custom-scrollbar">
+            {/* <form className="rounded position-relative"> */}
+              {/* <FormControl className="ps-5 bg-light" type="search" placeholder="Search..." aria-label="Search" />
+              <button className="btn bg-transparent px-3 py-0 position-absolute top-50 start-0 translate-middle-y" type="button">
+                <BsSearch className="fs-5" />
+              </button> */}
+            {/* </form> */}
+            <Messaging />
+          </div>
+        </Offcanvas>
+    </div>
+    </>
   )
 }
 export default ProfileLayout
