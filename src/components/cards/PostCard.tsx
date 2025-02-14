@@ -462,7 +462,7 @@ const PostCard = ({
     const userLike = allLikes.find((like) => like.id === user?.id)
     const otherLikes = allLikes.filter((like) => like.id !== user?.id)
 
-    let str = 'Liked by '
+    let str = 'Reacted by '
 
     if (userLike) str += 'You'
     if (otherLikes.length > 0) {
