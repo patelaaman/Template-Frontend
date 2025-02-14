@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import {toast} from 'react-toastify'
 
+import { LIVE_URL } from "@/utils/api";
 interface ReportBlockModalProps {
   show: boolean;
   handleClose: () => void;
-  userId:string;
-  targetId:string;
+  userId: string;
+  targetId: string;
 }
 
 const ReportBlockModal: React.FC<ReportBlockModalProps> = ({ show, handleClose, userId, targetId }) => {
-  const [action, setAction] = useState(null);
+  const [action, setAction] = useState<string | null>(null);
   const [blockReason, setBlockReason] = useState("");
-  const [reportReason, setReportReason] = useState("");
+  const [reportReasons, setReportReasons] = useState<string[]>([]);
+  
+  
 
   const reportOptions = [
     "Fake profile",
@@ -27,16 +31,54 @@ const ReportBlockModal: React.FC<ReportBlockModalProps> = ({ show, handleClose, 
     "Misinformation or false news",
     "Unauthorized sharing of personal information",
   ];
-  
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (action === "block" && blockReason) {
-      console.log("Block reason:", blockReason);
-    } else if (action === "report" && reportReason) {
-      console.log("Additional details:", blockReason);
-      console.log("Report reason:", reportReason);
+      try {
+        await fetch(`${LIVE_URL}api/v1/post/block-user`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: userId,
+            blockedUser: targetId,
+            reason: blockReason,
+          }),
+        });
+        // console.log("target user:",targetId)
+        toast.success("User blocked successfully")
+      } catch (error) {
+        console.error("Error blocking user:", error);
+      }
+    } else if (action === "report" && reportReasons.length > 0) {
+      try {
+        await fetch(`${LIVE_URL}api/v1/post/report-user`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: userId,
+            reportedUser: targetId,
+            reasons: reportReasons,
+            additionalDetails: blockReason,
+          }),
+        });
+        toast.success("User reported successfully")
+      } catch (error) {
+        console.error("Error reporting user:", error);
+      }
     }
     handleClose();
+  };
+
+  const toggleReportReason = (option: string) => {
+    setReportReasons((prevReasons) =>
+      prevReasons.includes(option)
+        ? prevReasons.filter((reason) => reason !== option)
+        : [...prevReasons, option]
+    );
   };
 
   return (
@@ -114,39 +156,39 @@ const ReportBlockModal: React.FC<ReportBlockModalProps> = ({ show, handleClose, 
                 </div>
               </div>
             ) : (
-                <div className="p-4">
-                    <h5 className="text-dark fw-bold mb-3">Report this profile</h5>
-                    <p className="text-muted">Select our policy that applies</p>
-                    <div className="d-flex flex-wrap gap-2">
-                        {reportOptions.map((option, index) => (
-                            <button
-                                key={index}
-                                className={`btn btn-outline-secondary rounded-pill px-3 py-2 ${
-                                    reportReason === option ? "btn-primary text-white" : ""
-                                }`}
-                                onClick={() => setReportReason(option)}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
-                    <textarea
-                        className="input-box mt-3"
-                        rows={2}
-                        placeholder="Additional details (optional)"
-                        value={blockReason}
-                        onChange={(e) => setBlockReason(e.target.value)}
-                    />
-                    <div className="mt-4">
-                        <p className="text-muted small">Looking for something else?</p>
-                        <button className="btn btn-link text-decoration-none">Suggest a profile correction</button>
-                        <button className="btn btn-link text-decoration-none">Let us know this person is deceased</button>
-                    </div>
-                    <div className="d-flex justify-content-between mt-4">
-                        <button className="btn btn-light" onClick={handleClose}>Back</button>
-                        <button className="btn btn-primary" onClick={handleSubmit} disabled={!reportReason}>Next</button>
-                    </div>
+              <div className="p-4">
+                <h5 className="text-dark fw-bold mb-3">Report this profile</h5>
+                <p className="text-muted">Select our policy that applies</p>
+                <div className="d-flex flex-wrap gap-2">
+                  {reportOptions.map((option, index) => (
+                    <button
+                      key={index}
+                      className={`btn btn-outline-secondary rounded-pill px-3 py-2 ${
+                        reportReasons.includes(option) ? "btn-primary text-white" : ""
+                      }`}
+                      onClick={() => toggleReportReason(option)}
+                    >
+                      {option}
+                    </button>
+                  ))}
                 </div>
+                <textarea
+                  className="input-box mt-3"
+                  rows={2}
+                  placeholder="Additional details (optional)"
+                  value={blockReason}
+                  onChange={(e) => setBlockReason(e.target.value)}
+                />
+                <div className="mt-4">
+                  <p className="text-muted small">Looking for something else?</p>
+                  <button className="btn btn-link text-decoration-none">Suggest a profile correction</button>
+                  <button className="btn btn-link text-decoration-none">Let us know this person is deceased</button>
+                </div>
+                <div className="d-flex justify-content-between mt-4">
+                  <button className="btn btn-light" onClick={handleClose}>Back</button>
+                  <button className="btn btn-primary" onClick={handleSubmit} disabled={reportReasons.length === 0}>Next</button>
+                </div>
+              </div>
             )}
           </div>
         </div>

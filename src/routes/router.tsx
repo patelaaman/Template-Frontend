@@ -84,37 +84,77 @@ const AppRouter = (props: RouteProps) => {
   //       }
   //     };
   //   }, [user]);
-  useEffect(() => {
-    // Mark user as online when component mounts
-    socket.emit("userOnline", user?.id); // Replace 'user123' with dynamic user info
-    socket.on('newMessage', async () => {
-      if (user?.id) {
-        await fetchUnreadMessages();
-      }
-    });
-    socket.on('messageRead', async () => {
-      console.log('messageRead')
-      if (user?.id) {
-        await fetchUnreadMessages();
-      }
-    });
-    const handleBeforeUnload = () => {
-      socket.emit("userOffline", user?.id); // Mark user as offline
-      // socket.emit("userOffline", user?.id); // Mark user as offline
-    };
-    // Add 'beforeunload' event listener to handle tab closure
-    window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Cleanup event listener when component unmounts
-    return () => {
-      // Emit useroffline on unmount as well (in case the user navigates away)
-      socket.emit("userOffline", user?.id);
-      // socket.emit("userOffline", user?.id);
-      
-      // Remove event listener to avoid memory leaks
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+
+  useEffect(() => {
+    if (!user?.id || !socket) return;
+  
+    socket.emit("userOnline", user.id);
+  
+    const handleNewMessage = async () => {
+      if (user?.id) await fetchUnreadMessages();
     };
-  }, [user?.id]);
+  
+    const handleMessageRead = async () => {
+      console.log("messageRead");
+      if (user?.id) await fetchUnreadMessages();
+    };
+  
+    socket.on("newMessage", handleNewMessage);
+    socket.on("messageRead", handleMessageRead);
+  
+    const handleBeforeUnload = () => {
+      socket.emit("userOffline", user.id);
+    };
+  
+    window.addEventListener("beforeunload", handleBeforeUnload);
+  
+    return () => {
+      socket.emit("userOffline", user.id);
+      socket.off("newMessage", handleNewMessage);
+      socket.off("messageRead", handleMessageRead);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [user?.id, socket]);
+  
+
+
+  // useEffect(() => {
+  //   // Mark user as online when component mounts
+  //   socket.emit("userOnline", user?.id); // Replace 'user123' with dynamic user info
+  //   socket.on('newMessage', async () => {
+  //     if (user?.id) {
+  //       await fetchUnreadMessages();
+  //     }
+  //   });
+  //   socket.on('messageRead', async () => {
+  //     console.log('messageRead')
+  //     if (user?.id) {
+  //       await fetchUnreadMessages();
+  //     }
+  //   });
+  //   const handleBeforeUnload = () => {
+  //     socket.emit("userOffline", user?.id); // Mark user as offline
+  //     // socket.emit("userOffline", user?.id); // Mark user as offline
+  //   };
+  //   // Add 'beforeunload' event listener to handle tab closure
+  //   window.addEventListener('beforeunload', handleBeforeUnload);
+
+  //   // Cleanup event listener when component unmounts
+  //   return () => {
+  //     // Emit useroffline on unmount as well (in case the user navigates away)
+  //     socket.emit("userOffline", user?.id);
+  //     // socket.emit("userOffline", user?.id);
+      
+  //     // Remove event listener to avoid memory leaks
+  //     window.removeEventListener('beforeunload', handleBeforeUnload);
+  //   };
+  // }, [user?.id]);
+
+
+
+
+  
 //   useEffect(() => {
 //     if (!user?.id) return;
 
