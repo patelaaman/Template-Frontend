@@ -9,11 +9,21 @@ import { useOnlineUsers } from '@/context/OnlineUser.'
 import { useState, useEffect } from 'react'
 //import { io } from 'socket.io-client'
 import { Card, Spinner } from 'react-bootstrap'
-// import { useLastMessage } from '@/context/LastMesageContext'
+import { useLastMessage } from '@/context/LastMesageContext'
 import { LIVE_URL } from '@/utils/api'
 import { BsSearch } from 'react-icons/bs'
 // import { useContext } from 'react'
 
+
+interface UserType {
+  userId: string
+  connectionId: string
+  profilePictureUrl: string
+  firstName: string
+  lastName: string
+  isStory: boolean
+  lastMessage: string | Message
+}
 
 const ChatItem = ({ userId, connectionId,lastMessage ,profilePictureUrl, firstName, lastName, isStory }: UserType) => {
   const { changeActiveChat, activeChat } = useChatContext();
@@ -95,7 +105,7 @@ const ChatItem = ({ userId, connectionId,lastMessage ,profilePictureUrl, firstNa
               {`${firstName} ${lastName}`}
             </h6>
             <div className="small text-dark" style={{ color: "#333" }}>
-            {"No message yet"}  {/* {lastMessage.length > 25 ? `${lastMessage.substring(0, 25)}...` : lastMessage} */}
+             {lastMessage?.length > 25 ? `${lastMessage.substring(0, 25)}...` : lastMessage}
             </div>
           </div>
           {unreadCount > 0 && (
@@ -126,21 +136,21 @@ const ChatItem = ({ userId, connectionId,lastMessage ,profilePictureUrl, firstNa
 const ChatUsers = ({ chats }: { chats: UserType[] }) => {
   const [users, setUsers] = useState<UserType[]>([])
   const [loading, setLoading] = useState(true)
-  // const { lastMessages } = useLastMessage()
+  const { lastMessages } = useLastMessage()
   // console.log('lastMessage', lastMessages);
 
 
   useEffect(() => {
     if (chats.length > 0) {
-      // console.log(lastMessages);
-      // const updatedChats = chats.map(chat => {
-        // const lastMessage = lastMessages[chat.userId]; // Accessing object property
-      //   return {
-      //     ...chat,
-      //     lastMessage: lastMessage ? lastMessage : 'No message yet'
-      //   };
-      // });
-      setUsers(chats);
+      console.log(lastMessages);
+      const updatedChats = chats.map(chat => {
+        const lastMessage = lastMessages[chat.userId]; // Accessing object property
+        return {
+          ...chat,
+          lastMessage: lastMessage ? lastMessage : 'No message yet'
+        };
+      });
+      setUsers(updatedChats);
       setLoading(false);
     }
   }, [chats]);
@@ -148,13 +158,17 @@ const ChatUsers = ({ chats }: { chats: UserType[] }) => {
   const search = (text: string) => {
     setUsers(
       text
-        ? chats.filter((u) => {
-            const name = `${u.firstName} ${u.lastName}`.toLowerCase()
-            return name.includes(text.toLowerCase())
+        ? users.filter((u) => {
+            const name = `${u.firstName} ${u.lastName}`.toLowerCase();
+            return name.includes(text.toLowerCase());
           })
-        : [...chats]
-    )
-  }
+        : [...chats.map(chat => ({
+            ...chat,
+            lastMessage: lastMessages[chat.userId] || 'No message yet'
+          }))]
+    );
+  };
+  
 
   return (
     <Card className="card-chat-list rounded-end-lg-0 card-body border-end-lg-0 rounded-top-0 overflow-hidden">
