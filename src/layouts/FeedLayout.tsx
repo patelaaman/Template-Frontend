@@ -44,6 +44,7 @@ const FeedLayout = ({ children }: ChildrenType) => {
   const { messagingOffcanvas, startOffcanvas } = useLayoutContext()
   const { unreadMessages } = useUnreadMessages()
   const count = unreadMessages.length;
+  console.log("unreadMessages", unreadMessages)
   const { width } = useViewPort()
   return (
     <>

@@ -121,13 +121,13 @@ const ProfileVisits = () => {
 
   return (
     <div className="container mt-0" style={{ width: '103%' }}>
-      <Card>
+      <div style={{width:"88%", marginLeft:"4.5%" ,}}>
         <CardBody>
           <div className="d-flex align-items-center p-3 bg-light border-bottom mb-2">
             <h5 className="mb-0 me-2">Total Profile Views:</h5>
             <h5 className="mb-0 text-black">{visits.length}</h5>
           </div>
-
+        
           {visits.length === 0 ? (
             <div className="container mt-0">
               <Card>
@@ -201,7 +201,7 @@ const ProfileVisits = () => {
             </ListGroup>
           )}
         </CardBody>
-      </Card>
+      </div>
     </div>
   )
 }
@@ -288,8 +288,8 @@ const ProfileVisited = () => {
   }
 
   return (
-    <div className="container mt-0">
-      <Card>
+    <div className="container ">
+      <div style={{width:"91%", marginLeft:"4.5%" }}>
         <CardBody>
           <div className="d-flex align-items-center p-3 bg-light border-bottom mb-2">
             <h5 className="mb-0 me-2">Total Profiles I've Viewed:</h5>
@@ -368,44 +368,61 @@ const ProfileVisited = () => {
             </div>
           )}
         </CardBody>
-      </Card>
+      </div>
     </div>
   )
 }
 
 const VisitProfile = () => {
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(0);
 
   const sections = [
     {
-      title: 'Who Viewed My Profile',
-      icon: <FaEye className="icon" />,
+      title: "Who Viewed My Profile",
+      icon: <FaEye className="icon" style={{ color: "#007bff" }} />,
       component: <ProfileVisits />,
     },
     {
       title: "Profiles I've Viewed",
-      icon: <FaUserAlt className="icon" />,
+      icon: <FaUserAlt className="icon" style={{ color: "#28a745" }} />,
       component: <ProfileVisited />,
     },
-  ]
+  ];
 
   return (
     <div className="container-fluid px-0">
-      <div className="tabs-container">
-        {sections.map((section, index) => (
-          <button key={index} type="button" className={`tab-btn ${step === index ? 'active' : ''}`} onClick={() => setStep(index)}>
-            <div className="icon">{section.icon}</div>
-            <span className="title">{section.title}</span>
-          </button>
-        ))}
+      <div className="card p-4 shadow-sm rounded">
+        <div className="tabs-container">
+          {sections.map((section, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`tab-btn ${step === index ? "active" : ""}`}
+              onClick={() => setStep(index)}
+            >
+              <div className="icon">{section.icon}</div>
+              <span className="title">{section.title}</span>
+            </button>
+          ))}
+        </div>
+        <div className="content-container p-4">{sections[step].component}</div>
       </div>
-      <div>{sections[step].component}</div>
       <style>
         {`
-          .tab-btn {
-            background: #f0f2f5;
+          .card {
+            background: white;
             border-radius: 12px;
-            color: #007bff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            margin: auto;
+            font-family: 'Arial', sans-serif;
+          }
+          
+          .tab-btn {
+            background: white;
+            border: 2px solid #d6d6d6;
+            border-radius: 12px;
+            color: black;
             width: 180px;
             height: 80px;
             font-size: 15px;
@@ -416,13 +433,15 @@ const VisitProfile = () => {
             justify-content: center;
             transition: all 0.3s ease;
             cursor: pointer;
-            border: none;
             margin: 10px;
+            font-family: 'Arial', sans-serif;
           }
 
           .tab-btn.active {
-            background: #007bff;
-            color: white;
+            background: white;
+            border: 2px solid #007bff;
+            color: #007bff;
+           
           }
 
           .icon {
@@ -442,9 +461,8 @@ const VisitProfile = () => {
             padding: 10px;
             background: white;
             border-radius: 12px;
-            width: 89%;
+            width: 100%;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            margin: 0 auto 20px auto;
             gap: 5px;
           }
 
@@ -452,7 +470,7 @@ const VisitProfile = () => {
             padding: 20px;
             background: white;
             border-radius: 12px;
-            width: 90%;
+            width: 100%;
             max-width: 900px;
             margin: 0 auto;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
@@ -460,7 +478,7 @@ const VisitProfile = () => {
         `}
       </style>
     </div>
-  )
-}
+  );
+};
 
-export default VisitProfile
+export default VisitProfile;

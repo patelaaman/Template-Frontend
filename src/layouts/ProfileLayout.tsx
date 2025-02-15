@@ -584,9 +584,9 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                           }
                           className="me-2"
                           type="button">
-                          {profile.connectionsStatus === 'accepted' ? (
+                            {profile.connectionsStatus === 'accepted' ? (
                             <>
-                              <MessageCircleMore className="me-2 text-success" /> Send Message
+                              <MessageCircleMore className="me-2 text-dark-green" /> Send Message
                             </>
                           ) : (
                             profile.connectionsStatus
