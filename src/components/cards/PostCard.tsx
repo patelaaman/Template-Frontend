@@ -67,6 +67,7 @@ export interface Post {
   isRepost: boolean
   repostedFrom?: string
   repostText?: string
+  reactionId : null | number
   likeStatus: boolean
   originalPostedAt?: string
   createdAt: string
@@ -135,7 +136,20 @@ const PostCard = ({
   const [showRepostOp, setShowRepostOp] = useState<boolean>(false)
   const [repostProfile, setRepostProfile] = useState<UserProfile>({})
   const [close, setClose] = useState<boolean>(true)
-  const [showList, setShowList] = useState<boolean>(false)
+  const [showList, setShowList] = useState<boolean>(false);
+  const [mouseOnReactions,setMouseOnReactions] = useState<boolean>(false);
+  const [reactionId,setReactionId] = useState<number | null>(null);
+  const reactions = [
+    { emoji: '👍', label: 'Like', reactId : 1 },
+    { emoji: '🎉', label: 'Celebrate', reactId : 2 },
+    { emoji: '💪', label: 'Support', reactId : 3 },
+    { emoji: '❤️', label: 'Love', reactId : 4 },
+    { emoji: '💡', label: 'Insightful', reactId : 5 },
+    { emoji: '😂', label: 'Funny', reactId : 6 },
+  ];
+
+  const [hoveredReaction, setHoveredReaction] = useState<string | null>(null);
+  
   const utils: UtilType = {
     comments: comments,
     setComments: setComments,
@@ -152,6 +166,7 @@ const PostCard = ({
     } else {
       setLikeStatus(false)
     }
+    
   }, [post.likeStatus])
   const media = post.repostedFrom ? post?.mediaUrls : post?.mediaUrls
   const isVideo = media?.length > 0 && (media[0] as string).includes('video/mp4')
@@ -331,6 +346,7 @@ const PostCard = ({
   }
   useEffect(() => {
     if (hasMount.current) return
+    setReactionId(post.reactionId);
     if (Object.keys(repostProfile).length !== 0) return
     hasMount.current = true
 
@@ -368,6 +384,7 @@ const PostCard = ({
   // console.log('---item---',item);
   useEffect(() => {
     likeStatus ? setTrue() : setFalse()
+    
     const fetchComments = async () => {
       setIsLoading(true)
       try {
@@ -403,8 +420,17 @@ const PostCard = ({
     return null
   }, [media])
 
-  const toggleLike = async () => {
-    setLikeStatus((prev) => !prev)
+  const toggleLike = async (reactId : number) => {
+    const prevId = reactionId;
+    if(reactionId === reactId) {
+      setLikeStatus((prev) => !prev)
+      setReactionId(1);
+    }
+    else {
+      setLikeStatus(true);
+      setReactionId(reactId);
+    }
+    
     likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1)
     try {
       const response = await fetch(`${LIVE_URL}api/v1/post/create-like`, {
@@ -412,12 +438,15 @@ const PostCard = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: user?.id, postId: post.Id, status: !likeStatus }),
+        body: JSON.stringify({ userId: user?.id, postId: post.Id, status: reactId === reactionId ? !likeStatus : true,reactionId : reactId }),
       })
 
       if (!response.ok) {
+        if(reactionId === reactId) setLikeStatus((prev) => !prev);
+        else setLikeStatus(false);
+        setReactionId(prevId);
         setLikeStatus(likeStatus)
-        alert('Like not sent')
+        toast.error('Like not Sent');
         likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1)
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -433,7 +462,7 @@ const PostCard = ({
     const userLike = allLikes.find((like) => like.id === user?.id)
     const otherLikes = allLikes.filter((like) => like.id !== user?.id)
 
-    let str = 'Liked by '
+    let str = 'Reacted by '
 
     if (userLike) str += 'You'
     if (otherLikes.length > 0) {
@@ -579,6 +608,7 @@ const PostCard = ({
     })
     return processedText
   }
+  const selectedReaction = reactions.find(reaction => reaction.reactId === reactionId);
   if (isDeleted) return null
   if (isRepostWithText()) {
     return (
@@ -877,58 +907,127 @@ const PostCard = ({
             style={{
               backgroundColor: 'white',
               borderBottom: '1px solid #dee2e6',
-            }}>
-            <Button
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              onClick={toggleLike}
-              style={{ fontSize: '0.8rem' }}>
-              {likeStatus ? <BsFillHandThumbsUpFill size={16} style={{ color: '#1EA1F2' }} /> : <ThumbsUp size={16} style={{ color: 'inherit' }} />}
-              {/* <span>Like</span> */}
-            </Button>
+            }}
+          >
+      <div style={{ position: 'relative', width : '20%',display : 'flex',alignItems : 'center',justifyContent : 'center' }}>
+        {(showReactions || mouseOnReactions) && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '33px',
+              left: '120%',
+              transform: 'translateX(-50%)',
+              background: 'white',
+              boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+              borderRadius: '8px',
+              padding: '6px',
+              display: 'flex',
+              gap: '8px',
+              zIndex: 10,
+            }}
+            onMouseEnter={()=>{
+              setMouseOnReactions(true)
+              setShowReactions(true)
+            }}
+            onMouseLeave={() => {
+              setMouseOnReactions(false)
+              setShowReactions(false)
+            }}
+          >
+            {reactions.map((reaction) => (
+              <span
+                key={reaction.label}
+                
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.transform = "scale(1.5)";
+                  (e.target as HTMLElement).style.transition = "transform 0.2s ease-out";
+                  setHoveredReaction(reaction.label);
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.transform = "scale(1)";
+                  setHoveredReaction(null)
+                }}
+                onClick={() => {
 
-            <Button
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              onClick={() => setOpenComment(!openComment)}
-              style={{ fontSize: '0.8rem' }}>
-              <MessageSquare size={16} />
-              {/* <span>Comment</span> */}
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}
-              onClick={() => setShowRepostOp(true)}>
-              <Repeat size={16} />
-              {/* <span>Repost</span> */}
-            </Button>
-            {
-              <RepostModal
-                isOpen={showRepostOp}
-                onClose={() => setShowRepostOp(false)}
-                authorName={userInfo?.firstName}
-                item={item}
-                isCreated={isCreated}
-                setIsCreated={setIsCreated}
-              />
-            }
-            <Button
-              onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}>
-              <Copy size={16} />
-            </Button>
-            <Button
-              onClick={() => handleShare(post.Id)}
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}>
-              <Share size={16} />
-            </Button>
-          </ButtonGroup>
+                  toggleLike(reaction.reactId)
+                  setShowReactions(false);
+                }}
+                style={{ cursor: 'pointer', fontSize: '25px',position : 'relative'}}
+              >
+                {reaction.emoji}
+                {hoveredReaction === reaction.label && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '38px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'black',
+                      color: 'white',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {reaction.label}
+                  </div>
+                )}
+              </span>
+            ))}
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+          onClick={() => toggleLike(reactionId || 1)}
+          onMouseEnter={() => setShowReactions(true)}
+          onMouseLeave={() => setTimeout(() => {setShowReactions(false)},100)}
+          style={{ fontSize: '0.8rem' }}
+        >
+          {selectedReaction && reactionId !== 1? (
+            <span>{selectedReaction.emoji}</span>
+          ) : likeStatus ? (
+            <BsFillHandThumbsUpFill size={16} style={{ color: '#1EA1F2' }} />
+          ) : (
+            <ThumbsUp size={16} style={{ color: 'inherit' }} />
+          )}
+        </Button>
+      </div>
+      
+      <Button
+        variant="ghost"
+        className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+        onClick={() => setOpenComment(!openComment)}
+        style={{ fontSize: '0.8rem' }}
+      >
+        <MessageSquare size={16} />
+      </Button>
+      <Button
+        variant="ghost"
+        className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+        style={{ fontSize: '0.8rem' }}
+        onClick={() => setShowRepostOp(true)}
+      >
+        <Repeat size={16} />
+      </Button>
+      <Button
+        onClick={() => handleCopy(post.Id)}
+        variant="ghost"
+        className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+        style={{ fontSize: '0.8rem' }}
+      >
+        <Copy size={16} />
+      </Button>
+      <Button
+        onClick={() => handleShare(post.Id)}
+        variant="ghost"
+        className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+        style={{ fontSize: '0.8rem' }}
+      >
+        <Share size={16} />
+      </Button>
+    </ButtonGroup>
           {openComment && (
             <div className="d-flex mb-4 px-3">
               <div className="avatar avatar-xs me-3">
@@ -1394,14 +1493,90 @@ const PostCard = ({
               backgroundColor: 'white',
               borderBottom: '1px solid #dee2e6',
             }}>
-            <Button
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              onClick={toggleLike}
-              style={{ fontSize: '0.8rem' }}>
-              {likeStatus ? <BsFillHandThumbsUpFill size={16} style={{ color: '#1EA1F2' }} /> : <ThumbsUp size={16} style={{ color: 'inherit' }} />}
-              {/* <span>Like</span> */}
-            </Button>
+             <div style={{ position: 'relative', width : '20%',display : 'flex',alignItems : 'center',justifyContent : 'center' }}>
+        {(showReactions || mouseOnReactions) && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '33px',
+              left: '140%',
+              transform: 'translateX(-50%)',
+              background: 'white',
+              boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+              borderRadius: '8px',
+              padding: '6px',
+              display: 'flex',
+              gap: '8px',
+              zIndex: 100,
+            }}
+            onMouseEnter={()=>{
+              setMouseOnReactions(true)
+              setShowReactions(true)
+            }}
+            onMouseLeave={() => {
+              setMouseOnReactions(false)
+              setShowReactions(false)
+            }}
+          >
+            {reactions.map((reaction) => (
+              <span
+                key={reaction.label}
+                
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.transform = "scale(1.5)";
+                  (e.target as HTMLElement).style.transition = "transform 0.2s ease-out";
+                  setHoveredReaction(reaction.label);
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.transform = "scale(1)";
+                  setHoveredReaction(null)
+                }}
+                onClick={() => {
+                  toggleLike(reaction.reactId)
+                  setShowReactions(false);
+                }}
+                style={{ cursor: 'pointer', fontSize: '25px',position : 'relative'}}
+              >
+                {reaction.emoji}
+                {hoveredReaction === reaction.label && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '38px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'black',
+                      color: 'white',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {reaction.label}
+                  </div>
+                )}
+              </span>
+            ))}
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+          onClick={() => toggleLike(reactionId || 1)}
+          onMouseEnter={() => setShowReactions(true)}
+          onMouseLeave={() => setTimeout(() => {setShowReactions(false)},100)}
+          style={{ fontSize: '0.8rem' }}
+        >
+          {selectedReaction && reactionId !== 1 ? (
+            <span>{selectedReaction.emoji}</span>
+          ) : likeStatus ? (
+            <BsFillHandThumbsUpFill size={16} style={{ color: '#1EA1F2' }} />
+          ) : (
+            <ThumbsUp size={16} style={{ color: 'inherit' }} />
+          )}
+        </Button>
+      </div>
 
             <Button
               variant="ghost"
