@@ -87,7 +87,7 @@ const AppRouter = (props: RouteProps) => {
 
 
   useEffect(() => {
-    if (!user?.id || !socket) return;
+    if (!user?.id) return;
   
     socket.emit("userOnline", user.id);
   
@@ -96,8 +96,8 @@ const AppRouter = (props: RouteProps) => {
     };
   
     const handleMessageRead = async () => {
-      console.log("messageRead");
-      if (user?.id) await fetchUnreadMessages();
+      // console.log("messageRead");
+     fetchUnreadMessages();
     };
   
     socket.on("newMessage", handleNewMessage);
@@ -115,7 +115,7 @@ const AppRouter = (props: RouteProps) => {
       socket.off("messageRead", handleMessageRead);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [user?.id, socket]);
+  }, [user?.id,socket]);
   
 
 
