@@ -203,7 +203,8 @@ const Messaging = () => {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null)
   const [messageMap, setMessageMap] = useState<{ [key: string]: string }>({}) // Track messages per user
   const [isOpenCollapseToast, setIsOpenCollapseToast] = useState<{ [key: string]: boolean }>({})
-//  const { lastMessages } = useLastMessage()
+  const [originalMessages, setOriginalMessages] = useState<UserType[]>([])
+  const { lastMessages } = useLastMessage()
   const messageSchema = yup.object({
     newMessage: yup.string().required('Please enter message'),
   })
@@ -212,20 +213,20 @@ const Messaging = () => {
     resolver: yupResolver(messageSchema),
   })
 
-  // useEffect(() => {
-  //   if (allUserMessages.length > 0) {
-  //     console.log(lastMessages);
-  //     const updatedChats = allUserMessages.map(user => {
-  //       const lastMessage = lastMessages[user.userId]; // Accessing object property
-  //       return {
-  //         ...user,
-  //         lastMessage: lastMessage ? lastMessage : 'No message yet'
-  //       };
-  //     });
-  //     setAllUserMessages(updatedChats);
-  //     setIsLoading(false);
-  //   }
-  // }, [allUserMessages, lastMessages]);
+  useEffect(() => {
+    if (allUserMessages.length > 0) {
+      console.log(lastMessages);
+      const updatedChats = allUserMessages.map(user => {
+        const lastMessage = lastMessages[user.userId]; 
+        return {
+          ...user,
+          lastMessage: lastMessage ? lastMessage : 'No message yet'
+        };
+      });
+      setAllUserMessages(updatedChats);
+      setIsLoading(false);
+    }
+  }, [allUserMessages, lastMessages]);
 
   useEffect(() => {
     if (!selectedUser) return
@@ -262,6 +263,7 @@ const Messaging = () => {
         data: { userId: user?.id, profileId: user?.id },
       })
       setAllUserMessages(res.connections)
+      setOriginalMessages(res.connections)
     } catch (error) {
       console.error(error)
     } finally {
@@ -416,9 +418,9 @@ const Messaging = () => {
           className="form-control"
           placeholder="Search users..."
           onChange={(e) => {
-        const searchTerm = e.target.value.toLowerCase();w
-        if (searchTerm === '') {
-          fetchChatsList(); // Reset to original list when input is cleared
+        const searchTerm = e.target.value.toLowerCase();
+        if (searchTerm == '') {
+          setAllUserMessages(originalMessages);
         } else {
           const filteredUsers = allUserMessages.filter((user) =>
             `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)
