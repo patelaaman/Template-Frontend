@@ -378,26 +378,26 @@ const VisitProfile = () => {
 
   const sections = [
     {
-      title: 'Who Viewed My Profile',
-      icon: <FaEye className="icon" />,
+      title: "Who Viewed My Profile",
+      icon: <FaEye className="icon" style={{ color: "#007bff" }} />,
       component: <ProfileVisits />,
     },
     {
       title: "Profiles I've Viewed",
-      icon: <FaUserAlt className="icon" />,
+      icon: <FaUserAlt className="icon" style={{ color: "#28a745" }} />,
       component: <ProfileVisited />,
     },
   ];
 
   return (
-    <div className="container-fluid px-0 " >
+    <div className="container-fluid px-0">
       <div className="card p-4 shadow-sm rounded">
         <div className="tabs-container">
           {sections.map((section, index) => (
             <button
               key={index}
               type="button"
-              className={`tab-btn ${step === index ? 'active' : ''}`}
+              className={`tab-btn ${step === index ? "active" : ""}`}
               onClick={() => setStep(index)}
             >
               <div className="icon">{section.icon}</div>
@@ -415,13 +415,14 @@ const VisitProfile = () => {
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             width: 90%;
             margin: auto;
+            font-family: 'Arial', sans-serif;
           }
           
           .tab-btn {
-            background: #f0f2f5;
+            background: white;
             border: 2px solid #d6d6d6;
             border-radius: 12px;
-            color: #007bff;
+            color: black;
             width: 180px;
             height: 80px;
             font-size: 15px;
@@ -433,12 +434,14 @@ const VisitProfile = () => {
             transition: all 0.3s ease;
             cursor: pointer;
             margin: 10px;
+            font-family: 'Arial', sans-serif;
           }
 
           .tab-btn.active {
             background: white;
             border: 2px solid #007bff;
             color: #007bff;
+           
           }
 
           .icon {

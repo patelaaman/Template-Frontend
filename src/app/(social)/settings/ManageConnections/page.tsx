@@ -20,10 +20,10 @@ const ManageConnections = () => {
   }, [searchParams]);
 
   const sections = [
-    { title: "My Connections", icon: <FaUserPlus className="icon" />, component: <MyConnections /> },
-    { title: "Request Sent", icon: <FaUserCheck className="icon" />, component: <ConnectionsStatus /> },
-    { title: "Request Received", icon: <FaUserFriends className="icon" />, component: <ConnectionRequest /> },
-    { title: "Connect 'n' Grow", icon: <FaUsers className="icon" />, component: <SuggestedConnections /> },
+    { title: "My Connections", icon: <FaUserPlus className="icon" style={{ color: "#007bff" }} />, component: <MyConnections /> },
+    { title: "Request Sent", icon: <FaUserCheck className="icon" style={{ color: "#28a745" }} />, component: <ConnectionsStatus /> },
+    { title: "Request Received", icon: <FaUserFriends className="icon" style={{ color: "#ffc107" }} />, component: <ConnectionRequest /> },
+    { title: "Connect 'n' Grow", icon: <FaUsers className="icon" style={{ color: "#17a2b8" }} />, component: <SuggestedConnections /> },
   ];
 
   const setCurrentSection = (index) => {
@@ -38,7 +38,6 @@ const ManageConnections = () => {
         <div className="tabs-container">
           {sections.map((section, index) => (
             <button
-        
               key={index}
               type="button"
               className={`tab-btn ${step === index ? "active" : ""}`}
@@ -59,13 +58,14 @@ const ManageConnections = () => {
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             width: 90%;
             margin: auto;
+            font-family: 'Arial', sans-serif;
           }
           
           .tab-btn {
-            background: #f0f2f5;
+            background: white;
             border: 2px solid #d6d6d6;
             border-radius: 12px;
-            color: #007bff;
+            color: black;
             width: 180px;
             height: 80px;
             font-size: 15px;
@@ -77,12 +77,13 @@ const ManageConnections = () => {
             transition: all 0.3s ease;
             cursor: pointer;
             margin: 10px;
+            font-family: 'Arial', sans-serif;
           }
 
           .tab-btn.active {
-            background: white;
             border: 2px solid #007bff;
             color: #007bff;
+            
           }
 
           .icon {
