@@ -205,7 +205,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
   const [count, setCount] = useState(0)
   const hasMount = useRef(false)
   const { unreadMessages } = useUnreadMessages()
-    const countM = unreadMessages.length;
+  const countM = unreadMessages.length;
   const { messagingOffcanvas, startOffcanvas } = useLayoutContext()
   useEffect(() => {
     if (profile?.coverImgUrl || profile?.personalDetails) {
@@ -280,8 +280,8 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: id,
-          profileId: user?.id,
+          userId: user?.id,
+          profileId: id,
         }),
       })
 
@@ -364,6 +364,39 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
     }
   }
 
+  const handleUnblock = async () => {
+    try {
+      setSkeletonLoading(true);
+  
+      const response = await fetch(`${LIVE_URL}api/v1/post/unblock-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          blockedUser: id,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to unblock user');
+      }
+  
+      toast.success("User unblocked successfully");
+      window.location.reload()
+      
+    } catch (error:any) {
+      console.error('Error unblocking user:', error);
+      toast.error(error.message || 'Something went wrong');
+    } finally {
+      setSkeletonLoading(false);
+    }
+  };
+  
+
   const PROFILE_MENU_ITEMS = [
     {
       key: 'profile-feed',
@@ -415,261 +448,266 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
   ]
   return (
     <>
-    <div style={{}}>
-      <ToastContainer />
-      <Suspense fallback={<Preloader />}>
-        <TopHeader />
-      </Suspense>
+      <div style={{}}>
+        <ToastContainer />
+        <Suspense fallback={<Preloader />}>
+          <TopHeader />
+        </Suspense>
 
-      <main className="bg-pink px-3 px-md-5" style={{ marginRight: '2%', backgroundColor: 'white' }}>
-        <EditProfilePictureModal
-          show={showModal}
-          onHide={() => setShowModal(false)}
-          onPhotoUpdate={() => console.log('press')}
-          src={profile.profileImgUrl ? profile.profileImgUrl : avatar7}
-          profile={profile}
-        />
-        <EditProfilePictureModal
-          show={coverModal}
-          onHide={() => setCoverModal(false)}
-          onPhotoUpdate={() => console.log('press')}
-          src={profile.coverImgUrl ? profile.coverImgUrl : avatar7}
-          forCover={true}
-          profile={profile}
-        />
+        <main className="bg-pink px-3 px-md-5" style={{ marginRight: '2%', backgroundColor: 'white' }}>
+          <EditProfilePictureModal
+            show={showModal}
+            onHide={() => setShowModal(false)}
+            onPhotoUpdate={() => console.log('press')}
+            src={profile.profileImgUrl ? profile.profileImgUrl : avatar7}
+            profile={profile}
+          />
+          <EditProfilePictureModal
+            show={coverModal}
+            onHide={() => setCoverModal(false)}
+            onPhotoUpdate={() => console.log('press')}
+            src={profile.coverImgUrl ? profile.coverImgUrl : avatar7}
+            forCover={true}
+            profile={profile}
+          />
 
-        <Row className="g-4">
-          {/* Main Profile Section */}
-          <Col md={12} lg={9} className="vstack gap-4" style={{ paddingRight: '50px', paddingLeft: '30px' }}>
-            <Card style={{}}>
-              {/* Profile Cover Image */}
-              <div className="position-relative rounded-top">
-                {skeletonLoading ? (
-                  <Skeleton width="100%" height="20px" baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
-                ) : (
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '250px',
-                      borderTopLeftRadius: '8px',
-                      borderTopRightRadius: '8px',
-                      overflow: 'hidden',
-                      position: 'relative',
-                    }}
-                    onClick={() => {
-                      if (user?.id === id) setCoverModal(true)
-                    }}>
-                    <Image
-                      src={profile?.coverImgUrl ? profile?.coverImgUrl : background5}
-                      alt="Profile"
+          <Row className="g-4">
+            {/* Main Profile Section */}
+            <Col md={12} lg={9} className="vstack gap-4" style={{ paddingRight: '50px', paddingLeft: '30px' }}>
+              <Card style={{}}>
+                {/* Profile Cover Image */}
+                <div className="position-relative rounded-top">
+                  {skeletonLoading ? (
+                    <Skeleton width="100%" height="20px" baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
+                  ) : (
+                    <div
                       style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
                         width: '100%',
-                        objectFit: 'cover', // Ensures the image covers the div without stretching
-                        transform: `scale(${(profile?.personalDetails?.zoom || 50) / 50}) rotate(${(profile?.personalDetails?.rotate || 50) - 50}deg)`,
+                        height: '250px',
+                        borderTopLeftRadius: '8px',
+                        borderTopRightRadius: '8px',
+                        overflow: 'hidden',
+                        position: 'relative',
                       }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <CardBody className="py-0">
-                {/* Profile Info Section */}
-                <div className="d-sm-flex align-items-start text-center text-sm-start">
-                  {/* Profile Picture */}
-                  <div style={{ marginTop: '40px' }}>
-                    <div className="avatar avatar-xxl mt-n5 mb-3">
-                      {skeletonLoading ? (
-                        <Skeleton circle width={120} height={120} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
-                      ) : (
-                        <ImageZoom
-                          src={profile.profileImgUrl || avatar7}
-                          width={'120px'}
-                          height={'120px'}
-                          zoom={profile?.personalDetails?.zoomProfile}
-                          rotate={profile?.personalDetails?.rotateProfile}
-                        />
-                      )}
+                      onClick={() => {
+                        if (user?.id === id) setCoverModal(true)
+                      }}>
+                      <Image
+                        src={profile?.coverImgUrl ? profile?.coverImgUrl : background5}
+                        alt="Profile"
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          objectFit: 'cover', // Ensures the image covers the div without stretching
+                          transform: `scale(${(profile?.personalDetails?.zoom || 50) / 50}) rotate(${(profile?.personalDetails?.rotate || 50) - 50}deg)`,
+                        }}
+                      />
                     </div>
-                  </div>
-                  {/* Name and Bio */}
-                  <div className="ms-sm-4 mt-sm-3">
-                    <h1 className="mb-0 h5 d-flex align-items-center">
-                      {profile?.personalDetails?.firstName ? (
-                        profile.personalDetails.firstName
-                      ) : (
-                        <Skeleton width={90} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
-                      )}
-                      &nbsp;
-                      {profile?.personalDetails?.lastName ? (
-                        profile.personalDetails.lastName
-                      ) : (
-                        <Skeleton width={60} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
-                      )}
-                      &nbsp;
-                      <BsPatchCheckFill className="text-success small" />
-                    </h1>
-                    {/* <p>
+                  )}
+                </div>
+
+                <CardBody className="py-0">
+                  {/* Profile Info Section */}
+                  <div className="d-sm-flex align-items-start text-center text-sm-start">
+                    {/* Profile Picture */}
+                    <div style={{ marginTop: '40px' }}>
+                      <div className="avatar avatar-xxl mt-n5 mb-3">
+                        {skeletonLoading ? (
+                          <Skeleton circle width={120} height={120} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
+                        ) : (
+                          <ImageZoom
+                            src={profile.profileImgUrl || avatar7}
+                            width={'120px'}
+                            height={'120px'}
+                            zoom={profile?.personalDetails?.zoomProfile}
+                            rotate={profile?.personalDetails?.rotateProfile}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    {/* Name and Bio */}
+                    <div className="ms-sm-4 mt-sm-3">
+                      <h1 className="mb-0 h5 d-flex align-items-center">
+                        {profile?.personalDetails?.firstName ? (
+                          profile.personalDetails.firstName
+                        ) : (
+                          <Skeleton width={90} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
+                        )}
+                        &nbsp;
+                        {profile?.personalDetails?.lastName ? (
+                          profile.personalDetails.lastName
+                        ) : (
+                          <Skeleton width={60} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
+                        )}
+                        &nbsp;
+                        <BsPatchCheckFill className="text-success small" />
+                      </h1>
+                      {/* <p>
                         {!skeletonLoading ? (
                           `${profile.connectionsCount} connections`
                         ) : (
                           <Skeleton width={80} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
                         )}
                       </p> */}
-                    <ul className="list-unstyled">
-                      <li>
-                        <BsBriefcase className="me-1" />
-                        {profile?.personalDetails?.occupation
-                          ? profile?.personalDetails?.occupation.replace(/^entrepreneur$/i, 'Entrepreneur')
-                          : user.userRole.replace(/^entrepreneur$/i, 'Entrepreneur')}
-                      </li>
-                      <li>
-                        <BsGeoAlt className="me-1" />
-                        {profile?.personalDetails?.permanentAddress?.city ? profile?.personalDetails?.permanentAddress?.city : user.country}{' '}
-                        {profile?.personalDetails?.permanentAddress?.state}
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="d-flex mt-3 justify-content-center ms-sm-auto">
-                    {user?.id === id ? (
-                      <>
-                        <Button variant="primary" className="me-2" type="button">
-                          Get Verified
-                        </Button>
-                        <Button variant="danger-soft" className="me-2" type="button" onClick={() => navigate('/settings/account')}>
-                          <BsPencilFill size={19} className="pe-1" />
-                        </Button>
-                      </>
-                    ) : !profile.connectionsStatus ? (
-                      <>
-                        {
-                          <Button
-                            variant={sent ? 'success-soft' : 'success-soft'}
-                            className="me-2"
-                            type="button"
-                            onClick={() => {
-                              UserRequest(profile?.personalDetails?.id)
-                              setSent(true)
-                            }}
-                            disabled={loading || sent}>
-                            {loading ? (
-                              <Loading size={15} loading={true} />
-                            ) : sent ? (
-                              <>
-                                <FaUserCheck size={19} className="pe-1" /> Request Sent
-                              </>
-                            ) : (
-                              !skeletonLoading && (
-                                <>
-                                  <FaUserPlus size={19} className="pe-1" /> Send Connection Request
-                                </>
-                              )
-                            )}
+                      <ul className="list-unstyled">
+                        <li>
+                          <BsBriefcase className="me-1" />
+                          {profile?.personalDetails?.occupation
+                            ? profile?.personalDetails?.occupation.replace(/^entrepreneur$/i, 'Entrepreneur')
+                            : user.userRole.replace(/^entrepreneur$/i, 'Entrepreneur')}
+                        </li>
+                        <li>
+                          <BsGeoAlt className="me-1" />
+                          {profile?.personalDetails?.permanentAddress?.city ? profile?.personalDetails?.permanentAddress?.city : user.country}{' '}
+                          {profile?.personalDetails?.permanentAddress?.state}
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="d-flex mt-3 justify-content-center ms-sm-auto">
+                      {user?.id === id ? (
+                        <>
+                          <Button variant="primary" className="me-2" type="button">
+                            Get Verified
                           </Button>
-                        }
-                      </>
-                    ) : (
-                      <>
+                          <Button variant="danger-soft" className="me-2" type="button" onClick={() => navigate('/settings/account')}>
+                            <BsPencilFill size={19} className="pe-1" />
+                          </Button>
+                        </>
+                      ) : !profile.connectionsStatus ? (
+                        <>
+                          {
+                            <Button
+                              variant={sent ? 'success-soft' : 'success-soft'}
+                              className="me-2"
+                              type="button"
+                              onClick={() => {
+                                UserRequest(profile?.personalDetails?.id)
+                                setSent(true)
+                              }}
+                              disabled={loading || sent}>
+                              {loading ? (
+                                <Loading size={15} loading={true} />
+                              ) : sent && profile.connectionsStatus!='Blocked'  ? (
+                                <>
+                                  <FaUserCheck size={19} className="pe-1" /> Request Sent
+                                </>
+                              ) : (
+                                !skeletonLoading && (
+                                  <>
+                                    <FaUserPlus size={19} className="pe-1" /> Send Connection Request
+                                  </>
+                                )
+                              )}
+                            </Button>
+                          }
+                        </>
+                      ) : (
+                        <>
                         <Button
                           variant={
                             profile.connectionsStatus === 'pending'
                               ? 'warning-soft'
                               : profile.connectionsStatus === 'accepted'
-                                ? 'success-soft'
-                                : profile.connectionsStatus === 'rejected'
-                                  ? 'danger-soft'
-                                  : 'secondary-soft'
+                              ? 'success-soft'
+                              : profile.connectionsStatus === 'rejected' || profile.connectionsStatus === 'Blocked' 
+                              ? 'danger-soft'
+                              : 'secondary-soft'
                           }
                           className="me-2"
-                          type="button">
-                            {profile.connectionsStatus === 'accepted' ? (
+                          type="button"
+                        >
+                          {profile.connectionsStatus === 'accepted' ? (
                             <>
                               <MessageCircleMore className="me-2 text-dark-green" /> Send Message
                             </>
                           ) : (
-                            profile.connectionsStatus
+                            (profile.connectionsStatus === 'Blocked' && profile.unblockOption !== true) ? "You are blocked from viewing this profile":profile.connectionsStatus 
                           )}
                         </Button>
+                       {(profile.connectionsStatus === 'Blocked' && profile.unblockOption === true)  &&  <Button onClick={handleUnblock}>
+Unblock
+                        </Button>}
                       </>
-                    )}
-                     {user?.id !== id && (
-                  <div>
-                  <button
-                    className="btn btn-light border px-4 py-2 fw-semibold text-secondary"
-                    onClick={() => setModalOpen(true)}>
-                    More
-                  </button>
-                  {modalOpen && user?.id && id && <ReportBlockModal show={modalOpen} handleClose={() => setModalOpen(false)} userId={user.id} targetId={id} />}
+                      
+                      )}
+                      {user?.id !== id && profile.connectionsStatus !== 'Blocked'  && (
+                        <div>
+                          <button
+                            className="btn btn-light border px-4 py-2 fw-semibold text-secondary"
+                            onClick={() => setModalOpen(true)}>
+                            More
+                          </button>
+                          {modalOpen && user?.id && id && <ReportBlockModal show={modalOpen} handleClose={() => setModalOpen(false)} userId={user.id} targetId={id} />}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-                  </div>
-                </div>
-                <ul className="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
-                  <li className="list-inline-item">
-                    {/* <BsBriefcase className="me-1" /> {profile?.personalDetails?.occupation ? profile?.personalDetails?.occupation.replace(/^entrepreneur$/i, 'Entrepreneur') : user.userRole.replace(/^entrepreneur$/i, 'Entrepreneur')} */}
-                  </li>
-                  <li className="list-inline-item">
-                    {/* <BsGeoAlt className="me-1" />{' '}
+                  <ul className="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
+                    <li className="list-inline-item">
+                      {/* <BsBriefcase className="me-1" /> {profile?.personalDetails?.occupation ? profile?.personalDetails?.occupation.replace(/^entrepreneur$/i, 'Entrepreneur') : user.userRole.replace(/^entrepreneur$/i, 'Entrepreneur')} */}
+                    </li>
+                    <li className="list-inline-item">
+                      {/* <BsGeoAlt className="me-1" />{' '}
                       {profile?.personalDetails?.permanentAddress?.city ? profile?.personalDetails?.permanentAddress?.city : user.country}{' '}
                       {profile?.personalDetails?.permanentAddress?.state} */}
-                  </li>
-                  {/* <li className="list-inline-item">
+                    </li>
+                    {/* <li className="list-inline-item">
                       <BsCalendar2Plus className="me-1" /> Joined on :  {formatDate(user.createdAt)}
                       {profile?.personalDetails?.createdAt &&
                         formatDate(profile.personalDetails?.createdAt)}
                     </li> */}
-                </ul>
-                {/* <button>Hello</button> */}
-              </CardBody>
-              <CardFooter className="card-footer mt-3 pt-2 pb-0">
-                <ul className="nav nav-bottom-line align-items-center justify-content-center justify-content-md-start mb-0 border-0">
-                  {PROFILE_MENU_ITEMS.map((item, idx) => (
-                    <li className="nav-item" key={idx}>
-                      <Link className={clsx('nav-link', { active: pathname === item.url })} to={item.url ?? ''}>
-                        {item.label} {item.badge && <span className="badge bg-success bg-opacity-10 text-success small">{item.badge.text}</span>}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </CardFooter>
-            </Card>
-            <div className="w-100" style={{}}>
-              <Suspense fallback={<FallbackLoading />}>{children}</Suspense>
-            </div>
-          </Col>
+                  </ul>
+                  {/* <button>Hello</button> */}
+                </CardBody>
+                {profile.connectionsStatus !== 'Blocked'&&(<CardFooter className="card-footer mt-3 pt-2 pb-0">
+                  <ul className="nav nav-bottom-line align-items-center justify-content-center justify-content-md-start mb-0 border-0">
+                    {PROFILE_MENU_ITEMS.map((item, idx) => (
+                      <li className="nav-item" key={idx}>
+                        <Link className={clsx('nav-link', { active: pathname === item.url })} to={item.url ?? ''}>
+                          {item.label} {item.badge && <span className="badge bg-success bg-opacity-10 text-success small">{item.badge.text}</span>}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </CardFooter>)}
+              </Card>
+              {profile.connectionsStatus !== 'Blocked'&& (<div className="w-100" style={{}}>
+                <Suspense fallback={<FallbackLoading />}>{children}</Suspense>
+              </div>)}
+            </Col>
 
-          {/* Sidebar Section */}
-          <Col md={12} lg={3}>
-            <Row>
-              <Col md={6} lg={12}>
-                <Followers />
-              </Col>
-              <Col md={6} lg={12}>
-                <Experience />
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-      </main>
-    </div>
-    <div className="d-none d-lg-block">
-      <a
+            {/* Sidebar Section */}
+            <Col md={12} lg={3}>
+              <Row>
+                <Col md={6} lg={12}>
+                  <Followers />
+                </Col>
+                <Col md={6} lg={12}>
+                  <Experience />
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        </main>
+      </div>
+      <div className="d-none d-lg-block">
+        <a
           onClick={messagingOffcanvas.toggle}
           style={{ marginRight: '76px', width: '85px', height: '45px', backgroundColor: '#0c59bd' }}
           className="icon-md btn btn-primary position-fixed end-0 bottom-0 mb-5"
           role="button"
           aria-controls="offcanvasChat"
-          >
-        {count > 0 && (
-          <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ padding: '0.5em', width: '1.5em', height: '1.5em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {count}
-          </span>
-        )}
-            <span>
-              <BsChatLeftTextFill/> Chat
+        >
+          {count > 0 && (
+            <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ padding: '0.5em', width: '1.5em', height: '1.5em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {count}
             </span>
+          )}
+          <span>
+            <BsChatLeftTextFill /> Chat
+          </span>
         </a>
         <Offcanvas
           show={messagingOffcanvas.open}
@@ -739,7 +777,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
           </OffcanvasHeader>
           <div className="offcanvas-body pt-0 custom-scrollbar">
             {/* <form className="rounded position-relative"> */}
-              {/* <FormControl className="ps-5 bg-light" type="search" placeholder="Search..." aria-label="Search" />
+            {/* <FormControl className="ps-5 bg-light" type="search" placeholder="Search..." aria-label="Search" />
               <button className="btn bg-transparent px-3 py-0 position-absolute top-50 start-0 translate-middle-y" type="button">
                 <BsSearch className="fs-5" />
               </button> */}
@@ -747,7 +785,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
             <Messaging />
           </div>
         </Offcanvas>
-    </div>
+      </div>
     </>
   )
 }

@@ -125,7 +125,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     setUploadProgress(0); // Reset progress
     setUploadedFiles(prevFiles => [...prevFiles, ...files]);
     const result = await uploadDoc(files, user?.id, (progress) => {
-      setUploadProgress(progress); 
+      setUploadProgress(progress);
     });
 
     if (result) {
@@ -383,14 +383,14 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     <>
       <Card className="card-body" style={{ maxHeight: '10em', position: "relative" }}>
 
-      {uploadProgress > 0 && uploadProgress < 99.95 && (
-  <div style={{ position: "absolute", zIndex: 999, top: "9.8em", left: "30%", textAlign: "center" }}>
-    <progress value={uploadProgress} max="100" style={{ width: "300px", height: "10px" }}></progress>
-    <div style={{ marginTop: -10, fontSize: "10px", fontWeight: "bold", color: "#333" }}>
-      {uploadProgress.toFixed(2)}%
-    </div>
-  </div>
-)}
+        {uploadProgress > 0 && uploadProgress < 99.95 && (
+          <div style={{ position: "absolute", zIndex: 999, top: "9.8em", left: "30%", textAlign: "center" }}>
+            <progress value={uploadProgress} max="100" style={{ width: "300px", height: "10px" }}></progress>
+            <div style={{ marginTop: -10, fontSize: "10px", fontWeight: "bold", color: "#333" }}>
+              {uploadProgress.toFixed(2)}%
+            </div>
+          </div>
+        )}
 
 
         <div className="d-flex mb-3">
@@ -611,7 +611,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
       <Modal centered show={isOpenVideo} onHide={toggleVideoModel} className="fade" id="feedActionVideo" tabIndex={-1}>
         <ModalHeader closeButton>
           <h5 className="modal-title" id="feedActionVideoLabel">
-            Goto Live 
+            Goto Live
           </h5>
         </ModalHeader>
         <ModalBody>

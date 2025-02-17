@@ -51,8 +51,8 @@ const RepostModal = ({ isOpen, onClose, authorName, item, setIsCreated, isCreate
                     content: item.post.content,
                     mediaKeys: item.post.mediaKeys,
                     repostText: thoughts,
-                    repostPostId : item.post.Id,
-                    originalPostedAt: item.post.repostedFrom ? item.post.createdAt : item.post.createdAt
+                    repostPostId : item.post.repostedFrom ?  item.post.repostPostId : item.post.Id,
+                    originalPostedAt: item.post.repostedFrom ? item.post.originalPostedAt : item.post.createdAt
                 },
             });
 

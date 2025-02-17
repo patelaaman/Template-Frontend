@@ -70,7 +70,8 @@ export interface Post {
   reactionId : null | number
   likeStatus: boolean
   originalPostedAt?: string
-  createdAt: string
+  createdAt: string; 
+  originalPostedTimeline : string;
 }
 export interface UserDetails {
   postedId: string
@@ -279,6 +280,7 @@ const PostCard = ({
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.message || 'Failed to delete post.')
+        toast.error('Failed to delete the post. Please try again.')
       }
 
       const data = await response.json()
@@ -289,6 +291,7 @@ const PostCard = ({
       // // console.log('Post deleted successfully:', data.message);
       // alert('Post deleted successfully!');
     } catch (error: any) {
+      toast.error('Failed to delete the post. Please try again.')
       console.error('Error deleting post:', error.message)
     }
   }
@@ -333,7 +336,7 @@ const PostCard = ({
       await deletePost(postId)
       // Optionally, refresh the post list here
     } catch (error) {
-      alert('Failed to delete the post. Please try again.')
+      toast.error('Failed to delete the post. Please try again.')
     }
   }
 
@@ -614,6 +617,15 @@ const PostCard = ({
     return (
       <Card className="mb-4">
         <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
+        {
+          <RepostModal
+            isOpen={showRepostOp}
+            onClose={() => setShowRepostOp(false)}
+            authorName={userInfo?.firstName}
+            item={item}
+            isCreated={isCreated}
+            setIsCreated={setIsCreated}
+          />}
         <CardHeader className="border-0 pb-0">
           <div className="d-flex align-items-center justify-content-between">
             <div className="d-flex align-items-center">
@@ -830,7 +842,7 @@ const PostCard = ({
                             <span className="mx-2"></span>
                           </span>
                           <span className="nav-item small mx-3" style={{ color: '#8b959b' }}>
-                            {post?.originalPostedAt}
+                            {post?.originalPostedTimeline}
                             <span
                               className="nav-item small"
                               style={{
