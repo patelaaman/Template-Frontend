@@ -637,51 +637,26 @@ export default BusinessSellerForm;
 
 
 
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, ButtonGroup, Button } from 'react-bootstrap';
-import { 
-  FaRegLightbulb, FaInfoCircle, FaBusinessTime, FaMoneyBillWave, 
-  FaHandshake, FaChartLine, FaClipboardList, FaUser, FaBuilding, 
-  FaIndustry, FaMapMarkerAlt, FaDollarSign, FaUsers, FaPercentage, 
-  FaQuestionCircle, FaBriefcase, FaFileAlt, FaTrophy, FaGavel, 
-  FaCalendarAlt 
-} from 'react-icons/fa';
-import { useAuthContext } from '@/context/useAuthContext';
+import { Building, Users, Briefcase, DollarSign, ClipboardList, Handshake, LineChart as ChartLineUp, Lightbulb } from 'lucide-react';
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import { LIVE_URL } from '@/utils/api';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { useAuthContext } from '@/context/useAuthContext';
+
+const LIVE_URL = 'http://13.216.146.100/';
 
 const BusinessSellerForm = () => {
-  const { user } = useAuthContext();
   const navigate = useNavigate();
-  const [profile , setProfile] = useState({})
+  const [profile, setProfile] = useState({});
+  
+
+  const {user} = useAuthContext()
 
 
-
-  const countries = [
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", 
-    "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", 
-    "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", 
-    "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", 
-    "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", 
-    "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", 
-    "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", 
-    "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", 
-    "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, North", "Korea, South", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", 
-    "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", 
-    "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", 
-    "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", 
-    "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", 
-    "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", 
-    "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", 
-    "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", 
-    "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", 
-    "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", 
-    "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", 
-    "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", 
-    "Yemen", "Zambia", "Zimbabwe"
-  ];
   const fetchUser = async () => {
     try {
       const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
@@ -694,7 +669,6 @@ const BusinessSellerForm = () => {
           //profileId: user?.id,
         }),
       })
-
       if (!response.ok) {
         //  navigate('/not-found')
         throw new Error('Network response was not ok')
@@ -716,17 +690,29 @@ const BusinessSellerForm = () => {
     fetchUser()
   })
 
-  console.log("OwnerImage iiiiiiiiiii---------" , profile.profileImgUrl )
+
+
+
+
+
+
+
+
+  const countries = [
+    "United States", "United Kingdom", "Canada", "Australia", "Germany", "France", "Spain", "Italy", 
+    "Japan", "China", "India", "Brazil", "Mexico", "Singapore", "South Korea"
+  ];
+
   const [formData, setFormData] = useState({
     // Basic Information
     businessName: '',
     businessLocation: '',
+    businessLogo: '',
     
     // Business Overview
     businessType: '',
     operatingYears: '',
     businessDescription: '',
-    businessLogo: '',
     businessModel: '',
     reasonForSelling: '',
     customerBaseType: '',
@@ -754,7 +740,7 @@ const BusinessSellerForm = () => {
     operationSystems: '',
     offerTraining: '',
     
-    // Valuation and Sale Process
+    // Valuation & Sale
     hasValuation: '',
     desiredTimeline: '',
     sellerFinancing: '',
@@ -765,16 +751,98 @@ const BusinessSellerForm = () => {
   });
 
   const [step, setStep] = useState(0);
-
   const sections = [
-    { title: "Basic Information", icon: <FaInfoCircle /> },
-    { title: "Business Overview", icon: <FaBusinessTime /> },
-    { title: "Financial Information", icon: <FaMoneyBillWave /> },
-    { title: "Business Details", icon: <FaClipboardList /> },
-    { title: "Business Operations", icon: <FaHandshake /> },
-    { title: "Valuation & Sale", icon: <FaChartLine /> },
-    { title: "Additional Information", icon: <FaRegLightbulb /> }
-  ];
+    { title: "Basic Information", icon: <Building style={{width: '1.25rem', height: '1.25rem', color: '#0d6efd'}} /> },
+    { title: "Business Overview", icon: <Briefcase style={{width: '1.25rem', height: '1.25rem', color: '#6f42c1'}} /> },
+    { title: "Financial Information", icon: <DollarSign style={{width: '1.25rem', height: '1.25rem', color: '#198754'}} /> },
+    { title: "Business Details", icon: <ClipboardList style={{width: '1.25rem', height: '1.25rem', color: '#20c997'}} /> },
+    { title: "Business Operations", icon: <Handshake style={{width: '1.25rem', height: '1.25rem', color: '#6610f2'}} /> },
+    { title: "Valuation & Sale", icon: <ChartLineUp style={{width: '1.25rem', height: '1.25rem', color: '#fd7e14'}} /> },
+    { title: "Additional Information", icon: <Lightbulb style={{width: '1.25rem', height: '1.25rem', color: '#ffc107'}} /> }
+];
+  const formSections = {
+    0: [ // Basic Information
+      { id: 'businessName', name: 'businessName', label: 'Business Name', icon: <Building style={{width: '1rem', height: '1rem', color: '#0d6efd'}} />, required: true },
+      { id: 'businessLocation', name: 'businessLocation', label: 'Business Location', icon: <Users style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'select', options: countries, required: true },
+      { id: 'businessLogo', name: 'businessLogo', label: 'Business Logo', icon: <Building style={{width: '1rem', height: '1rem', color: '#0d6efd'}} />, type: 'file' }
+    ],
+    1: [ // Business Overview
+      { id: 'businessType', name: 'businessType', label: 'Business Type', icon: <Briefcase style={{width: '1rem', height: '1rem', color: '#6f42c1'}} />, type: 'select', options: ['SaaS', 'Content', 'Marketplace', 'Agency', 'Mobile App', 'Shopify App', 'Main Street', 'Ecommerce', 'Other'], required: true },
+      { id: 'operatingYears', name: 'operatingYears', label: 'Years Operating', icon: <ChartLineUp style={{width: '1rem', height: '1rem', color: '#fd7e14'}} />, type: 'select', options: ['Less than 1 year', '1-3 years', '3-5 years', '5-10 years', '10+ years'], required: true },
+      { id: 'businessDescription', name: 'businessDescription', label: 'Business Description', icon: <ClipboardList style={{width: '1rem', height: '1rem', color: '#20c997'}} />, type: 'textarea', required: true },
+      { id: 'businessModel', name: 'businessModel', label: 'Business Model', icon: <Briefcase style={{width: '1rem', height: '1rem', color: '#6f42c1'}} />, type: 'textarea', required: true },
+      { id: 'reasonForSelling', name: 'reasonForSelling', label: 'Reason for Selling', icon: <ClipboardList style={{width: '1rem', height: '1rem', color: '#20c997'}} />, type: 'textarea', required: true },
+      { id: 'customerBaseType', name: 'customerBaseType', label: 'Customer Base Type', icon: <Users style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'select', options: ['B2B', 'B2C', 'Both'], required: true }
+    ],
+    2: [ // Financial Information
+      { id: 'askingPrice', name: 'askingPrice', label: 'Asking Price ($)', icon: <DollarSign style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'number', required: true },
+      { id: 'annualRevenue', name: 'annualRevenue', label: 'Annual Revenue ($)', icon: <DollarSign style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'number', required: true },
+      { id: 'annualProfit', name: 'annualProfit', label: 'Annual Profit ($)', icon: <DollarSign style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'number', required: true },
+      { id: 'assetValue', name: 'assetValue', label: 'Asset Value ($)', icon: <DollarSign style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'number', required: true },
+      { id: 'hasDebts', name: 'hasDebts', label: 'Has Outstanding Debts', icon: <DollarSign style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'select', options: ['Yes', 'No'], required: true },
+      { id: 'isProfitable', name: 'isProfitable', label: 'Is Currently Profitable', icon: <ChartLineUp style={{width: '1rem', height: '1rem', color: '#fd7e14'}} />, type: 'select', options: ['Yes', 'No'], required: true }
+    ],
+    3: [ // Business Details
+      { id: 'productsServices', name: 'productsServices', label: 'Products/Services', icon: <ClipboardList style={{width: '1rem', height: '1rem', color: '#20c997'}} />, type: 'textarea', required: true },
+      { id: 'numberOfEmployees', name: 'numberOfEmployees', label: 'Number of Employees', icon: <Users style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'number', required: true },
+      { id: 'businessStructure', name: 'businessStructure', label: 'Business Structure', icon: <Building style={{width: '1rem', height: '1rem', color: '#0d6efd'}} />, type: 'select', options: ['Sole Proprietorship', 'Partnership', 'LLC', 'Corporation', 'Other'], required: true },
+      { id: 'propertyStatus', name: 'propertyStatus', label: 'Property Status', icon: <Building style={{width: '1rem', height: '1rem', color: '#0d6efd'}} />, type: 'select', options: ['Owned', 'Leased', 'Not Applicable'], required: true },
+      { id: 'leaseTerm', name: 'leaseTerm', label: 'Lease Term (if applicable)', icon: <ClipboardList style={{width: '1rem', height: '1rem', color: '#20c997'}} />, type: 'text' },
+      { id: 'hasIntellectualProperty', name: 'hasIntellectualProperty', label: 'Has Intellectual Property', icon: <Lightbulb style={{width: '1rem', height: '1rem', color: '#ffc107'}} />, type: 'select', options: ['Yes', 'No'], required: true },
+      { id: 'hasContracts', name: 'hasContracts', label: 'Has Ongoing Contracts', icon: <Handshake style={{width: '1rem', height: '1rem', color: '#6610f2'}} />, type: 'select', options: ['Yes', 'No'], required: true },
+      { id: 'hasLegalIssues', name: 'hasLegalIssues', label: 'Has Legal Issues', icon: <ClipboardList style={{width: '1rem', height: '1rem', color: '#20c997'}} />, type: 'select', options: ['Yes', 'No'], required: true }
+    ],
+    4: [ // Business Operations
+      { id: 'ownershipStructure', name: 'ownershipStructure', label: 'Ownership Structure', icon: <Users style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'select', options: ['Sole Ownership', 'Partnership', 'Family-Owned', 'Other'], required: true },
+      { id: 'operationSystems', name: 'operationSystems', label: 'Operation Systems', icon: <ChartLineUp style={{width: '1rem', height: '1rem', color: '#fd7e14'}} />, type: 'textarea', required: true },
+      { id: 'offerTraining', name: 'offerTraining', label: 'Training Offered', icon: <Handshake style={{width: '1rem', height: '1rem', color: '#6610f2'}} />, type: 'select', options: ['Yes', 'No', 'Negotiable'], required: true }
+    ],
+    5: [ // Valuation and Sale
+      { id: 'hasValuation', name: 'hasValuation', label: 'Business Valuation Done', icon: <ChartLineUp style={{width: '1rem', height: '1rem', color: '#fd7e14'}} />, type: 'select', options: ['Yes', 'No'], required: true },
+      { id: 'desiredTimeline', name: 'desiredTimeline', label: 'Desired Timeline', icon: <ChartLineUp style={{width: '1rem', height: '1rem', color: '#fd7e14'}} />, type: 'select', options: ['Immediately', '1-3 months', '6 months', '1 year', 'Flexible'], required: true },
+      { id: 'sellerFinancing', name: 'sellerFinancing', label: 'Seller Financing', icon: <DollarSign style={{width: '1rem', height: '1rem', color: '#198754'}} />, type: 'select', options: ['Yes', 'No', 'Maybe'], required: true }
+    ],
+    6: [ // Additional Information
+      { id: 'keySellingPoints', name: 'keySellingPoints', label: 'Key Selling Points', icon: <Lightbulb style={{width: '1rem', height: '1rem', color: '#ffc107'}} />, type: 'textarea', required: true },
+      { id: 'additionalInformation', name: 'additionalInformation', label: 'Additional Information', icon: <ClipboardList style={{width: '1rem', height: '1rem', color: '#20c997'}} />, type: 'textarea' }
+    ]
+  };
+
+  const containerStyle = {
+    backgroundColor: '#f8f9fa',
+    border: '1px solid #dee2e6',
+    borderRadius: '12px',
+    padding: '24px',
+    width: '100%',
+    maxWidth: '100vw',
+    margin: '0 auto 24px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+  };
+
+  const headerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '20px',
+    borderBottom: '1px solid #dee2e6',
+    paddingBottom: '16px'
+  };
+
+  const titleStyle = {
+    fontSize: '24px',
+    fontWeight: '600',
+    color: '#2c3e50',
+    margin: 0
+  };
+
+  const descriptionStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    color: '#6c757d',
+    fontSize: '16px',
+    marginBottom: '20px'
+  };
 
   const handleInputChange = (name, value) => {
     if (name === 'businessLogo') {
@@ -858,87 +926,29 @@ const BusinessSellerForm = () => {
     
   };
 
-  const handleSkip = () => {
-    navigate('/');
-  };
-
+  const handleSkip = () => navigate('/');
   const setCurrentSection = (index) => {
     setStep(index);
   };
 
-  const renderStep = () => {
-    const formSections = {
-      0: [ // Basic Information
-        { id: 'businessName', name: 'businessName', label: 'Business Name', icon: <FaBuilding />, required: true },
-        { 
-          id: 'businessLocation', 
-          name: 'businessLocation', 
-          label: 'Business Location', 
-          icon: <FaMapMarkerAlt />, 
-          type: 'select', 
-          options: countries,
-          required: true ,
-          style: { width: '150px', fontSize: '0.875rem', padding: '4px',}
-        }
-      ],
-      1: [ // Business Overview
-        { id: 'businessType', name: 'businessType', label: 'What type of business are you selling?', icon: <FaBriefcase />, type: 'select', options: ['SaaS', 'Content', 'Marketplace', 'Agency', 'Mobile App', 'Shopify App', 'Main Street', 'Ecommerce', 'Other'], required: true },
-        { id: 'operatingYears', name: 'operatingYears', label: 'How long has the business been operating?', icon: <FaCalendarAlt />, type: 'select', options: ['Less than 1 year', '1-3 years', '3-5 years', '5-10 years', '10+ years'], required: true },
-        { id: 'businessDescription', name: 'businessDescription', label: 'Describe your business', icon: <FaFileAlt />, type: 'textarea', required: true },
-        { id: 'businessLogo', name: 'businessLogo', label: 'Upload business logo', icon: <FaBuilding />, type: 'file' },
-        { id: 'businessModel', name: 'businessModel', label: 'What is the primary business model?', icon: <FaChartLine />, type: 'select', options: ['Independent', 'Franchise', 'Online', 'Hybrid'], required: true },
-        { id: 'reasonForSelling', name: 'reasonForSelling', label: 'What is the reason for selling the business?', icon: <FaQuestionCircle />, type: 'select', options: ['Retirement', 'New Opportunity', 'Health Issues', 'Lack of Time', 'Financial Struggles', 'Other'], required: true },
-        { id: 'customerBaseType', name: 'customerBaseType', label: 'What is the type of customer base?', icon: <FaUsers />, type: 'select', options: ['B2B', 'B2C', 'Both'], required: true }
-      ],
-      2: [ // Financial Information
-        { id: 'askingPrice', name: 'askingPrice', label: 'What is the asking price for the business?', icon: <FaDollarSign />, inputType: '', required: true },
-        { id: 'annualRevenue', name: 'annualRevenue', label: 'What is the approximate annual revenue (TTM)?', icon: <FaDollarSign />, inputType: '', required: true },
-        { id: 'annualProfit', name: 'annualProfit', label: 'What is the approximate annual profit (TTM)?', icon: <FaDollarSign />, inputType: '', required: true },
-        { id: 'assetValue', name: 'assetValue', label: 'What is the value of business assets?', icon: <FaDollarSign />, inputType: '', required: true },
-        { id: 'hasDebts', name: 'hasDebts', label: 'Does the business have any outstanding debts or liabilities?', icon: <FaMoneyBillWave />, type: 'select', options: ['Yes', 'No'], required: true },
-        { id: 'isProfitable', name: 'isProfitable', label: 'Is the business currently profitable?', icon: <FaChartLine />, type: 'select', options: ['Yes', 'No', 'Break-even'], required: true }
-      ],
-      3: [ // Business Details
-        { id: 'productsServices', name: 'productsServices', label: 'What are the key products or services offered?', icon: <FaClipboardList />, type: 'textarea', required: true },
-        { id: 'numberOfEmployees', name: 'numberOfEmployees', label: 'How many employees does the business have?', icon: <FaUsers />, inputType: 'number', required: true },
-        { id: 'businessStructure', name: 'businessStructure', label: 'What is the current structure of the business?', icon: <FaBuilding />, type: 'select', options: ['Sole Proprietorship', 'Partnership', 'LLC', 'Corporation', 'Other'], required: true },
-        { id: 'propertyStatus', name: 'propertyStatus', label: 'Is the business leased or owned?', icon: <FaBuilding />, type: 'select', options: ['Leased', 'Owned', 'Both'], required: true },
-        { id: 'leaseTerm', name: 'leaseTerm', label: 'What is the lease term (if applicable)?', icon: <FaCalendarAlt /> },
-        { id: 'hasIntellectualProperty', name: 'hasIntellectualProperty', label: 'Are there any intellectual property assets involved?', icon: <FaFileAlt />, type: 'select', options: ['Yes', 'No'], required: true },
-        { id: 'hasContracts', name: 'hasContracts', label: 'Are there any contracts with suppliers or customers?', icon: <FaHandshake />, type: 'select', options: ['Yes', 'No'], required: true },
-        { id: 'hasLegalIssues', name: 'hasLegalIssues', label: 'Are there any ongoing legal issues?', icon: <FaGavel />, type: 'select', options: ['Yes', 'No'], required: true }
-      ],
-      4: [ // Business Operations
-        { id: 'ownershipStructure', name: 'ownershipStructure', label: 'What is the current ownership structure?', icon: <FaUsers />, type: 'select', options: ['Sole Ownership', 'Partnership', 'Family-Owned', 'Other'], required: true },
-        { id: 'operationSystems', name: 'operationSystems', label: 'What are the key operations or systems in place?', icon: <FaChartLine />, type: 'textarea', required: true },
-        { id: 'offerTraining', name: 'offerTraining', label: 'Do you offer support or training for the new owner?', icon: <FaHandshake />, type: 'select', options: ['Yes', 'No', 'Negotiable'], required: true }
-      ],
-      5: [ // Valuation and Sale Process
-        { id: 'hasValuation', name: 'hasValuation', label: 'Have you had a business valuation done?', icon: <FaChartLine />, type: 'select', options: ['Yes', 'No'], required: true },
-        { id: 'desiredTimeline', name: 'desiredTimeline', label: 'What is your desired timeline for selling?', icon: <FaCalendarAlt />, type: 'select', options: ['Immediately', '1-3 months', '6 months', '1 year', 'Flexible'], required: true },
-        { id: 'sellerFinancing', name: 'sellerFinancing', label: 'Are you open to seller financing?', icon: <FaMoneyBillWave />, type: 'select', options: ['Yes', 'No', 'Maybe'], required: true }
-      ],
-      6: [ // Additional Information
-        { id: 'keySellingPoints', name: 'keySellingPoints', label: 'What are the key selling points or unique advantages?', icon: <FaTrophy />, type: 'textarea', required: true },
-        { id: 'additionalInformation', name: 'additionalInformation', label: 'Is there anything else a potential buyer should know?', icon: <FaInfoCircle />, type: 'textarea' }
-      ]
-    };
 
+  const renderStep = () => {
     const fields = formSections[step] || [];
 
     return (
       <Card className="mb-4 shadow-sm">
-        <Card.Header className="bg-transparent border-bottom">
-          <h5 className="fs-4 mb-0 text-dark">
-            {sections[step].icon} {sections[step].title}
+        <Card.Header className="bg-white">
+          <h5 className="mb-0 d-flex align-items-center gap-2">
+            {sections[step].icon}
+            {sections[step].title}
           </h5>
         </Card.Header>
         <Card.Body>
-          <ToastContainer />
-          {fields.map((field, index) => (
+         {fields.map((field, index) => (
             <div className="mb-4" key={index}>
-              <label htmlFor={field.id} className="form-label fw-medium">
-                {field.icon} {field.label}
+              <label htmlFor={field.id} className="form-label d-flex align-items-center gap-2 fw-medium">
+                {field.icon}
+                {field.label}
               </label>
               {field.type === 'select' ? (
                 <select
@@ -953,27 +963,6 @@ const BusinessSellerForm = () => {
                     <option key={i} value={option}>{option}</option>
                   ))}
                 </select>
-              ) : field.type === 'file' ? (
-                <>
-                  <input
-                    id={field.id}
-                    type="file"
-                    onChange={(e) => handleInputChange(field.name, e)}
-                    className="form-control"
-                    accept="image/*"
-                    required={field.required}
-                  />
-                  {formData[`${field.name}Preview`] && (
-                    <div className="mt-3">
-                      <img 
-                        src={formData[`${field.name}Preview`]} 
-                        alt="Preview" 
-                        className="img-thumbnail"
-                        style={{ maxHeight: '200px' }}
-                      />
-                    </div>
-                  )}
-                </>
               ) : field.type === 'textarea' ? (
                 <textarea
                   id={field.id}
@@ -983,14 +972,22 @@ const BusinessSellerForm = () => {
                   rows={4}
                   required={field.required}
                 />
+              ) : field.type === 'file' ? (
+                <input
+                  id={field.id}
+                  type="file"
+                  onChange={(e) => handleInputChange(field.name, e)}
+                  className="form-control"
+                  accept="image/*"
+                  required={field.required}
+                />
               ) : (
                 <input
                   id={field.id}
-                  type={field.inputType || 'text'}
+                  type={field.type || 'text'}
                   value={formData[field.name]}
                   onChange={(e) => handleInputChange(field.name, e.target.value)}
                   className="form-control"
-                  placeholder={field.placeholder || ''}
                   required={field.required}
                 />
               )}
@@ -1002,82 +999,156 @@ const BusinessSellerForm = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-start mb-4">Entrepreneur (Intrested in Selling a Startup)</h2>
+    <div style={{marginTop:"-5%"}}>
+      <div style={containerStyle}>
+        <div style={headerStyle}>
+          <Building 
+            size={32} 
+            color="#0d6efd"
+            strokeWidth={1.5}
+          />
+          <h2 style={titleStyle}>Business Seller</h2>
+        </div>
+        
+        <div style={descriptionStyle}>
+          <Lightbulb 
+            size={20} 
+            color="#6c757d"
+            strokeWidth={1.5}
+          />
+          <p style={{ margin: 0 }}>
+            List Your Business or Startup for Sale
+          </p>
+        </div>
+      </div>
 
-      <div className="d-flex justify-content-center mb-4 flex-wrap">
-        {sections.map((section, index) => (
-          <button
-            key={index}
-            type="button"
-            className="btn mx-2 mb-2"
-            style={{
-              backgroundColor: step === index ? '#1ea1f2' : 'transparent',
-              borderColor: '#1ea1f2',
-              color: step === index ? 'white' : '#1ea1f2'
-            }}
-            onClick={() => setCurrentSection(index)}
-          >
-            {section.icon} {section.title}
-          </button>
-        ))}
+      <div className="mb-4">
+        <div className="d-flex justify-content-between align-items-center bg-white rounded-3 p-3 shadow-sm overflow-x-auto">
+          {sections.map((section, index) => (
+            <div
+              key={index}
+              onClick={() => setCurrentSection(index)}
+              className={`flex-shrink-0 text-center py-3 px-4 rounded-3 mx-2 tab-item ${
+                step === index
+                  ? 'bg-white text-primary border border-primary shadow'
+                  : 'bg-white text-blue border border-light shadow'
+              }`}
+              style={{ 
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                minWidth: '160px'
+              }}
+            >
+              <div className="d-flex flex-column align-items-center justify-content-center">
+                {section.icon}
+                <span className="mt-2 fw-semibold">{section.title}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="needs-validation" noValidate>
         {renderStep()}
         
-        <div className="d-flex justify-content-between mt-4">
-        <Button onClick={() => {
-            navigate("/settings/account")
-          }}>Back</Button>
-          <button style={{marginRight:"830px"}} 
-            type="button" 
-            className="btn btn-outline-danger"
-            onClick={handleSkip}
-          >
-            Skip
-          </button>
-
-
-      
+        <div className="d-flex justify-content-between mt-4 p-3 border rounded-2 bg-light">
+          <Button variant="secondary" onClick={() => navigate("/settings/account")}>
+            Back
+          </Button>
           
-          <ButtonGroup style={{marginLeft:"-120px"}}>
+          <div className="d-flex gap-2">
+            <Button variant="outline-secondary" onClick={handleSkip}>
+              Skip
+            </Button>
+            
             {step > 0 && (
-              <button 
-                type="button" 
-                className="btn btn-outline-primary" 
-                onClick={() => setStep(step - 1)}
-              >
+              <Button variant="outline-primary" onClick={() => setStep(step - 1)}>
                 Previous
-              </button>
+              </Button>
             )}
             
-            {step < sections.length - 1 && (
-              <button 
-                type="button" 
-                className="btn btn-primary" 
-                onClick={() => setStep(step + 1)}
-              >
+            {step < sections.length - 1 ? (
+              <Button variant="primary" onClick={() => setStep(step + 1)}>
                 Next
-              </button>
-            )}
-            
-            {step === sections.length - 1 && (
-              <button 
-                type="submit" 
-                className="btn btn-success"
-              >
+              </Button>
+            ) : (
+              <Button variant="success" type="submit">
                 Submit
-              </button>
+              </Button>
             )}
-
-
-
-          </ButtonGroup>
+          </div>
         </div>
       </form>
+      
+      <ToastContainer />
     </div>
   );
 };
 
 export default BusinessSellerForm;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//  // Basic Information
+//  businessName: '',
+//  businessLocation: '',
+  
+//  // Business Overview
+//  businessType: '',
+//  operatingYears: '',
+//  businessDescription: '',
+//  businessLogo: '',
+//  businessModel: '',
+//  reasonForSelling: '',
+//  customerBaseType: '',
+ 
+//  // Financial Information
+//  askingPrice: '',
+//  annualRevenue: '',
+//  annualProfit: '',
+//  assetValue: '',
+//  hasDebts: '',
+//  isProfitable: '',
+ 
+//  // Business Details
+//  productsServices: '',
+//  numberOfEmployees: '',
+//  businessStructure: '',
+//  propertyStatus: '',
+//  leaseTerm: '',
+//  hasIntellectualProperty: '',
+//  hasContracts: '',
+//  hasLegalIssues: '',
+ 
+//  // Business Operations
+//  ownershipStructure: '',
+//  operationSystems: '',
+//  offerTraining: '',
+ 
+//  // Valuation and Sale Process
+//  hasValuation: '',
+//  desiredTimeline: '',
+//  sellerFinancing: '',
+ 
+//  // Additional Information
+//  keySellingPoints: '',
+//  additionalInformation: ''
+// });

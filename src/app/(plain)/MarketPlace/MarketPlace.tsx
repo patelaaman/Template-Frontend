@@ -56,7 +56,7 @@ const MarketPlace = () => {
         try {
           const response = await fetch(`${LIVE_URL}api/v1/businessseller/detail/${user?.id}`);
           const data = await response.json();
-          
+          console.log("MY Daatwaaaaaaaaaaaaaaaa" , data)
           setMyBusinessData(Array.isArray(data) ? data : [data]);
         } catch (error) {
           console.error("Error fetching my business data:", error);
