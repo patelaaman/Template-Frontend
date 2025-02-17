@@ -53,7 +53,6 @@ const Feeds = ({ isCreated, setIsCreated, profile }: FeedsProps) => {
   const { fetchOnlineUsers } = useOnlineUsers();
   const [flag, setflag] = useState(false);
 
-
   const fetchPosts = async (pageNumber: number) => {
     if(pageNumber<=2){
       setflag(false)
