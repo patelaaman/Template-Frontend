@@ -51,9 +51,10 @@ export const EngageComponent = ({ users, type }: { users: string[], type: string
     const actionText = type === "like" ? "liked this post" : "commented on this post";
  
     return (
-      <Link to={`/profile/feed/${id}`} className="d-flex align-items-center text-dark">
-        <div className="d-flex">
+      <div className="d-flex align-items-center text-dark mb-2">
+        <div className="d-flex mx-2">
           {profiles.slice(0, 3).map(profile => ( 
+           
             <div
               key={profile.id}
               style={{
@@ -65,25 +66,26 @@ export const EngageComponent = ({ users, type }: { users: string[], type: string
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                marginRight: "5px"
+                marginLeft: -12
               }}
             >
-              <img
-                src={profile.profileImg}
-                alt="Profile"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  transform: "scale(1) rotate(0deg)",
-                }}
-              />
+            <img
+              src={profile.profileImg}
+              alt="Profile"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                transform: "scale(1) rotate(0deg)",
+              }}
+            />
             </div>
+
           ))}
         </div>
-        <p role="button" className="mt-3 mx-3">
+        <Link to={`/profile/feed/${id}`} role="button" className="text-dark mx-2">
           <span className="fw-bold">{displayNames} </span> {actionText}
-        </p>
-      </Link>
+        </Link>
+      </div>
     );
   };
