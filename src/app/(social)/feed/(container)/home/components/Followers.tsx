@@ -89,7 +89,7 @@ const Followers = () => {
         throw new Error(`Failed to ${isSending ? 'send' : 'unsend'} connection request.`)
       }
 
-      const data = await res.json()
+      const data = await res.json() 
       fetchConnectionSuggestions()
       console.log(`Connection request ${isSending ? 'sent' : 'unsent'} successfully:`, data)
       toast.success(`Connection request ${isSending ? 'sent' : 'unsent'} successfully.`)

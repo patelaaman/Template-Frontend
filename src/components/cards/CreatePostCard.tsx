@@ -69,6 +69,11 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const [skeletonLoading, setSkeletonLoading] = useState(true)
   const { isTrue: isOpenPost, toggle: togglePost } = useToggle()
   const [profile, setProfile] = useState<UserProfile>({})
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [mentionMap, setMentionMap] = useState<Record<string, string>>({});
+  const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false);
+  const textareaRef = useRef(null);
 
   const eventFormSchema = yup.object({
     title: yup.string().required('Please enter event title'),
@@ -81,7 +86,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const { control, handleSubmit } = useForm({
     resolver: yupResolver(eventFormSchema),
   })
-
 
   useEffect(() => {
     if (modelTime) {
@@ -117,10 +121,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     }
   }
 
-  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
-
-  const [uploadProgress, setUploadProgress] = useState(0);
-
   const handleFileUpload = async (files: FileUpload[]) => {
     setUploadProgress(0); // Reset progress
     setUploadedFiles(prevFiles => [...prevFiles, ...files]);
@@ -131,9 +131,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     if (result) {
       toast.success('File uploaded successfully!');
     }
-
   };
-
 
   const handleUpload = async () => {
     try {
@@ -141,12 +139,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
         toast.error("No Photos or Videos are Uploaded");
         return null;
       }
-
-      console.log("📤 Uploading files:", uploadedFiles);
-
       const mediaKeys = await uploadMulti(uploadedFiles, user?.id);
-      console.log("✅ Media uploaded, received keys:", mediaKeys);
-
       return mediaKeys.length > 0 ? mediaKeys : null;
     } catch (err) {
       console.error("Error in handleUpload:", err);
@@ -164,7 +157,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     try {
       togglePhotoModel();
       const mediaKeys = await handleUpload();
-
       if (mediaKeys && mediaKeys.length > 0) {
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
           method: "POST",
@@ -175,15 +167,12 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
             mediaKeys: mediaKeys,
           },
         });
-
         if (response.data) {
           toast.success("Post submitted successfully!");
           setThoughts("");
-
         }
       } else {
         toast.error("Upload failed. Post not submitted.");
-        console.log("Upload failed. Post not submitted.");
       }
     } catch (err) {
       console.error("Error in the posting", err);
@@ -264,7 +253,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   }, 3000)
 
 
-  const handlePostClick = async (values) => {
+  const handlePostClick = async (values:any) => {
     if (!thoughts.trim()) {
       console.log('Thoughts cannot be empty.');
       toast.error('Thoughts cannot be empty.');
@@ -284,7 +273,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           hashtags: hashtags,
         },
       });
-
       if (response.data) {
         setThoughts('');
         console.log('isCreated before', isCreated);
@@ -301,11 +289,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
       setUploadedFiles([]);
     }
   }
-
-  const [mentionMap, setMentionMap] = useState<Record<string, string>>({});
-  const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false);
-  const textareaRef = useRef(null);
-
   // Function to handle textarea change
   const handleChange = (e: any) => {
     const value = e.target.value;
