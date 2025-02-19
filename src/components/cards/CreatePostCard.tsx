@@ -185,63 +185,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     }
   };
 
-  const handleVideoSubmit = async () => {
-    if (uploadedFiles.length === 0) {
-      toast.error('You must add a Video');
-      return;
-    }
-    setIsSubmittingVideo(true);
-    try {
-      const uploadSuccess = await handleUpload();
-
-      if (uploadSuccess) {
-        const hashtagRegex = /#\w+/g;
-        const hashtags = videoQuote.match(hashtagRegex) || [];
-
-        // Making the API request
-        const data = {
-          userId: user?.id,
-          content: thoughts,
-          hashtags: hashtags,
-          mediaKeys: uploadSuccess || [],
-        };
-
-        const response = await makeApiRequest<ApiResponse<{ url: string }>>({
-          method: 'POST',
-          url: CREATE_POST,
-          data: data,
-        });
-
-        if (response.data) {
-          toast.success('Video posted successfully!');
-          setThoughts('');
-        }
-      } else {
-        toast.error('Upload failed. Post not submitted.');
-        console.log('Upload failed. Post not submitted.');
-      }
-    } catch (err) {
-      console.log('Error in the posting', err);
-      toast.error('Error in the posting. Please try again.');
-    }
-    finally {
-      setIsSubmittingVideo(false);
-      toggleVideoModel();
-      setUploadedFiles([]);
-      setThoughts('');
-      setIsCreated(() => !isCreated);
-    }
-  }
-
-  // console.log("profile", profile);
-
-  const [show, setShow] = useState(true)
-  const handleClose = () => {
-    setShow(false)
-    setModelTime(false)
-  }
-
-  const handleShow = () => setShow(true)
 
   setTimeout(() => {
     if (profile?.personalDetails?.profilePictureUploadId === null) {
@@ -253,31 +196,26 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   }, 3000)
 
 
-  const handlePostClick = async (values:any) => {
+  const handlePostClick = async (values: any) => {
     if (!thoughts.trim()) {
       console.log('Thoughts cannot be empty.');
       toast.error('Thoughts cannot be empty.');
       return;
     }
     setIsSubmittingPost(true);
-
-    try {
-      const hashtagRegex = /#\w+/g;
-      const hashtags = thoughts.match(hashtagRegex) || [];
+    try {     
       const response = await makeApiRequest<ApiResponse<{ url: string }>>({
         method: 'POST',
         url: CREATE_POST,
         data: {
           userId: user?.id,
           content: processMentionsForSubmission(values),
-          hashtags: hashtags,
         },
       });
       if (response.data) {
         setThoughts('');
         console.log('isCreated before', isCreated);
         setIsCreated(() => !isCreated);
-        console.log('isCreated after', isCreated);
         toast.success('Post created successfully!');
       }
     } catch (err) {
