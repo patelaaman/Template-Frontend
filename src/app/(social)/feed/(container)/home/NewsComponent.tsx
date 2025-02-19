@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from "react";
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardTitle,
-  Modal,
-  Button,
-  Col
-} from "react-bootstrap";
+import { Card, CardHeader, CardBody, CardTitle, Modal, Button, Col } from "react-bootstrap";
 
 const NewsComponent = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedNews, setSelectedNews] = useState(null);
-  
-  const API_KEY = "5c81eb77bf374a7abe724824a72f66e2"; // Use environment variables
+  const [showFullNews, setShowFullNews] = useState(false);
+
+  const API_KEY = "5c81eb77bf374a7abe724824a72f66e2"; 
 
   useEffect(() => {
     const fetchBusinessNews = async () => {
@@ -25,7 +18,8 @@ const NewsComponent = () => {
         );
         const data = await response.json();
         if (data.articles) {
-          const combinedNews = injectCustomNews(data.articles);
+          let combinedNews = injectCustomNews(data.articles);
+          combinedNews = shuffleArray(combinedNews); 
           setNews(combinedNews);
         }
       } catch (error) {
@@ -37,6 +31,16 @@ const NewsComponent = () => {
 
     fetchBusinessNews();
   }, []);
+
+  // Function to shuffle an array using Fisher-Yates algorithm
+  const shuffleArray = (array) => {
+    let shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
 
   // Inject custom news at a random index
   const injectCustomNews = (articles) => {
@@ -64,7 +68,7 @@ const NewsComponent = () => {
     const randomIndex = Math.floor(Math.random() * (articles.length + 1));
     articles.splice(randomIndex, 0, ...customNews);
     return articles;
-  };
+  }
 
   // Function to handle opening the modal
   const openModal = (article) => {
@@ -88,15 +92,11 @@ const NewsComponent = () => {
           {loading ? (
             <p>Loading business news...</p>
           ) : (
-            news.map((article, index) => (
+            (showFullNews ? news : news.slice(0, 6)).map((article, index) => (
               <div key={index} className="mb-3">
                 <h6 className="mb-0">
                   <span
-                    style={{
-                      cursor: "pointer",
-                      color: "black",
-                      textDecoration: "none",
-                    }}
+                    style={{ cursor: "pointer", color: "black", textDecoration: "none" }}
                     onClick={() => openModal(article)}
                   >
                     {article.title}
@@ -107,13 +107,23 @@ const NewsComponent = () => {
             ))
           )}
         </CardBody>
+
+        {!showFullNews && (
+          <p
+            className="mx-2 fw-bold muted"
+            style={{ cursor: "pointer", color: "#007bff" }}
+            onClick={() => setShowFullNews(true)}
+          >
+            Read more
+          </p>
+        )}
       </Card>
 
       {/* News Modal */}
       <Modal show={modalOpen} onHide={closeModal}>
         {selectedNews && (
           <>
-            <Modal.Header >
+            <Modal.Header>
               <Modal.Title>{selectedNews.title}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -121,11 +131,7 @@ const NewsComponent = () => {
                 <img
                   src={selectedNews.urlToImage}
                   alt="news"
-                  style={{
-                    width: "100%",
-                    borderRadius: "5px",
-                    marginBottom: "10px",
-                  }}
+                  style={{ width: "100%", borderRadius: "5px", marginBottom: "10px" }}
                 />
               )}
               <p>{selectedNews.description || "No description available."}</p>
@@ -133,8 +139,7 @@ const NewsComponent = () => {
                 <strong>Source:</strong> {selectedNews.source?.name || "Unknown"}
               </p>
               <p>
-                <strong>Published At:</strong>{" "}
-                {new Date(selectedNews.publishedAt).toLocaleString()}
+                <strong>Published At:</strong> {new Date(selectedNews.publishedAt).toLocaleString()}
               </p>
             </Modal.Body>
             <Modal.Footer>
