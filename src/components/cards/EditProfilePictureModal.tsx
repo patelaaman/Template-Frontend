@@ -397,12 +397,12 @@ const EditProfilePictureModal = ({
                     <div className="mt-4">
                       <h6>Crop</h6>
                       <Form.Label>Zoom</Form.Label>
-                      <Form.Range value={zoom} onChange={handleZoomChange} />
+                      <Form.Range style={{zIndex:999}} value={zoom} onChange={handleZoomChange} />
                       <Form.Label>Straighten</Form.Label>
-                      <Form.Range value={straighten} onChange={handleStraightenChange} />
+                      <Form.Range style={{zIndex:999}} value={straighten} onChange={handleStraightenChange} />
                     </div>
                     <div className="d-flex justify-content-center mt-3">
-                      <Button variant="primary" onClick={FinalUpload} disabled={loading}>
+                      <Button variant="primary" onClick={FinalUpload} disabled={loading} style={{zIndex:9999}}>
                         {loading ? (
                           <>
                             <Spinner
@@ -440,7 +440,7 @@ const EditProfilePictureModal = ({
 
                         }}
                       >
-                        <Image
+                        {/* <Image
                           src={objectUrl || src} // Replace with your actual image source
                           alt="Profile"
                           style={{
@@ -449,7 +449,7 @@ const EditProfilePictureModal = ({
                             transform: `scale(${zoom / 50}) rotate(${straighten - 50}deg)`,
                           }}
 
-                        />
+                        /> */}
                         <Cropper
                           image={objectUrl || src}
                           crop={crop}
