@@ -562,7 +562,7 @@ const PostCard = ({
         {/* Right side with comment count */}
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <MdComment size={16} onClick={() => setOpenComment(!openComment)} />
-          {commentCount !== 0 && <span>{commentCount} comment</span>}
+          {commentCount !== 0 && <span>{commentCount} {commentCount === 1 ? 'comment' : 'comments'}</span>}
         </span>
       </p>
     )
