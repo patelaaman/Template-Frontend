@@ -65,10 +65,10 @@ const AppRouter = (props: RouteProps) => {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchOnlineUsers();
-    }, 5000);
+    }, 7000);
 
     return () => clearInterval(interval);
-  }, [fetchOnlineUsers])
+  }, [fetchOnlineUsers,user?.id])
   //  useEffect(() => {
   //     if (user) {
   //       socket.emit("userOnline", user.id);
