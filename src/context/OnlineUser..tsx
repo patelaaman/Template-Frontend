@@ -46,7 +46,7 @@ export const OnlineUsersProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
         fetchOnlineUsers();
 
         // Polling every 1 minute to update the list of online users
-        const interval = setInterval(fetchOnlineUsers, 60000);
+        const interval = setInterval(fetchOnlineUsers, 7000);
         return () => clearInterval(interval);
     }, []);
 
