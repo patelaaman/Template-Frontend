@@ -367,7 +367,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
   const handleUnblock = async () => {
     try {
       setSkeletonLoading(true);
-  
+
       const response = await fetch(`${LIVE_URL}api/v1/post/unblock-user`, {
         method: 'POST',
         headers: {
@@ -378,24 +378,24 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
           blockedUser: id,
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.message || 'Failed to unblock user');
       }
-  
+
       toast.success("User unblocked successfully");
       window.location.reload()
-      
-    } catch (error:any) {
+
+    } catch (error: any) {
       console.error('Error unblocking user:', error);
       toast.error(error.message || 'Something went wrong');
     } finally {
       setSkeletonLoading(false);
     }
   };
-  
+
 
   const PROFILE_MENU_ITEMS = [
     {
@@ -446,6 +446,17 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
       parentKey: 'pages-profile',
     },
   ]
+
+  const handleProfileUpdate = () => {
+    console.log('Profile updated');
+    setShowModal(false);
+  };
+
+  const handleCoverUpdate = () => {
+    console.log('Cover updated');
+    setCoverModal(false);
+  };
+
   return (
     <>
       <div style={{}}>
@@ -458,19 +469,18 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
           <EditProfilePictureModal
             show={showModal}
             onHide={() => setShowModal(false)}
-            onPhotoUpdate={() => console.log('press')}
+            onPhotoUpdate={handleProfileUpdate}
             src={profile.profileImgUrl ? profile.profileImgUrl : avatar7}
             profile={profile}
           />
           <EditProfilePictureModal
             show={coverModal}
             onHide={() => setCoverModal(false)}
-            onPhotoUpdate={() => console.log('press')}
-            src={profile.coverImgUrl ? profile.coverImgUrl : avatar7}
+            onPhotoUpdate={handleCoverUpdate}
+            src={profile.coverImgUrl ? profile.coverImgUrl : background5}
             forCover={true}
             profile={profile}
           />
-
           <Row className="g-4">
             {/* Main Profile Section */}
             <Col md={12} lg={9} className="vstack gap-4" style={{ paddingRight: '50px', paddingLeft: '30px' }}>
@@ -513,7 +523,13 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                   <div className="d-sm-flex align-items-start text-center text-sm-start">
                     {/* Profile Picture */}
                     <div style={{ marginTop: '40px' }}>
-                      <div className="avatar avatar-xxl mt-n5 mb-3">
+                      <div
+                        className="avatar avatar-xxl mt-n5 mb-3"
+                        onClick={() => {
+                          if (user?.id === id) setShowModal(true);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
                         {skeletonLoading ? (
                           <Skeleton circle width={120} height={120} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
                         ) : (
@@ -589,7 +605,7 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                               disabled={loading || sent}>
                               {loading ? (
                                 <Loading size={15} loading={true} />
-                              ) : sent && profile.connectionsStatus!='Blocked'  ? (
+                              ) : sent && profile.connectionsStatus != 'Blocked' ? (
                                 <>
                                   <FaUserCheck size={19} className="pe-1" /> Request Sent
                                 </>
@@ -605,34 +621,34 @@ export const ProfileLayout = ({ children }: ChildrenType) => {
                         </>
                       ) : (
                         <>
-                        <Button
-                          variant={
-                            profile.connectionsStatus === 'pending'
-                              ? 'warning-soft'
-                              : profile.connectionsStatus === 'accepted'
-                              ? 'success-soft'
-                              : profile.connectionsStatus === 'rejected' || profile.connectionsStatus === 'Blocked' 
-                              ? 'danger-soft'
-                              : 'secondary-soft'
-                          }
-                          className="me-2"
-                          type="button"
-                        >
-                          {profile.connectionsStatus === 'accepted' ? (
-                            <>
-                              <MessageCircleMore className="me-2 text-dark-green" /> Send Message
-                            </>
-                          ) : (
-                            (profile.connectionsStatus === 'Blocked' && profile.unblockOption !== true) ? "You are blocked from viewing this profile":profile.connectionsStatus 
-                          )}
-                        </Button>
-                       {(profile.connectionsStatus === 'Blocked' && profile.unblockOption === true)  &&  <Button onClick={handleUnblock}>
-Unblock
-                        </Button>}
-                      </>
-                      
+                          <Button
+                            variant={
+                              profile.connectionsStatus === 'pending'
+                                ? 'warning-soft'
+                                : profile.connectionsStatus === 'accepted'
+                                  ? 'success-soft'
+                                  : profile.connectionsStatus === 'rejected' || profile.connectionsStatus === 'Blocked'
+                                    ? 'danger-soft'
+                                    : 'secondary-soft'
+                            }
+                            className="me-2"
+                            type="button"
+                          >
+                            {profile.connectionsStatus === 'accepted' ? (
+                              <>
+                                <MessageCircleMore className="me-2 text-dark-green" /> Send Message
+                              </>
+                            ) : (
+                              (profile.connectionsStatus === 'Blocked' && profile.unblockOption !== true) ? "You are blocked from viewing this profile" : profile.connectionsStatus
+                            )}
+                          </Button>
+                          {(profile.connectionsStatus === 'Blocked' && profile.unblockOption === true) && <Button onClick={handleUnblock}>
+                            Unblock
+                          </Button>}
+                        </>
+
                       )}
-                      {user?.id !== id && profile.connectionsStatus !== 'Blocked'  && (
+                      {user?.id !== id && profile.connectionsStatus !== 'Blocked' && (
                         <div>
                           <button
                             className="btn btn-light border px-4 py-2 fw-semibold text-secondary"
@@ -661,7 +677,7 @@ Unblock
                   </ul>
                   {/* <button>Hello</button> */}
                 </CardBody>
-                {profile.connectionsStatus !== 'Blocked'&&(<CardFooter className="card-footer mt-3 pt-2 pb-0">
+                {profile.connectionsStatus !== 'Blocked' && (<CardFooter className="card-footer mt-3 pt-2 pb-0">
                   <ul className="nav nav-bottom-line align-items-center justify-content-center justify-content-md-start mb-0 border-0">
                     {PROFILE_MENU_ITEMS.map((item, idx) => (
                       <li className="nav-item" key={idx}>
@@ -673,7 +689,7 @@ Unblock
                   </ul>
                 </CardFooter>)}
               </Card>
-              {profile.connectionsStatus !== 'Blocked'&& (<div className="w-100" style={{}}>
+              {profile.connectionsStatus !== 'Blocked' && (<div className="w-100" style={{}}>
                 <Suspense fallback={<FallbackLoading />}>{children}</Suspense>
               </div>)}
             </Col>

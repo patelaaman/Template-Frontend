@@ -75,6 +75,7 @@ export interface Post {
   likeStatus: boolean
   originalPostedAt?: string
   createdAt: string
+  originalPostedTimeline: string
 }
 export interface UserDetails {
   postedId: string
@@ -140,9 +141,9 @@ const PostCard = ({
   const [showRepostOp, setShowRepostOp] = useState<boolean>(false)
   const [repostProfile, setRepostProfile] = useState<UserProfile>({})
   const [close, setClose] = useState<boolean>(true)
-  const [showList, setShowList] = useState<boolean>(false);
-  const [mouseOnReactions, setMouseOnReactions] = useState<boolean>(false);
-  const [reactionId, setReactionId] = useState<number | null>(null);
+  const [showList, setShowList] = useState<boolean>(false)
+  const [mouseOnReactions, setMouseOnReactions] = useState<boolean>(false)
+  const [reactionId, setReactionId] = useState<number | null>(null)
   const [sentStatus, setSentStatus] = useState<{ [key: string]: boolean }>({})
   const [loading, setLoading] = useState<string | null>(null)
   const reactions = [
@@ -152,9 +153,9 @@ const PostCard = ({
     { emoji: '❤️', label: 'Love', reactId: 4 },
     { emoji: '💡', label: 'Insightful', reactId: 5 },
     { emoji: '😂', label: 'Funny', reactId: 6 },
-  ];
+  ]
 
-  const [hoveredReaction, setHoveredReaction] = useState<string | null>(null);
+  const [hoveredReaction, setHoveredReaction] = useState<string | null>(null)
 
   const utils: UtilType = {
     comments: comments,
@@ -172,7 +173,6 @@ const PostCard = ({
     } else {
       setLikeStatus(false)
     }
-
   }, [post.likeStatus])
   const media = post.repostedFrom ? post?.mediaUrls : post?.mediaUrls
   const isVideo = media?.length > 0 && (media[0] as string).includes('video/mp4')
@@ -184,9 +184,7 @@ const PostCard = ({
     setSentStatus(newSentStatus)
     setLoading(userId)
 
-    const apiUrl = isSending
-      ? `${LIVE_URL}api/v1/connection/send-connection-request`
-      : `${LIVE_URL}api/v1/connection/unsend-connection-request`
+    const apiUrl = isSending ? `${LIVE_URL}api/v1/connection/send-connection-request` : `${LIVE_URL}api/v1/connection/unsend-connection-request`
 
     try {
       const res = await fetch(apiUrl, {
@@ -327,6 +325,7 @@ const PostCard = ({
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.message || 'Failed to delete post.')
+        toast.error('Failed to delete the post. Please try again.')
       }
 
       const data = await response.json()
@@ -337,6 +336,7 @@ const PostCard = ({
       // // console.log('Post deleted successfully:', data.message);
       // alert('Post deleted successfully!');
     } catch (error: any) {
+      toast.error('Failed to delete the post. Please try again.')
       console.error('Error deleting post:', error.message)
     }
   }
@@ -381,7 +381,7 @@ const PostCard = ({
       await deletePost(postId)
       // Optionally, refresh the post list here
     } catch (error) {
-      alert('Failed to delete the post. Please try again.')
+      toast.error('Failed to delete the post. Please try again.')
     }
   }
 
@@ -394,7 +394,7 @@ const PostCard = ({
   }
   useEffect(() => {
     if (hasMount.current) return
-    setReactionId(post.reactionId);
+    setReactionId(post.reactionId)
     if (Object.keys(repostProfile).length !== 0) return
     hasMount.current = true
 
@@ -469,14 +469,13 @@ const PostCard = ({
   }, [media])
 
   const toggleLike = async (reactId: number) => {
-    const prevId = reactionId;
+    const prevId = reactionId
     if (reactionId === reactId) {
       setLikeStatus((prev) => !prev)
-      setReactionId(1);
-    }
-    else {
-      setLikeStatus(true);
-      setReactionId(reactId);
+      setReactionId(1)
+    } else {
+      setLikeStatus(true)
+      setReactionId(reactId)
     }
 
     likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1)
@@ -490,11 +489,11 @@ const PostCard = ({
       })
 
       if (!response.ok) {
-        if (reactionId === reactId) setLikeStatus((prev) => !prev);
-        else setLikeStatus(false);
-        setReactionId(prevId);
+        if (reactionId === reactId) setLikeStatus((prev) => !prev)
+        else setLikeStatus(false)
+        setReactionId(prevId)
         setLikeStatus(likeStatus)
-        toast.error('Like not Sent');
+        toast.error('Like not Sent')
         likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1)
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -568,7 +567,6 @@ const PostCard = ({
       </p>
     )
   }
-
 
   const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false)
   const [searchResults, setSearchResults] = useState<any[]>([])
@@ -656,21 +654,19 @@ const PostCard = ({
     })
     return processedText
   }
-  const selectedReaction = reactions.find(reaction => reaction.reactId === reactionId);
+  const selectedReaction = reactions.find((reaction) => reaction.reactId === reactionId)
   if (isDeleted) return null
   if (isRepostWithText()) {
     return (
       <Card className="mb-4">
         <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
-        <CardHeader className={`border-0 pb-0 ${post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0 && "pt-0"}`} >
-          {post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0 && (<div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
-            {post?.likedByConnections && post?.likedByConnections?.length > 0 && (
-              <EngageComponent users={post.likedByConnections} type="like" />
-            )}
-            {post?.commentedByConnections && post?.commentedByConnections?.length > 0 && (
-              <EngageComponent users={post.commentedByConnections} type="comment" />
-            )}
-          </div>)}
+        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections )&& 'pt-0'}`}>
+              {(post?.likedByConnections || post?.commentedByConnections )? (
+                  <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
+                    {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
+                    {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
+                  </div>
+                ):("")}
           <div className="d-flex align-items-center justify-content-between">
             <div className="d-flex align-items-center">
               <div className="avatar me-2">
@@ -744,7 +740,6 @@ const PostCard = ({
 
             {
               <div style={{ position: 'relative' }}>
-
                 <button
                   className="btn btn-link p-0 text-dark"
                   style={{ fontSize: '1.5rem', lineHeight: '1', marginTop: '-25px', marginRight: '15px' }}
@@ -776,7 +771,6 @@ const PostCard = ({
                       </div>
                     )}
                     {post.userId !== user?.id && (
-
                       <div
                         className="dropdown-menu show"
                         style={{
@@ -790,7 +784,6 @@ const PostCard = ({
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
                         }}>
-
                         <button
                           className="dropdown-item text-danger d-flex align-items-center"
                           onClick={() => {
@@ -807,29 +800,37 @@ const PostCard = ({
                           style={{ gap: '0.5rem' }}>
                           <BsExclamationTriangle /> Report Post
                         </button>
-                        {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} userId={user?.id || ''} postId={post?.Id || ''} />}
-                        {!userInfo.connection && (<Button
-                          variant={sentStatus[userInfo.id] ? "primary" : "primary-soft"}
-                          className='mx-3'
-                          onClick={() => UserRequest(userInfo.id)}
-                          disabled={loading === userInfo.id}
-                        >
-                          {loading === userInfo.id ? (
-                            <Loading size={15} loading={true} />
-                          ) : (
-                            <span className='w-100 d-flex align-items-center ' >
-                              {sentStatus[userInfo.id] ? (
-                                < >
-                                  <BsPersonCheckFill /> <span className='p-0 px-2'>sent </span>
-                                </>
-                              ) : (
-                                <>
-                                  <FaPlus /> <span className='p-0 px-2'>Connect </span>
-                                </>
-                              )}
-                            </span>
-                          )}
-                        </Button>)}
+                        {
+                          <ReportModal
+                            show={showReportModal}
+                            handleClose={() => setShowReportModal(false)}
+                            userId={user?.id || ''}
+                            postId={post?.Id || ''}
+                          />
+                        }
+                        {!userInfo.connection && (
+                          <Button
+                            variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                            className="mx-3"
+                            onClick={() => UserRequest(userInfo.id)}
+                            disabled={loading === userInfo.id}>
+                            {loading === userInfo.id ? (
+                              <Loading size={15} loading={true} />
+                            ) : (
+                              <span className="w-100 d-flex align-items-center ">
+                                {sentStatus[userInfo.id] ? (
+                                  <>
+                                    <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                  </>
+                                )}
+                              </span>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </>
@@ -865,15 +866,13 @@ const PostCard = ({
           )}
 
           <Card className="mb-4">
-            <CardHeader className={`border-0 pb-0 ${post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0 && "pt-0"}`} >
-              {post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0 && (<div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
-                {post?.likedByConnections && post?.likedByConnections?.length > 0 && (
-                  <EngageComponent users={post.likedByConnections} type="like" />
-                )}
-                {post?.commentedByConnections && post?.commentedByConnections?.length > 0 && (
-                  <EngageComponent users={post.commentedByConnections} type="comment" />
-                )}
-              </div>)}
+            <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections )&& 'pt-0'}`}>
+              {/* {(post?.likedByConnections || post?.commentedByConnections )? (
+                  <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
+                    {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
+                    {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
+                  </div>
+                ):("")} */}
               <div className="d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center">
                   <div className="avatar me-2">
@@ -919,7 +918,7 @@ const PostCard = ({
                             <span className="mx-2"></span>
                           </span>
                           <span className="nav-item small mx-3" style={{ color: '#8b959b' }}>
-                            {post?.originalPostedAt}
+                            {post?.originalPostedTimeline}
                             <span
                               className="nav-item small"
                               style={{
@@ -996,8 +995,7 @@ const PostCard = ({
             style={{
               backgroundColor: 'white',
               borderBottom: '1px solid #dee2e6',
-            }}
-          >
+            }}>
             <div style={{ position: 'relative', width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {(showReactions || mouseOnReactions) && (
                 <div
@@ -1021,28 +1019,24 @@ const PostCard = ({
                   onMouseLeave={() => {
                     setMouseOnReactions(false)
                     setShowReactions(false)
-                  }}
-                >
+                  }}>
                   {reactions.map((reaction) => (
                     <span
                       key={reaction.label}
-
                       onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.transform = "scale(1.5)";
-                        (e.target as HTMLElement).style.transition = "transform 0.2s ease-out";
-                        setHoveredReaction(reaction.label);
+                        ;(e.target as HTMLElement).style.transform = 'scale(1.5)'
+                        ;(e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        setHoveredReaction(reaction.label)
                       }}
                       onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.transform = "scale(1)";
+                        ;(e.target as HTMLElement).style.transform = 'scale(1)'
                         setHoveredReaction(null)
                       }}
                       onClick={() => {
-
                         toggleLike(reaction.reactId)
-                        setShowReactions(false);
+                        setShowReactions(false)
                       }}
-                      style={{ cursor: 'pointer', fontSize: '25px', position: 'relative' }}
-                    >
+                      style={{ cursor: 'pointer', fontSize: '25px', position: 'relative' }}>
                       {reaction.emoji}
                       {hoveredReaction === reaction.label && (
                         <div
@@ -1057,8 +1051,7 @@ const PostCard = ({
                             borderRadius: '4px',
                             fontSize: '12px',
                             whiteSpace: 'nowrap',
-                          }}
-                        >
+                          }}>
                           {reaction.label}
                         </div>
                       )}
@@ -1071,9 +1064,12 @@ const PostCard = ({
                 className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
                 onClick={() => toggleLike(reactionId || 1)}
                 onMouseEnter={() => setShowReactions(true)}
-                onMouseLeave={() => setTimeout(() => { setShowReactions(false) }, 100)}
-                style={{ fontSize: '0.8rem' }}
-              >
+                onMouseLeave={() =>
+                  setTimeout(() => {
+                    setShowReactions(false)
+                  }, 100)
+                }
+                style={{ fontSize: '0.8rem' }}>
                 {selectedReaction && reactionId !== 1 ? (
                   <span>{selectedReaction.emoji}</span>
                 ) : likeStatus ? (
@@ -1088,32 +1084,28 @@ const PostCard = ({
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
               onClick={() => setOpenComment(!openComment)}
-              style={{ fontSize: '0.8rem' }}
-            >
+              style={{ fontSize: '0.8rem' }}>
               <MessageSquare size={16} />
             </Button>
             <Button
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
               style={{ fontSize: '0.8rem' }}
-              onClick={() => setShowRepostOp(true)}
-            >
+              onClick={() => setShowRepostOp(true)}>
               <Repeat size={16} />
             </Button>
             <Button
               onClick={() => handleCopy(post.Id)}
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}
-            >
+              style={{ fontSize: '0.8rem' }}>
               <Copy size={16} />
             </Button>
             <Button
               onClick={() => handleShare(post.Id)}
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: '0.8rem' }}
-            >
+              style={{ fontSize: '0.8rem' }}>
               <Share size={16} />
             </Button>
           </ButtonGroup>
@@ -1246,15 +1238,13 @@ const PostCard = ({
     <>
       <Card className="mb-4">
         <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
-        <CardHeader className={`border-0 pb-0 ${post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0 && "pt-0"}`} >
-          {post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0 && (<div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
-            {post?.likedByConnections && post?.likedByConnections?.length > 0 && (
-              <EngageComponent users={post.likedByConnections} type="like" />
-            )}
-            {post?.commentedByConnections && post?.commentedByConnections?.length > 0 && (
-              <EngageComponent users={post.commentedByConnections} type="comment" />
-            )}
-          </div>)}
+        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections )&& 'pt-0'}`}>
+              {(post?.likedByConnections || post?.commentedByConnections )? (
+                  <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
+                    {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
+                    {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
+                  </div>
+                ):("")}
           {post.repostedFrom && close && (
             <>
               <div
@@ -1382,29 +1372,37 @@ const PostCard = ({
                               style={{ gap: '0.5rem' }}>
                               <BsExclamationTriangle /> Report Post
                             </button>
-                            {!userInfo.connection && (<Button
-                          variant={sentStatus[userInfo.id] ? "primary" : "primary-soft"}
-                          className='mx-3'
-                          onClick={() => UserRequest(userInfo.id)}
-                          disabled={loading === userInfo.id}
-                        >
-                          {loading === userInfo.id ? (
-                            <Loading size={15} loading={true} />
-                          ) : (
-                            <span className='w-100 d-flex align-items-center ' >
-                              {sentStatus[userInfo.id] ? (
-                                < >
-                                  <BsPersonCheckFill /> <span className='p-0 px-2'>sent </span>
-                                </>
-                              ) : (
-                                <>
-                                  <FaPlus /> <span className='p-0 px-2'>Connect </span>
-                                </>
-                              )}
-                            </span>
-                          )}
-                        </Button>)}
-                            {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} userId={user?.id || ''} postId={post?.Id || ''} />}
+                            {!userInfo.connection && (
+                              <Button
+                                variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                                className="mx-3"
+                                onClick={() => UserRequest(userInfo.id)}
+                                disabled={loading === userInfo.id}>
+                                {loading === userInfo.id ? (
+                                  <Loading size={15} loading={true} />
+                                ) : (
+                                  <span className="w-100 d-flex align-items-center ">
+                                    {sentStatus[userInfo.id] ? (
+                                      <>
+                                        <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                              </Button>
+                            )}
+                            {
+                              <ReportModal
+                                show={showReportModal}
+                                handleClose={() => setShowReportModal(false)}
+                                userId={user?.id || ''}
+                                postId={post?.Id || ''}
+                              />
+                            }
                           </div>
                         )}
                       </>
@@ -1498,7 +1496,6 @@ const PostCard = ({
 
             {
               <div style={{ position: 'relative' }}>
-
                 <button
                   className="btn btn-link p-0 text-dark"
                   style={{ fontSize: '1.5rem', lineHeight: '1', marginTop: '-25px', marginRight: '15px' }}
@@ -1559,30 +1556,38 @@ const PostCard = ({
                           style={{ gap: '0.5rem' }}>
                           <BsExclamationTriangle /> Report Post
                         </button>
-                        {!userInfo.connection && (<Button
-                          variant={sentStatus[userInfo.id] ? "primary" : "primary-soft"}
-                          className='mx-3'
-                          onClick={() => UserRequest(userInfo.id)}
-                          disabled={loading === userInfo.id}
-                        >
-                          {loading === userInfo.id ? (
-                            <Loading size={15} loading={true} />
-                          ) : (
-                            <span className='w-100 d-flex align-items-center ' >
-                              {sentStatus[userInfo.id] ? (
-                                < >
-                                  <BsPersonCheckFill /> <span className='p-0 px-2'>sent </span>
-                                </>
-                              ) : (
-                                <>
-                                  <FaPlus /> <span className='p-0 px-2'>Connect </span>
-                                </>
-                              )}
-                            </span>
-                          )}
-                        </Button>)}
+                        {!userInfo.connection && (
+                          <Button
+                            variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                            className="mx-3"
+                            onClick={() => UserRequest(userInfo.id)}
+                            disabled={loading === userInfo.id}>
+                            {loading === userInfo.id ? (
+                              <Loading size={15} loading={true} />
+                            ) : (
+                              <span className="w-100 d-flex align-items-center ">
+                                {sentStatus[userInfo.id] ? (
+                                  <>
+                                    <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                  </>
+                                )}
+                              </span>
+                            )}
+                          </Button>
+                        )}
 
-                        {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} userId={user?.id || ''} postId={post?.Id || ''} />}
+                        {
+                          <ReportModal
+                            show={showReportModal}
+                            handleClose={() => setShowReportModal(false)}
+                            userId={user?.id || ''}
+                            postId={post?.Id || ''}
+                          />
+                        }
                       </div>
                     )}
                   </>
@@ -1665,27 +1670,24 @@ const PostCard = ({
                   onMouseLeave={() => {
                     setMouseOnReactions(false)
                     setShowReactions(false)
-                  }}
-                >
+                  }}>
                   {reactions.map((reaction) => (
                     <span
                       key={reaction.label}
-
                       onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.transform = "scale(1.5)";
-                        (e.target as HTMLElement).style.transition = "transform 0.2s ease-out";
-                        setHoveredReaction(reaction.label);
+                        ;(e.target as HTMLElement).style.transform = 'scale(1.5)'
+                        ;(e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        setHoveredReaction(reaction.label)
                       }}
                       onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.transform = "scale(1)";
+                        ;(e.target as HTMLElement).style.transform = 'scale(1)'
                         setHoveredReaction(null)
                       }}
                       onClick={() => {
                         toggleLike(reaction.reactId)
-                        setShowReactions(false);
+                        setShowReactions(false)
                       }}
-                      style={{ cursor: 'pointer', fontSize: '25px', position: 'relative' }}
-                    >
+                      style={{ cursor: 'pointer', fontSize: '25px', position: 'relative' }}>
                       {reaction.emoji}
                       {hoveredReaction === reaction.label && (
                         <div
@@ -1700,8 +1702,7 @@ const PostCard = ({
                             borderRadius: '4px',
                             fontSize: '12px',
                             whiteSpace: 'nowrap',
-                          }}
-                        >
+                          }}>
                           {reaction.label}
                         </div>
                       )}
@@ -1714,9 +1715,12 @@ const PostCard = ({
                 className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
                 onClick={() => toggleLike(reactionId || 1)}
                 onMouseEnter={() => setShowReactions(true)}
-                onMouseLeave={() => setTimeout(() => { setShowReactions(false) }, 100)}
-                style={{ fontSize: '0.8rem' }}
-              >
+                onMouseLeave={() =>
+                  setTimeout(() => {
+                    setShowReactions(false)
+                  }, 100)
+                }
+                style={{ fontSize: '0.8rem' }}>
                 {selectedReaction && reactionId !== 1 ? (
                   <span>{selectedReaction.emoji}</span>
                 ) : likeStatus ? (
@@ -1739,9 +1743,8 @@ const PostCard = ({
             <Button
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: "0.8rem" }}
-              onClick={() => setShowRepostOp(true)}
-            >
+              style={{ fontSize: '0.8rem' }}
+              onClick={() => setShowRepostOp(true)}>
               <Repeat size={16} />
               {/* <span>Repost</span> */}
             </Button>
@@ -1753,112 +1756,112 @@ const PostCard = ({
                 item={item}
                 isCreated={isCreated}
                 setIsCreated={setIsCreated}
-              />}
+              />
+            }
             <Button
               onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: "0.8rem" }}
-            >
+              style={{ fontSize: '0.8rem' }}>
               <Copy size={16} />
             </Button>
             <Button
               onClick={() => handleShare(post.Id)}
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: "0.8rem" }}
-            >
+              style={{ fontSize: '0.8rem' }}>
               <Share size={16} />
             </Button>
           </ButtonGroup>
-          {<div className="d-flex mb-4 px-3">
-            <div className="avatar avatar-xs me-3">
-              <Link to={`/profile/feed/${user?.id}`}>
-                <span role="button">
-                  <ImageZoom
-                    src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar}
-                    zoom={profile?.personalDetails?.zoomProfile}
-                    rotate={profile?.personalDetails?.rotateProfile}
-                    width="45px"
-                    height="45px"
-                  />
-                  {/* <img
+          {
+            <div className="d-flex mb-4 px-3">
+              <div className="avatar avatar-xs me-3">
+                <Link to={`/profile/feed/${user?.id}`}>
+                  <span role="button">
+                    <ImageZoom
+                      src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar}
+                      zoom={profile?.personalDetails?.zoomProfile}
+                      rotate={profile?.personalDetails?.rotateProfile}
+                      width="45px"
+                      height="45px"
+                    />
+                    {/* <img
                     className="avatar-img rounded-circle"
                     style={{ width: '52px', height: '35px', objectFit: 'cover' }}
                     src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar}
                     alt="avatar"
                   /> */}
-                </span>
-              </Link>
-            </div>
-            <form className="nav nav-item w-100 d-flex align-items-center" onSubmit={handleCommentSubmit} style={{ gap: '10px' }}>
-              <textarea
-                data-autoresize
-                className="form-control"
-                style={{
-                  backgroundColor: '#fff',
-                  color: '#000',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: 'left',
-                  resize: 'none',
-                  height: '38px',
-                  flex: 1,
-                  border: '1px solid #ced4da',
-                  borderRadius: '4px',
-                  padding: '5px 10px',
-                }}
-                rows={1}
-                placeholder="Add a comment... "
-                value={commentText}
-                onChange={handleChange}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleCommentSubmit(e)
-                  }
-                }}
-              />
-
-              {/* Mention Dropdown */}
-              {mentionDropdownVisible && searchResults.length > 0 && (
-                <div
-                  className="position bg-white shadow rounded w-100 mt-1"
+                  </span>
+                </Link>
+              </div>
+              <form className="nav nav-item w-100 d-flex align-items-center" onSubmit={handleCommentSubmit} style={{ gap: '10px' }}>
+                <textarea
+                  data-autoresize
+                  className="form-control"
                   style={{
-                    zIndex: 1000,
-                    maxHeight: '10rem',
-                    overflowY: 'auto',
-                    border: '1px solid #ddd',
-                  }}>
-                  {searchResults.map((user) => (
-                    <div
-                      key={user.id}
-                      className="d-flex align-items-center p-2 cursor-pointer"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => handleMentionClick(user)}>
-                      <div className="avatar">
-                        <img
-                          src={user.avatar || avatar}
-                          alt={user.fullName}
-                          className="avatar-img rounded-circle border border-white border-3"
-                          width={34}
-                          height={34}
-                        />
+                    backgroundColor: '#fff',
+                    color: '#000',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                    resize: 'none',
+                    height: '38px',
+                    flex: 1,
+                    border: '1px solid #ced4da',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                  }}
+                  rows={1}
+                  placeholder="Add a comment... "
+                  value={commentText}
+                  onChange={handleChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleCommentSubmit(e)
+                    }
+                  }}
+                />
+
+                {/* Mention Dropdown */}
+                {mentionDropdownVisible && searchResults.length > 0 && (
+                  <div
+                    className="position bg-white shadow rounded w-100 mt-1"
+                    style={{
+                      zIndex: 1000,
+                      maxHeight: '10rem',
+                      overflowY: 'auto',
+                      border: '1px solid #ddd',
+                    }}>
+                    {searchResults.map((user) => (
+                      <div
+                        key={user.id}
+                        className="d-flex align-items-center p-2 cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleMentionClick(user)}>
+                        <div className="avatar">
+                          <img
+                            src={user.avatar || avatar}
+                            alt={user.fullName}
+                            className="avatar-img rounded-circle border border-white border-3"
+                            width={34}
+                            height={34}
+                          />
+                        </div>
+                        <div>
+                          <h6 className="mb-0">{user.fullName}</h6>
+                          <small className="text-muted">{user.userRole}</small>
+                        </div>
                       </div>
-                      <div>
-                        <h6 className="mb-0">{user.fullName}</h6>
-                        <small className="text-muted">{user.userRole}</small>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </form>
-          </div>
+                    ))}
+                  </div>
+                )}
+              </form>
+            </div>
           }
 
-          {(isLoading ? (
+          {isLoading ? (
             <p>Loading comments...</p>
           ) : (
             <ul className="comment-wrap list-unstyled px-3">
@@ -1876,24 +1879,21 @@ const PostCard = ({
                 />
               ))}
             </ul>
-          ))}
+          )}
         </CardBody>
 
-        {(
-          comments.length > 2 && (
-            <CardFooter
-              className="border-0 pt-0"
-              onClick={() => {
-                setLoadMore(!loadMore);
-              }}
-            >
-              <LoadContentButton name={!loadMore ? "Load more comments" : "Close comments"} toggle={loadMore} />
-            </CardFooter>
-          )
+        {comments.length > 2 && (
+          <CardFooter
+            className="border-0 pt-0"
+            onClick={() => {
+              setLoadMore(!loadMore)
+            }}>
+            <LoadContentButton name={!loadMore ? 'Load more comments' : 'Close comments'} toggle={loadMore} />
+          </CardFooter>
         )}
       </Card>
     </>
-  );
-};
+  )
+}
 
 export default PostCard
