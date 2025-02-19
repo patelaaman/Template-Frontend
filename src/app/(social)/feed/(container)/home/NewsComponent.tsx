@@ -52,7 +52,7 @@ const NewsComponent = () => {
         source: { name: "Businessroom" },
         publishedAt: new Date().toISOString(),
         url: "https://businessroom.ai",
-        urlToImage: "https://businessroom.ai/image.jpg",
+        urlToImage: "https://businessroom.ai/assets/images/logo-black.png",
       },
       {
         title: "Acquireroom: The Marketplace for Buying & Selling Businesses",
@@ -61,7 +61,7 @@ const NewsComponent = () => {
         source: { name: "Acquireroom" },
         publishedAt: new Date().toISOString(),
         url: "https://businessroom.ai/acquireroom",
-        urlToImage: "https://businessroom.ai/acquireroom.jpg",
+        urlToImage: "https://businessroom.ai/assets/images/logo-black.png",
       },
     ];
 
