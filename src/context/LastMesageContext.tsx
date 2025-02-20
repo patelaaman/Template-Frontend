@@ -26,7 +26,7 @@ export const LastMessageProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
             console.error('No userId found.');
             return;
         }
-        console.log('Fetching last message for receiver:', receiverId);
+        // console.log('Fetching last message for receiver:', receiverId);
         try {
             const response = await makeApiRequest<{ data: { messages: { content: string }[] } }>({
                 method: 'POST',

@@ -62,7 +62,7 @@ const socket = io(`${SOCKET_URL}`, {
 const Home = () => {
   const [isCreated, setIsCreated] = useState(false);
   const { user} = useAuthContext();
-  const {fetchOnlineUsers} = useOnlineUsers();
+  // const {fetchOnlineUsers} = useOnlineUsers();
   const navigate = useNavigate();
   const { fetchLastMessage } = useLastMessage();
   // const [profile,setProfile] = useState({});
