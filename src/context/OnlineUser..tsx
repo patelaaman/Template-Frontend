@@ -32,7 +32,7 @@ export const OnlineUsersProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            console.log('data',data.data.activeUsers)
+            // console.log('data',data.data.activeUsers)
             setOnlineUsers(data.data.activeUsers);
             const userIds = data.data.activeUsers.map((user: any) => user.userId);
             setOnlineUsers(userIds);
