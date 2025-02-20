@@ -901,6 +901,7 @@ import {
 import { useAuthContext } from '@/context/useAuthContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { LIVE_URL } from '@/utils/api';
 import { Lightbulb, Users } from 'lucide-react';
 
 const BusinessPreferencesForm = () => {
@@ -1042,7 +1043,7 @@ const BusinessPreferencesForm = () => {
     }
   
     try {
-      const response1 = await fetch(`http://13.216.146.100/api/v1/businessbuyer/create`, {
+      const response1 = await fetch(`${LIVE_URL}api/v1/businessbuyer/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1055,7 +1056,7 @@ const BusinessPreferencesForm = () => {
       }
   
       try {
-        const response2 = await fetch(`http://13.216.146.100/api/v1/subrole/create`, {
+        const response2 = await fetch(`${LIVE_URL}api/v1/subrole/create`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

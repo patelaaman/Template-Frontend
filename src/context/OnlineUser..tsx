@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuthContext } from './useAuthContext';
 import makeApiRequest from '@/utils/apiServer';
 import { json } from 'stream/consumers';
+import { LIVE_URL } from '@/utils/api';
 interface OnlineUsersContextProps {
     onlineUsers: string[];
     fetchOnlineUsers: () => void;
@@ -20,7 +21,7 @@ export const OnlineUsersProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
         }
 
         try {
-            const response = await fetch('http://13.216.146.100/api/v1/auth/online-users', {
+            const response = await fetch(`${LIVE_URL}api/v1/auth/online-users`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

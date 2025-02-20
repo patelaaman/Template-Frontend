@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CustomLinkPreview from "./CustomLinkPreview";
+import { LIVE_URL } from "@/utils/api";
 const FormatContent = ({ content }: { content: string }) => {
   const [mentionMap, setMentionMap] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ const FormatContent = ({ content }: { content: string }) => {
   const handleMentionClick = async (username: string) => {
 
     try {
-      const res = await fetch("http://13.216.146.100/api/v1/auth/get-user-userName", {
+      const res = await fetch(`${LIVE_URL}api/v1/auth/get-user-userName`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userName: username }),
@@ -37,7 +38,7 @@ const FormatContent = ({ content }: { content: string }) => {
       await Promise.all(
         uniqueMentions.map(async (username) => {
           try {
-            const res = await fetch("http://13.216.146.100/api/v1/auth/get-user-userName", {
+            const res = await fetch(`${LIVE_URL}api/v1/auth/get-user-userName`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ userName: username }),

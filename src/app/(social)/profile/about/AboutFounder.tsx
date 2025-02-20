@@ -383,6 +383,7 @@ import {
 } from 'lucide-react';
 import { useAuthContext } from '@/context/useAuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { LIVE_URL } from '@/utils/api';
 
 interface StartupProfile {
   businessName: string;
@@ -477,10 +478,10 @@ const StartupCard: React.FC<{ profile: StartupProfile }> = ({ profile }) => {
 
   const handledelete = async () => {
     try {
-      await fetch(`http://13.216.146.100/api/v1/entrepreneur/delete/${id}`, {
+      await fetch(`${LIVE_URL}api/v1/entrepreneur/delete/${id}`, {
         method: "DELETE",
       });
-      await fetch(`http://13.216.146.100/api/v1/subrole/delete/${id}`, {
+      await fetch(`${LIVE_URL}api/v1/subrole/delete/${id}`, {
         method: "DELETE",
       });
       window.location.reload();
@@ -737,7 +738,7 @@ const AboutFounder = () => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const response = await fetch(`http://13.216.146.100/api/v1/entrepreneur/detail/${id}`);
+        const response = await fetch(`${LIVE_URL}api/v1/entrepreneur/detail/${id}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

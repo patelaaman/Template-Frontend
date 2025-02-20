@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import { LIVE_URL } from "@/utils/api";
 interface LinkPreviewProps {
   url: string;
 }
@@ -18,7 +18,7 @@ const CustomLinkPreview: React.FC<LinkPreviewProps> = ({ url }) => {
 
     const fetchMetadata = async () => {
       try {
-        const backendUrl = `http://13.216.146.100/api/fetch-metadata?url=${encodeURIComponent(url)}`;
+        const backendUrl = `${LIVE_URL}api/fetch-metadata?url=${encodeURIComponent(url)}`;
         const response = await fetch(backendUrl);
 
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);

@@ -309,6 +309,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { Button } from './ui/button';
+import { LIVE_URL } from '@/utils/api';
 
 const Card = ({ children, className = '' }) => (
   <div className={`card shadow-sm border-0 ${className}`} style={{
@@ -341,11 +342,11 @@ const InvestorCard = ({ investor, isPlaceholder = false }) => {
 
   const handledelete = async () => {
     try {
-      await fetch(`http://13.216.146.100/api/v1/investor/delete/${id}`, {
+      await fetch(`${LIVE_URL}api/v1/investor/delete/${id}`, {
                           
         method: "DELETE",
       });
-      await fetch(`http://13.216.146.100/api/v1/subrole/delete/${id}`, {
+      await fetch(`${LIVE_URL}api/v1/subrole/delete/${id}`, {
         method: "DELETE",
       });
       // Reload the page
@@ -621,7 +622,7 @@ const InvestorCards = () => {
   useEffect(() => {
     const fetchInvestors = async () => {
       try {
-        const response = await fetch(`http://13.216.146.100/api/v1/investor/get/${id}`);
+        const response = await fetch(`${LIVE_URL}api/v1/investor/get/${id}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

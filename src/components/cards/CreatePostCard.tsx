@@ -23,7 +23,7 @@ import {
   BsImages,
   BsTagFill,
 } from 'react-icons/bs'
-
+import { LIVE_URL } from '@/utils/api'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -97,7 +97,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const fetchUser = async () => {
     try {
       setSkeletonLoading(true)
-      const response = await fetch('http://13.216.146.100/api/v1/auth/get-user-Profile', {
+      const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     if (!query) return;
 
     try {
-      const response = await fetch("http://13.216.146.100/api/v1/post/mention", {
+      const response = await fetch(`${LIVE_URL}api/v1/post/mention`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user?.id, query: query }),

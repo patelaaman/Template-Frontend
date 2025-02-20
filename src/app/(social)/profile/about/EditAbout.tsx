@@ -128,7 +128,7 @@ const EditAbout = () => {
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const response = await fetch(`http://13.216.146.100/api/v1/businessbuyer/get/${id}`);
+            const response = await fetch(`${LIVE_URL}api/v1/businessbuyer/get/${id}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch data");
             }
@@ -177,7 +177,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     toast.success("Form submitted successfully!");
   
     try {
-      const response1 = await fetch(`http://13.216.146.100/api/v1/businessbuyer/update/${id}`, {
+      const response1 = await fetch(`${LIVE_URL}api/v1/businessbuyer/update/${id}`, {
         method: 'PUT',
         headers: {
          'Content-Type': 'application/json',

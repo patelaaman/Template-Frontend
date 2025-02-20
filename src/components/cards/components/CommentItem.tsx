@@ -295,7 +295,7 @@ const CommentItem = ({
   // Fetch users when '@' is typed
   const fetchUsers = async (query: string) => {
     try {
-      const response = await fetch("http://13.216.146.100/api/v1/post/mention", {
+      const response = await fetch(`${LIVE_URL}api/v1/post/mention`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user?.id, query }),

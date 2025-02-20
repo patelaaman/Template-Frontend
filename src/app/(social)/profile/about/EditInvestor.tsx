@@ -9,7 +9,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthContext } from '@/context/useAuthContext';
 import { toast } from 'react-toastify';
-
+import { LIVE_URL } from '@/utils/api';
 interface FormData {
   isAccredited: string;
   groupName: string;
@@ -105,7 +105,7 @@ console.log("=============" , id)
   useEffect(() => {
     const fetchInvestorData = async () => {
       try {
-        const response = await fetch(`http://13.216.146.100/api/v1/investor/get/${id}`);
+        const response = await fetch(`${LIVE_URL}api/v1/investor/get/${id}`);
         if (!response.ok) {
           throw new Error("Failed to fetch investor data");
         }
@@ -135,7 +135,7 @@ console.log("=============" , id)
     }
     
     try {
-      const response1 = await fetch(`http://13.216.146.100/api/v1/investor/update/${id}`, {
+      const response1 = await fetch(`${LIVE_URL}api/v1/investor/update/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -9,6 +9,7 @@ import {
 import { useAuthContext } from '@/context/useAuthContext';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { LIVE_URL } from '@/utils/api';
 
 const EditGeneral = () => {
 
@@ -18,7 +19,7 @@ const {id} = useParams()
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const response = await fetch(`http://13.216.146.100/api/v1/general/get/${id}`);
+            const response = await fetch(`${LIVE_URL}api/v1/general/get/${id}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch data");
             }
@@ -101,7 +102,7 @@ const {id} = useParams()
       toast.success("Form submitted successfully!");
     
       try {
-        const response1 = await fetch(`http://13.216.146.100/api/v1/general/update/${id}`, {
+        const response1 = await fetch(`${LIVE_URL}api/v1/general/update/${id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

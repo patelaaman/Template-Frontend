@@ -220,7 +220,7 @@ const PostCard = ({
   }
 
   const handleCopy = (postId: string) => {
-    const shareUrl = `http://13.216.146.100/feed/post/${postId}`
+    const shareUrl = `${LIVE_URL}feed/post/${postId}`
 
     navigator.clipboard
       .writeText(shareUrl)
@@ -229,7 +229,7 @@ const PostCard = ({
   }
 
   const handleShare = (postId: string) => {
-    const shareUrl = `http://13.216.146.100/feed/home#${postId}`
+    const shareUrl = `${LIVE_URL}feed/home#${postId}`
 
     if (navigator.share) {
       navigator
@@ -316,7 +316,7 @@ const PostCard = ({
       }
 
       // Send a DELETE request to the backend
-      const response = await fetch(`http://13.216.146.100/api/v1/post/delete-userpost-byPostId`, {
+      const response = await fetch(`${LIVE_URL}api/v1/post/delete-userpost-byPostId`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -630,7 +630,7 @@ const PostCard = ({
 
   const fetchUsers = async (query: string) => {
     try {
-      const response = await fetch('http://13.216.146.100/api/v1/post/mention', {
+      const response = await fetch(`${LIVE_URL}api/v1/post/mention`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user?.id, query }),

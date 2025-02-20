@@ -646,8 +646,7 @@ import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useAuthContext } from '@/context/useAuthContext';
-
-const LIVE_URL = 'http://13.216.146.100/';
+import { LIVE_URL } from '@/utils/api';
 
 const BusinessSellerForm = () => {
   const navigate = useNavigate();
@@ -897,7 +896,7 @@ const BusinessSellerForm = () => {
 
 
       
-        const response2 = await fetch(`http://13.216.146.100/api/v1/subrole/create`, {
+        const response2 = await fetch(`${LIVE_URL}api/v1/subrole/create`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

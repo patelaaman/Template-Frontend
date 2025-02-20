@@ -272,6 +272,7 @@ import {
 } from 'lucide-react';
 import { useAuthContext } from '@/context/useAuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { LIVE_URL } from '@/utils/api';
 
 interface Business {
   businessType: string;
@@ -329,10 +330,10 @@ const BusinessCard: React.FC<{ business: Business }> = ({ business }) => {
 
   const handledelete = async () => {
     try {
-      await fetch(`http://13.216.146.100/api/v1/businessbuyer/delete/${id}`, {
+      await fetch(`${LIVE_URL}api/v1/businessbuyer/delete/${id}`, {
         method: "DELETE",
       });
-      await fetch(`http://13.216.146.100/api/v1/subrole/delete/${id}`, {
+      await fetch(`${LIVE_URL}api/v1/subrole/delete/${id}`, {
         method: "DELETE",
       });
       window.location.reload();
@@ -538,7 +539,7 @@ const AboutBusinessBuyer = () => {
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
-        const response = await fetch(`http://13.216.146.100/api/v1/businessbuyer/get/${id}`);
+        const response = await fetch(`${LIVE_URL}api/v1/businessbuyer/get/${id}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

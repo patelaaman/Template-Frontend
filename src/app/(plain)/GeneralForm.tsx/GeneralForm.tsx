@@ -10,6 +10,7 @@ import { useAuthContext } from '@/context/useAuthContext';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Lightbulb, Users } from 'lucide-react';
+import { LIVE_URL } from '@/utils/api';
 
 const GeneralForm = () => {
 
@@ -149,7 +150,7 @@ const GeneralForm = () => {
     }
 
     try {
-      const response = await fetch('http://13.216.146.100/api/v1/general/create', {
+      const response = await fetch(`${LIVE_URL}api/v1/general/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +165,7 @@ const GeneralForm = () => {
         throw new Error("Failed to submit profile data");
       }
 
-            const response2 = await fetch(`http://13.216.146.100/api/v1/subrole/create`, {
+            const response2 = await fetch(`${LIVE_URL}api/v1/subrole/create`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

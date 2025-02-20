@@ -10,6 +10,7 @@ import AboutFounder from './AboutFounder'
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '@/context/useAuthContext'
 import AboutGeneral from './AboutGeneral'
+import { LIVE_URL } from '@/utils/api'
 
 const Interests = () => {
   return (
@@ -91,7 +92,7 @@ console.log("----------------------------",id)
 
 
 const handledelete = async () => {
-   await fetch(`http://13.216.146.100/api/v1/subrole/delete/${id}` , {
+   await fetch(`${LIVE_URL}api/v1/subrole/delete/${id}` , {
     method :"DELETE"
    })
 }
@@ -100,7 +101,7 @@ const handledelete = async () => {
   useEffect(() => {
     const fetchSubrole = async () => {
       try {
-        const response = await fetch(`http://13.216.146.100/api/v1/subrole/get/${id}`);
+        const response = await fetch(`${LIVE_URL}api/v1/subrole/get/${id}`);
         console.log("----------" ,user?.id)
         const data = await response.json();
         console.log("-------ddd----------" , data.data.SubRole )

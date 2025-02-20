@@ -144,7 +144,7 @@ const PostModal = ({
   }, [])
 
   const handleShare = (postId: string) => {
-    const shareUrl = `http://13.216.146.100/feed/home#${postId}`;
+    const shareUrl = `${LIVE_URL}feed/home#${postId}`;
 
     if (navigator.share) {
       navigator
@@ -161,7 +161,7 @@ const PostModal = ({
   };
   
     const handleCopy = (postId: string) => {
-      const shareUrl = `http://13.216.146.100/feed/post/${postId}`;
+      const shareUrl = `${LIVE_URL}feed/post/${postId}`;
   
       navigator.clipboard.writeText(shareUrl)
         .then(() => toast.success("Link copied to clipboard!"))
