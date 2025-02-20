@@ -8,13 +8,13 @@ const NewsComponent = () => {
   const [selectedNews, setSelectedNews] = useState(null);
   const [showFullNews, setShowFullNews] = useState(false);
 
-  const API_KEY = "5c81eb77bf374a7abe724824a72f66e2"; 
-
+  
   useEffect(() => {
     const fetchBusinessNews = async () => {
+      const key = "5c81eb77bf374a7abe724824a72f66e2"; 
       try {
         const response = await fetch(
-          `https://newsapi.org/v2/top-headlines?category=business&apiKey=${API_KEY}`
+          `https://newsapi.org/v2/top-headlines?category=business&apiKey=${key}`
         );
         const data = await response.json();
         if (data.articles) {
@@ -83,7 +83,7 @@ const NewsComponent = () => {
   };
 
   return (
-    <Col sm={6} lg={12}>
+    news && <Col sm={6} lg={12}>
       <Card>
         <CardHeader className="pb-0 border-0 ms-1">
           <CardTitle className="mb-2">Today's News</CardTitle>
