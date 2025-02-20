@@ -40,7 +40,7 @@ import { useUnreadMessages } from '@/context/UnreadMessagesContext'
 import SimplebarReactClient from '../wrappers/SimplebarReactClient'
 import avatar from '@/assets/images/avatar/default avatar.png'
 import avatar10 from '@/assets/images/avatar/10.jpg'
-import { SOCKET_URL } from '@/utils/api'
+import { SOCKET_URL, LIVE_URL } from '@/utils/api'
 
 const socket = io(`${SOCKET_URL}`, {
   // path: "/socket.io",
@@ -204,6 +204,7 @@ const Messaging = () => {
   const [messageMap, setMessageMap] = useState<{ [key: string]: string }>({}) // Track messages per user
   const [isOpenCollapseToast, setIsOpenCollapseToast] = useState<{ [key: string]: boolean }>({})
   const [originalMessages, setOriginalMessages] = useState<UserType[]>([])
+  const {changeActiveChat} = useChatContext();
   const { lastMessages } = useLastMessage()
   const messageSchema = yup.object({
     newMessage: yup.string().required('Please enter message'),
@@ -215,7 +216,7 @@ const Messaging = () => {
 
   useEffect(() => {
     if (allUserMessages.length > 0) {
-      console.log(lastMessages);
+      // console.log(lastMessages);
       const updatedChats = allUserMessages.map(user => {
         const lastMessage = lastMessages[user.userId]; 
         return {
@@ -226,7 +227,7 @@ const Messaging = () => {
       setAllUserMessages(updatedChats);
       setIsLoading(false);
     }
-  }, [allUserMessages, lastMessages]);
+  }, [allUserMessages]);
 
   useEffect(() => {
     if (!selectedUser) return
@@ -365,7 +366,9 @@ const Messaging = () => {
     setIsGifPickerVisible(false)
   }
 
-  const handleUserToggle = (user) => {
+ 
+
+  const handleUserToggle = async (user) => {
     setOpenToasts((prevState) => ({
       ...prevState,
       [user.userId]: !prevState[user.userId],
@@ -377,9 +380,24 @@ const Messaging = () => {
       if (updatedChats.length > 3) {
         updatedChats.shift()
       }
-
       return updatedChats
     })
+    console.log("triggering----------")
+
+    changeActiveChat(user.userId);
+    console.log(user,"-----user-----")
+    try {
+      await fetch(`${LIVE_URL}/api/v1/chat/mark-as-read`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ senderId: user.userId, receiverId: user?.id }),
+      });
+    } catch (error) {
+      console.error("Failed to mark messages as read:", error);
+    }
+
     setSelectedUser(user)
     fetchMessages()
     setIsOpenCollapseToast((prevState) => ({

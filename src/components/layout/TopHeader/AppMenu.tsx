@@ -20,7 +20,7 @@ type SubMenus = {
   count?: any
 }
 
-const MenuItemWithChildren = ({ item, activeMenuItems, itemClassName, linkClassName, level }: SubMenus) => {
+const MenuItemWithChildren = ({ item, activeMenuItems, itemClassName, linkClassName, level, count }: SubMenus) => {
   const level1 = level === 1
   return (
     <Dropdown as="li" className={itemClassName} drop={level >= 2 ? 'end' : undefined}>
@@ -48,6 +48,7 @@ const MenuItemWithChildren = ({ item, activeMenuItems, itemClassName, linkClassN
                 linkClassName={clsx('dropdown-item dropdown-toggle arrow-none d-flex align-items-center justify-content-between', {
                   active: activeMenuItems?.includes(child.key),
                 })}
+                count={count}
               />
             ) : (
               <MenuItem item={child} level={level + 1} linkClassName={clsx(activeMenuItems?.includes(child.key) && 'active')} count={count}/>
@@ -73,7 +74,6 @@ const MenuItemLink = ({ item, linkClassName , count}: SubMenus) => {
   const Icon = item.icon;
   const [about,setAbout] = useState<boolean>(false);
   
-
   return (
     <DropdownItem
       as={Link}
@@ -81,7 +81,7 @@ const MenuItemLink = ({ item, linkClassName , count}: SubMenus) => {
       target={item.target}
       style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
         >
-      {item.url==="/settings/ManageConnections"? <><p className='bg-danger px-1 rounded-pill' style={{position:"absolute", top:0 , left:42, color:"white", zIndex:9999, fontSize:12 , fontWeight:"bold" }}>{count}</p></>:""}
+      {item.url=="/settings/ManageConnections?t=0"? <><p className='bg-danger px-1 rounded-pill' style={{position:"absolute", top:0 , left:42, color:"white", zIndex:9999, fontSize:12 , fontWeight:"bold" }}>{count}</p></>:""}
         <div
       style={{
         padding: '8px',
@@ -139,7 +139,7 @@ const AppMenu = () => {
         }
         , 120000);
   }
-  ,[user?.id, Flag] );
+  ,[user?.id] );
 
   const fetchConnections = async () => {
     try {

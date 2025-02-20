@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash, BsExclamationTriangle, BsPersonCheckFill } from 'react-icons/bs'
+import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash, BsExclamationTriangle, BsPersonCheckFill, BsPenFill } from 'react-icons/bs'
+import { RxCross2 } from "react-icons/rx";
 import { MdComment, MdThumbUp } from 'react-icons/md'
 import { Link } from 'react-router-dom'
 import { Copy, EyeOff, MessageSquare, Repeat, Share, ThumbsUp } from 'lucide-react'
@@ -392,6 +393,10 @@ const PostCard = ({
     }
     // else // console.log("id did not match")
   }
+  const handleEditPost = () => {
+    console.log("edit click")
+  }
+
   useEffect(() => {
     if (hasMount.current) return
     setReactionId(post.reactionId)
@@ -660,13 +665,13 @@ const PostCard = ({
     return (
       <Card className="mb-4">
         <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
-        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections )&& 'pt-0'}`}>
-              {(post?.likedByConnections || post?.commentedByConnections )? (
-                  <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
-                    {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
-                    {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
-                  </div>
-                ):("")}
+        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections) && 'pt-0'}`}>
+          {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+            <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
+              {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
+              {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
+            </div>
+          ) : ("")}
           <div className="d-flex align-items-center justify-content-between">
             <div className="d-flex align-items-center">
               <div className="avatar me-2">
@@ -695,7 +700,7 @@ const PostCard = ({
               <div>
                 <div className="nav nav-divider">
                   <h6
-                    className="nav-item card-title mb-0"
+                    className="nav-item card-title mb-0 mt-3"
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -704,6 +709,7 @@ const PostCard = ({
                     }}>
                     <Link to={`/profile/feed/${post?.userId}`} role="button" className="nav-item text-start mx-3">
                       {userInfo?.firstName} {userInfo?.lastName}
+
                     </Link>
                     <div style={{ flex: 1, flexDirection: 'row' }}>
                       <span className="small mx-3" style={{ color: '#8b959b' }}>
@@ -740,34 +746,77 @@ const PostCard = ({
 
             {
               <div style={{ position: 'relative' }}>
-                <button
-                  className="btn btn-link p-0 text-dark"
-                  style={{ fontSize: '1.5rem', lineHeight: '1', marginTop: '-25px', marginRight: '15px' }}
-                  onClick={() => setMenuVisible(!menuVisible)}>
-                  <BsThreeDots />
-                </button>
+
+                {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+                  !userInfo.connection && (
+                    <Button
+                      variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                      className="mx-3"
+                      onClick={() => UserRequest(userInfo.id)}
+                      disabled={loading === userInfo.id}>
+                      {loading === userInfo.id ? (
+                        <Loading size={15} loading={true} />
+                      ) : (
+                        <span className="w-100 d-flex align-items-center ">
+                          {sentStatus[userInfo.id] ? (
+                            <>
+                              <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                            </>
+                          ) : (
+                            <>
+                              <FaPlus /> <span className="p-0 px-2">Connect </span>
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </Button>
+                  )
+                ) : (<div className='w-50 d-flex '>
+                  <button
+                    className="btn btn-link p-0 text-dark"
+                    style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                    onClick={() => setMenuVisible(!menuVisible)}>
+                    <BsThreeDots />
+                  </button>
+                  {post.userId !== user?.id && <button
+                    className="dropdown-item text-dark d-flex align-items-center"
+                    onClick={() => {
+                      console.log('clicking..')
+                      hidePost(user?.id, post.Id)
+                    }}
+                    style={{ gap: '0.5rem' }}>
+                    <RxCross2 size={25} />
+                  </button>}
+                </div>)}
+
                 {menuVisible && (
                   <>
                     {post.userId === user?.id && (
                       <div
-                        className="dropdown-menu show"
+                        className="dropdown-menu show shadow-0"
                         style={{
                           position: 'absolute',
                           top: '100%',
                           right: 0,
-                          zIndex: 1000,
-                          display: 'block',
                           backgroundColor: 'white',
-                          boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
+                          boxShadow: "none"
                         }}>
-                        <button
-                          className="dropdown-item text-danger d-flex align-items-center"
-                          onClick={() => handleDeletePost(post?.Id)}
-                          style={{ gap: '0.5rem' }}>
-                          <BsTrash /> Delete Post
-                        </button>
+                        <>
+                          <button
+                            className="dropdown-item text-danger d-flex align-items-center"
+                            onClick={() => handleDeletePost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsTrash /> Delete Post
+                          </button>
+                          <button
+                            className="dropdown-item text-primary d-flex align-items-center"
+                            onClick={() => handleEditPost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsPenFill /> Edit Post
+                          </button>
+                        </>
                       </div>
                     )}
                     {post.userId !== user?.id && (
@@ -775,31 +824,51 @@ const PostCard = ({
                         className="dropdown-menu show"
                         style={{
                           position: 'absolute',
-                          top: '100%',
-                          right: 0,
+                          padding: 0,
+                          top: 0,
+                          right: "6em",
                           zIndex: 1000,
                           display: 'block',
                           backgroundColor: 'white',
-                          boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                          // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
+                          boxShadow: "none",
+                          border: "none",
+
                         }}>
+
+                        {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
                         <button
-                          className="dropdown-item text-danger d-flex align-items-center"
-                          onClick={() => {
-                            console.log('clicking')
-                            hidePost(user?.id, post?.Id)
-                          }}
-                          style={{ gap: '0.5rem' }}>
-                          <EyeOff /> Hide Post
-                        </button>
-                        <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} />
-                        <button
-                          className="dropdown-item text-danger d-flex align-items-center"
+                          className="dropdown-item text-danger d-flex align-items-center "
                           onClick={() => setShowReportModal(true)}
                           style={{ gap: '0.5rem' }}>
                           <BsExclamationTriangle /> Report Post
                         </button>
+                        {/* {!userInfo.connection && (
+                              <Button
+                                variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                                className="mx-3"
+                                onClick={() => UserRequest(userInfo.id)}
+                                disabled={loading === userInfo.id}>
+                                {loading === userInfo.id ? (
+                                  <Loading size={15} loading={true} />
+                                ) : (
+                                  <span className="w-100 d-flex align-items-center ">
+                                    {sentStatus[userInfo.id] ? (
+                                      <>
+                                        <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                              </Button>
+                            )} */}
+
                         {
                           <ReportModal
                             show={showReportModal}
@@ -808,29 +877,6 @@ const PostCard = ({
                             postId={post?.Id || ''}
                           />
                         }
-                        {!userInfo.connection && (
-                          <Button
-                            variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
-                            className="mx-3"
-                            onClick={() => UserRequest(userInfo.id)}
-                            disabled={loading === userInfo.id}>
-                            {loading === userInfo.id ? (
-                              <Loading size={15} loading={true} />
-                            ) : (
-                              <span className="w-100 d-flex align-items-center ">
-                                {sentStatus[userInfo.id] ? (
-                                  <>
-                                    <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <FaPlus /> <span className="p-0 px-2">Connect </span>
-                                  </>
-                                )}
-                              </span>
-                            )}
-                          </Button>
-                        )}
                       </div>
                     )}
                   </>
@@ -866,13 +912,12 @@ const PostCard = ({
           )}
 
           <Card className="mb-4">
-            <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections )&& 'pt-0'}`}>
-              {/* {(post?.likedByConnections || post?.commentedByConnections )? (
-                  <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
-                    {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
-                    {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
-                  </div>
-                ):("")} */}
+            <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections) && 'pt-0'}`}>
+              {(post?.likedByConnections || post?.commentedByConnections) ? (
+                <div className="d-flex align-items-center gap-2 flex-wrap  pt-2 mb-2">
+
+                </div>
+              ) : ("")}
               <div className="d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center">
                   <div className="avatar me-2">
@@ -897,10 +942,10 @@ const PostCard = ({
                       </div>
                     </Link>
                   </div>
-                  <div>
+                  <div className='d-flex'>
                     <div className="nav nav-divider">
                       <h6
-                        className="nav-item card-title mb-0"
+                        className="nav-item card-title mb-0 "
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -910,6 +955,7 @@ const PostCard = ({
                         <Link to={`/profile/feed/${post?.repostedFrom}`} role="button" className="nav-item text-start mx-3">
                           {repostProfile?.personalDetails?.firstName} {repostProfile?.personalDetails?.lastName}
                         </Link>
+
                         <div style={{ flex: 1, flexDirection: 'row' }}>
                           <span className="small mx-3" style={{ color: '#8b959b' }}>
                             {/* {console.log(post, '---userInfo---')} */}
@@ -923,23 +969,46 @@ const PostCard = ({
                               className="nav-item small"
                               style={{
                                 borderRadius: '100%',
-                                width: '3px', // Adjust size of the dot as needed
-                                height: '3px', // Adjust size of the dot as needed
+                                width: '3px',
+                                height: '3px',
                                 backgroundColor: '#8b959b',
-                                marginLeft: '8px', // Space between dot and icon
+                                marginLeft: '8px',
                               }}
                             />
                             <FaGlobe
                               style={{
-                                color: '#8b959b', // Adjust the color of the globe icon as needed
-                                fontSize: '12px', // Adjust the size of the globe icon as needed
-                                marginLeft: '6px', // Space between dot and icon
+                                color: '#8b959b',
+                                fontSize: '12px',
+                                marginLeft: '6px',
                               }}
                             />
                           </span>
                         </div>
                       </h6>
                     </div>
+                    {/* {!userInfo.connection && (
+                              <Button
+                                variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                                className="mx-3"
+                                onClick={() => UserRequest(userInfo.id)}
+                                disabled={loading === userInfo.id}>
+                                {loading === userInfo.id ? (
+                                  <Loading size={15} loading={true} />
+                                ) : (
+                                  <span className="w-100 d-flex align-items-center ">
+                                    {sentStatus[userInfo.id] ? (
+                                      <>
+                                        <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                              </Button>
+                            )} */}
                   </div>
                 </div>
               </div>
@@ -991,7 +1060,7 @@ const PostCard = ({
           </Card>
           <div style={{ marginTop: '20px' }}>{LikeText(allLikes)}</div>
           <ButtonGroup
-            className="w-100 border-top border-bottom mb-3"
+            className="w-100 border-top  mb-3"
             style={{
               backgroundColor: 'white',
               borderBottom: '1px solid #dee2e6',
@@ -1024,12 +1093,12 @@ const PostCard = ({
                     <span
                       key={reaction.label}
                       onMouseEnter={(e) => {
-                        ;(e.target as HTMLElement).style.transform = 'scale(1.5)'
-                        ;(e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        ; (e.target as HTMLElement).style.transform = 'scale(1.5)'
+                          ; (e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
                         setHoveredReaction(reaction.label)
                       }}
                       onMouseLeave={(e) => {
-                        ;(e.target as HTMLElement).style.transform = 'scale(1)'
+                        ; (e.target as HTMLElement).style.transform = 'scale(1)'
                         setHoveredReaction(null)
                       }}
                       onClick={() => {
@@ -1238,13 +1307,32 @@ const PostCard = ({
     <>
       <Card className="mb-4">
         <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
-        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections )&& 'pt-0'}`}>
-              {(post?.likedByConnections || post?.commentedByConnections )? (
-                  <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
-                    {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
-                    {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
-                  </div>
-                ):("")}
+        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) && 'pt-0'}`}>
+          {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+            <div className='d-flex justify-content-between'>
+              <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
+                {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
+                {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
+              </div>
+              <div className=' d-flex '>
+                <button
+                  className="btn btn-link p-0 text-dark"
+                  style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                  onClick={() => setMenuVisible(!menuVisible)}>
+                  <BsThreeDots />
+                </button>
+                {post.userId !== user?.id && <button
+                  className="dropdown-item text-dark d-flex align-items-center"
+                  onClick={() => {
+                    console.log('clicking..')
+                    hidePost(user?.id, post.Id)
+                  }}
+                  style={{ gap: '0.5rem' }}>
+                  <RxCross2 size={25} />
+                </button>}
+              </div>
+            </div>
+          ) : ("")}
           {post.repostedFrom && close && (
             <>
               <div
@@ -1298,48 +1386,86 @@ const PostCard = ({
                     }}>
                     <Link to={`/profile/feed/${post?.userId}`} style={{ fontWeight: 'bold', textDecoration: 'none', color: '#000' }}>
                       {userInfo?.firstName} {userInfo?.lastName}
+
                     </Link>
                     <span style={{ marginLeft: '6px', color: '#555', paddingTop: '2px' }}>reposted this</span>
                   </p>
                 </div>
 
                 {/* Close Button */}
-                {post.userId === user?.id && (
+                {
                   <div style={{ position: 'relative' }}>
-                    <button
-                      className=" text-dark bg-primary d-flex align-items-center"
-                      onClick={() => setShowReportModal(true)}
-                      style={{ gap: '0.5rem' }}>
-                      Connect
-                    </button>
-                    <button
-                      className="btn btn-link p-0 text-dark"
-                      style={{ fontSize: '1.5rem', lineHeight: '1' }}
-                      onClick={() => setMenuVisible(!menuVisible)}>
-                      <BsThreeDots />
-                    </button>
+
+                    {(post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0) ? (
+                      !userInfo.connection && (
+                        <Button
+                          variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                          className="mx-3"
+                          onClick={() => UserRequest(userInfo.id)}
+                          disabled={loading === userInfo.id}>
+                          {loading === userInfo.id ? (
+                            <Loading size={15} loading={true} />
+                          ) : (
+                            <span className="w-100 d-flex align-items-center ">
+                              {sentStatus[userInfo.id] ? (
+                                <>
+                                  <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                </>
+                              ) : (
+                                <>
+                                  <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                </>
+                              )}
+                            </span>
+                          )}
+                        </Button>
+                      )
+                    ) : (<div className='w-50 d-flex '>
+                      <button
+                        className="btn btn-link p-0 text-dark"
+                        style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                        onClick={() => setMenuVisible(!menuVisible)}>
+                        <BsThreeDots />
+                      </button>
+                      {post.userId !== user?.id && <button
+                        className="dropdown-item text-dark d-flex align-items-center"
+                        onClick={() => {
+                          console.log('clicking..')
+                          hidePost(user?.id, post.Id)
+                        }}
+                        style={{ gap: '0.5rem' }}>
+                        <RxCross2 size={25} />
+                      </button>}
+                    </div>)}
+
                     {menuVisible && (
                       <>
                         {post.userId === user?.id && (
                           <div
-                            className="dropdown-menu show"
+                            className="dropdown-menu show shadow-0"
                             style={{
                               position: 'absolute',
                               top: '100%',
                               right: 0,
-                              zIndex: 1000,
-                              display: 'block',
                               backgroundColor: 'white',
-                              boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                               borderRadius: '0.25rem',
                               overflow: 'hidden',
+                              boxShadow: "none"
                             }}>
-                            <button
-                              className="dropdown-item text-danger d-flex align-items-center"
-                              onClick={() => handleDeletePost(post?.Id)}
-                              style={{ gap: '0.5rem' }}>
-                              <BsTrash /> Delete Post
-                            </button>
+                            <>
+                              <button
+                                className="dropdown-item text-danger d-flex align-items-center"
+                                onClick={() => handleDeletePost(post?.Id)}
+                                style={{ gap: '0.5rem' }}>
+                                <BsTrash /> Delete Post
+                              </button>
+                              <button
+                                className="dropdown-item text-primary d-flex align-items-center"
+                                onClick={() => handleEditPost(post?.Id)}
+                                style={{ gap: '0.5rem' }}>
+                                <BsPenFill /> Edit Post
+                              </button>
+                            </>
                           </div>
                         )}
                         {post.userId !== user?.id && (
@@ -1347,32 +1473,28 @@ const PostCard = ({
                             className="dropdown-menu show"
                             style={{
                               position: 'absolute',
-                              top: '100%',
-                              right: 0,
+                              padding: 0,
+                              top: 0,
+                              right: "6em",
                               zIndex: 1000,
                               display: 'block',
                               backgroundColor: 'white',
-                              boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                              // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                               borderRadius: '0.25rem',
                               overflow: 'hidden',
+                              boxShadow: "none",
+                              border: "none",
+
                             }}>
+
+                            {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
                             <button
-                              className="dropdown-item text-danger d-flex align-items-center"
-                              onClick={() => {
-                                console.log('clicking..')
-                                hidePost(user?.id, post.Id)
-                              }}
-                              style={{ gap: '0.5rem' }}>
-                              <EyeOff /> Hide Post
-                            </button>
-                            <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} />
-                            <button
-                              className="dropdown-item text-danger d-flex align-items-center"
+                              className="dropdown-item text-danger d-flex align-items-center "
                               onClick={() => setShowReportModal(true)}
                               style={{ gap: '0.5rem' }}>
                               <BsExclamationTriangle /> Report Post
                             </button>
-                            {!userInfo.connection && (
+                            {/* {!userInfo.connection && (
                               <Button
                                 variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
                                 className="mx-3"
@@ -1394,7 +1516,8 @@ const PostCard = ({
                                   </span>
                                 )}
                               </Button>
-                            )}
+                            )} */}
+
                             {
                               <ReportModal
                                 show={showReportModal}
@@ -1407,16 +1530,8 @@ const PostCard = ({
                         )}
                       </>
                     )}
-                    <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} />
-                    {/* <button
-                      className="dropdown-item text-danger d-flex align-items-center"
-                      onClick={() => setShowReportModal(true)}
-                      style={{ gap: '0.5rem' }}>
-                      <BsExclamationTriangle /> Report Post
-                    </button>
-                    {<ReportModal show={showReportModal} handleClose={() => setShowReportModal(false)} />} */}
                   </div>
-                )}
+                }
               </div>
             </>
           )}
@@ -1460,6 +1575,9 @@ const PostCard = ({
                     <Link to={`/profile/feed/${post?.userId}`} role="button" className="nav-item text-start mx-3">
                       {post.repostedFrom ? repostProfile?.personalDetails?.firstName : userInfo?.firstName}{' '}
                       {post.repostedFrom ? repostProfile?.personalDetails?.lastName : userInfo?.lastName}
+                      {/* #tanshque */}
+                      {/* <br/>
+                       <span className='text-danger'> PostID: {post.Id} </span> */}
                     </Link>
                     <div style={{ flex: 1, flexDirection: 'row' }}>
                       <span className="small mx-3" style={{ color: '#8b959b' }}>
@@ -1496,34 +1614,77 @@ const PostCard = ({
 
             {
               <div style={{ position: 'relative' }}>
-                <button
-                  className="btn btn-link p-0 text-dark"
-                  style={{ fontSize: '1.5rem', lineHeight: '1', marginTop: '-25px', marginRight: '15px' }}
-                  onClick={() => setMenuVisible(!menuVisible)}>
-                  <BsThreeDots />
-                </button>
+
+                {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+                  !userInfo.connection && (
+                    <Button
+                      variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                      className="mx-3"
+                      onClick={() => UserRequest(userInfo.id)}
+                      disabled={loading === userInfo.id}>
+                      {loading === userInfo.id ? (
+                        <Loading size={15} loading={true} />
+                      ) : (
+                        <span className="w-100 d-flex align-items-center ">
+                          {sentStatus[userInfo.id] ? (
+                            <>
+                              <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                            </>
+                          ) : (
+                            <>
+                              <FaPlus /> <span className="p-0 px-2">Connect </span>
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </Button>
+                  )
+                ) : (<div className='w-50 d-flex '>
+                  <button
+                    className="btn btn-link p-0 text-dark"
+                    style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                    onClick={() => setMenuVisible(!menuVisible)}>
+                    <BsThreeDots />
+                  </button>
+                  {post.userId !== user?.id && <button
+                    className="dropdown-item text-dark d-flex align-items-center"
+                    onClick={() => {
+                      console.log('clicking..')
+                      hidePost(user?.id, post.Id)
+                    }}
+                    style={{ gap: '0.5rem' }}>
+                    <RxCross2 size={25} />
+                  </button>}
+                </div>)}
+
                 {menuVisible && (
                   <>
                     {post.userId === user?.id && (
                       <div
-                        className="dropdown-menu show"
+                        className="dropdown-menu show shadow-0"
                         style={{
                           position: 'absolute',
                           top: '100%',
                           right: 0,
-                          zIndex: 1000,
-                          display: 'block',
                           backgroundColor: 'white',
-                          boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
+                          boxShadow: "none"
                         }}>
-                        <button
-                          className="dropdown-item text-danger d-flex align-items-center"
-                          onClick={() => handleDeletePost(post?.Id)}
-                          style={{ gap: '0.5rem' }}>
-                          <BsTrash /> Delete Post
-                        </button>
+                        <>
+                          <button
+                            className="dropdown-item text-danger d-flex align-items-center"
+                            onClick={() => handleDeletePost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsTrash /> Delete Post
+                          </button>
+                          <button
+                            className="dropdown-item text-primary d-flex align-items-center"
+                            onClick={() => handleEditPost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsPenFill /> Edit Post
+                          </button>
+                        </>
                       </div>
                     )}
                     {post.userId !== user?.id && (
@@ -1531,32 +1692,28 @@ const PostCard = ({
                         className="dropdown-menu show"
                         style={{
                           position: 'absolute',
-                          top: '100%',
-                          right: 0,
+                          padding: 0,
+                          top: 0,
+                          right: "6em",
                           zIndex: 1000,
                           display: 'block',
                           backgroundColor: 'white',
-                          boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                          // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
+                          boxShadow: "none",
+                          border: "none",
+
                         }}>
+
+                        {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
                         <button
-                          className="dropdown-item text-danger d-flex align-items-center"
-                          onClick={() => {
-                            console.log('clicking..')
-                            hidePost(user?.id, post.Id)
-                          }}
-                          style={{ gap: '0.5rem' }}>
-                          <EyeOff /> Hide Post
-                        </button>
-                        <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} />
-                        <button
-                          className="dropdown-item text-danger d-flex align-items-center"
+                          className="dropdown-item text-danger d-flex align-items-center "
                           onClick={() => setShowReportModal(true)}
                           style={{ gap: '0.5rem' }}>
                           <BsExclamationTriangle /> Report Post
                         </button>
-                        {!userInfo.connection && (
+                        {/* {!userInfo.connection && (
                           <Button
                             variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
                             className="mx-3"
@@ -1578,7 +1735,7 @@ const PostCard = ({
                               </span>
                             )}
                           </Button>
-                        )}
+                        )} */}
 
                         {
                           <ReportModal
@@ -1675,12 +1832,12 @@ const PostCard = ({
                     <span
                       key={reaction.label}
                       onMouseEnter={(e) => {
-                        ;(e.target as HTMLElement).style.transform = 'scale(1.5)'
-                        ;(e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        ; (e.target as HTMLElement).style.transform = 'scale(1.5)'
+                          ; (e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
                         setHoveredReaction(reaction.label)
                       }}
                       onMouseLeave={(e) => {
-                        ;(e.target as HTMLElement).style.transform = 'scale(1)'
+                        ; (e.target as HTMLElement).style.transform = 'scale(1)'
                         setHoveredReaction(null)
                       }}
                       onClick={() => {

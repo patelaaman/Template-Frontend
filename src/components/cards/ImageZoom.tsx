@@ -1,6 +1,4 @@
 import { Image } from "react-bootstrap";
-import banner from "@/assets/images/bg/sample investor badge.svg";
-
 const ImageZoom = ({
   src,
   zoom,

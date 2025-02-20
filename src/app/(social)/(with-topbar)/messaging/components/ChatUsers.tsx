@@ -184,24 +184,28 @@ const ChatUsers = ({ chats }: { chats: UserType[] }) => {
           <BsSearch className="fs-5" />
         </button> */}
       </form>
-      <div className="mt-4 h-100">
-        {loading ? (
-          <div className="d-flex justify-content-center align-items-center h-100">
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
-        ) : (
-          <SimplebarReactClient className="chat-tab-list custom-scrollbar">
-            <ul className="nav flex-column nav-pills nav-pills-soft">
-              {users.map((chat) => (
-                // console.log(chat);
-                <ChatItem {...chat} key={chat.connectionId} />
-              ))}
-            </ul>
-          </SimplebarReactClient>
-        )}
-      </div>
+      <div className="mt-4 h-100 d-flex flex-column">
+  {loading ? (
+    <div className="d-flex justify-content-center align-items-center h-100">
+      <Spinner animation="border" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+    </div>
+  ) : (
+    <SimplebarReactClient 
+      className="chat-tab-list custom-scrollbar flex-grow-1 overflow-auto"
+      forceVisible="y"
+      autoHide={false}
+    >
+      <ul className="nav flex-column nav-pills nav-pills-soft pb-5 pt-3">
+        {users.map((chat) => (
+          <ChatItem {...chat} key={chat.userId} />
+        ))}
+      </ul>
+    </SimplebarReactClient>
+  )}
+</div>
+
     </Card>
   )
 }
