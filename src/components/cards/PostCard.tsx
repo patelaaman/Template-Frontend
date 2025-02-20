@@ -175,6 +175,7 @@ const PostCard = ({
       setLikeStatus(false)
     }
   }, [post.likeStatus])
+  // console.log("-------post--------",post)
   const media = post.repostedFrom ? post?.mediaUrls : post?.mediaUrls
   const isVideo = media?.length > 0 && (media[0] as string).includes('video/mp4')
 
@@ -781,7 +782,7 @@ const PostCard = ({
                   {post.userId !== user?.id && <button
                     className="dropdown-item text-dark d-flex align-items-center"
                     onClick={() => {
-                      console.log('clicking..')
+                      // console.log('clicking..')
                       hidePost(user?.id, post.Id)
                     }}
                     style={{ gap: '0.5rem' }}>
@@ -1014,7 +1015,7 @@ const PostCard = ({
               </div>
             </CardHeader>
             <CardBody>
-              {post?.content && (
+             {post?.content && (
                 <div className="mb-1 p-1 bg-gray-100 rounded-lg">
                   <div
                     id={post.Id}
@@ -1038,7 +1039,7 @@ const PostCard = ({
                   )}
                 </div>
               )}
-
+              {/* {console.log('---media---', post)} */}
               {media?.length > 0 &&
                 (isVideo ? (
                   <div

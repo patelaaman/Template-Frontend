@@ -74,8 +74,11 @@ const Feeds = ({ isCreated, setIsCreated, profile }: FeedsProps) => {
       }
 
       if (pageNumber === 1) {
+        console.log('1st Posts:', res.data.posts);
         setPosts([...res.data.posts]);
+        // console.log('Posts:', res.data.posts);
       } else {
+        console.log('Posts:', res.data.posts);
         setPosts((previousPosts) => [...previousPosts, ...res.data.posts]);
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -184,8 +187,8 @@ const Feeds = ({ isCreated, setIsCreated, profile }: FeedsProps) => {
           }
         // Matches the id of the scrollable container
         >
-
-          {posts.map((post) => (
+          {/* {console.log(posts,"------------------------------")} */}
+          {posts.map((post,index) => (
             <PostCard
               item={post}
               key={post.post.Id}

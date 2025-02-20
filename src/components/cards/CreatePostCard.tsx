@@ -212,6 +212,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           content: processMentionsForSubmission(values),
         },
       });
+      console.log('ol ----------- response', response);
       if (response.data) {
         setThoughts('');
         console.log('isCreated before', isCreated);
