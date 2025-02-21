@@ -29,11 +29,7 @@ const ChatItem = ({ userId, connectionId,lastMessage ,profilePictureUrl, firstNa
   const { changeActiveChat, activeChat } = useChatContext();
   const { onlineUsers } = useOnlineUsers();
   const { user } = useAuthContext();
-  // const { fetchLastMessage, lastMessage } = useLastMessage();
   const { unreadMessages } = useUnreadMessages();
-  // console.log(lastMessage)
-  // const [done, setDone] = useState(false);
-
   // useEffect(() => {
   //   if (!done && userId) {
   //     fetchLastMessage(userId);
@@ -138,6 +134,7 @@ const ChatUsers = ({ chats }: { chats: UserType[] }) => {
   const [loading, setLoading] = useState(true)
   const { lastMessages } = useLastMessage()
   // console.log('lastMessage', lastMessages);
+  console.log('chats', chats);
 
 
   useEffect(() => {

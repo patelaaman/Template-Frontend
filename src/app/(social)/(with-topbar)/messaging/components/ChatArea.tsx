@@ -116,8 +116,14 @@ const ChatArea = () => {
     socket.on('connect_error', (err) => {
       console.error('Connection Error:', err.message)
     })
+    
+    // const handleMessageRead = async () => {
+    //   console.log("messageRead");
+    //   fetchUnreadMessages();
+    //  };
 
-    socket.on('newMessage', (message) => {
+
+    socket.on('newMessage',(message) => {
       
       if (
         (message.senderId === user.id && message.receiverId === activeChat.personalDetails.id) ||

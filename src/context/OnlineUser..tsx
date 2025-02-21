@@ -32,21 +32,18 @@ export const OnlineUsersProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            // console.log('data',data.data.activeUsers)
             setOnlineUsers(data.data.activeUsers);
             const userIds = data.data.activeUsers.map((user: any) => user.userId);
             setOnlineUsers(userIds);
             
         } catch (error) {
             console.error('Error fetching online users:', error);
-            setOnlineUsers([]); // Handle errors gracefully
+            setOnlineUsers([]);
         }
     };
 
     useEffect(() => {
         fetchOnlineUsers();
-
-        // Polling every 1 minute to update the list of online users
         const interval = setInterval(fetchOnlineUsers, 7000);
         return () => clearInterval(interval);
     }, []);

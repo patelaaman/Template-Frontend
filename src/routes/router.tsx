@@ -91,15 +91,17 @@ const AppRouter = (props: RouteProps) => {
     socket.emit("userOnline", user.id);
   
     const handleNewMessage = async () => {
+      // console.log("------________newMessage______-----");
       if (user?.id) await fetchUnreadMessages();
+      // console.log("------________ After Fetch newMessage______-----");
     };
   
     const handleMessageRead = async () => {
-      // console.log("messageRead");
+     console.log("messageRead");
      fetchUnreadMessages();
     };
   
-    socket.on("newMessage", handleNewMessage);
+    // socket.on("newMessage", handleNewMessage);
     socket.on("messageRead", handleMessageRead);
   
     const handleBeforeUnload = () => {
