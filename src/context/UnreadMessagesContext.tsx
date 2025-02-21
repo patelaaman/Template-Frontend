@@ -35,7 +35,7 @@ export const UnreadMessagesProvider = ({ children }: { children: React.ReactNode
       if (!response.ok) {
         throw new Error(`Error: ${response.statusText}`);
       }
-      console.log("-------------response------------",response);
+      // console.log("-------------response------------",response);
       const data = await response.json();
       // console.log("--------data----------",data);
       const senderData = data?.data?.result?.map((msg: any) => ({
@@ -58,9 +58,9 @@ export const UnreadMessagesProvider = ({ children }: { children: React.ReactNode
     }
   };
 
-  useEffect(()=>{
-    Socket.on('newMessage',fetchUnreadMessages())
-  })
+  // useEffect(()=>{
+  //   Socket.on('newMessage',fetchUnreadMessages())
+  // })
 
   return (
     <UnreadMessagesContext.Provider value={{ unreadMessages, fetchUnreadMessages }}>
