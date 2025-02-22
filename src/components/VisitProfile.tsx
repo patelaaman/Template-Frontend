@@ -11,7 +11,7 @@ import { FaEye, FaUserAlt } from 'react-icons/fa'
 import { LIVE_URL } from '@/utils/api'
 
 export const formatTimestamp = (createdAt: Date): string => {
-  console.log('createdAt:', createdAt)
+  // console.log('createdAt:', createdAt)
   const now = Date.now()
   const createdTime = new Date(createdAt).getTime()
   const secondsAgo = Math.floor((now - createdTime) / 1000)
@@ -56,6 +56,7 @@ const ProfileVisits = () => {
 
         if (response.ok) {
           const data = await response.json()
+          console.log(data,"hola_______")
           setVisits(data?.data || [])
         } else {
           console.error('Failed to fetch profile visits')
@@ -79,9 +80,7 @@ const ProfileVisits = () => {
     setSentStatus(newSentStatus)
     setLoading(userId)
 
-    const apiUrl = isSending
-      ? `${LIVE_URL}api/v1/connection/send-connection-request` : 
-      `${LIVE_URL}api/v1/connection/unsend-connection-request`;
+    const apiUrl = isSending ? `${LIVE_URL}api/v1/connection/send-connection-request` : `${LIVE_URL}api/v1/connection/unsend-connection-request`
 
     try {
       const res = await fetch(apiUrl, {
@@ -121,83 +120,88 @@ const ProfileVisits = () => {
   }
 
   return (
-    <div className="container mt-0" style={{width:"103%"}}>
-      <Card>
+    <div className="container mt-0" style={{ width: '103%' }}>
+      <div style={{width:"88%", marginLeft:"4.5%" ,}}>
         <CardBody>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h1 className="h5 mb-0 d-flex align-items-center">
-              <FaEye className="me-2" />
-              Who Viewed My Profile
-              <span className="badge bg-success ms-2">{visits.length}</span>
-            </h1>
+          <div className="d-flex align-items-center p-3 bg-light border-bottom mb-2">
+            <h5 className="mb-0 me-2">Total Profile Views:</h5>
+            <h5 className="mb-0 text-black">{visits.length}</h5>
           </div>
+        
           {visits.length === 0 ? (
             <div className="container mt-0">
               <Card>
-                <CardBody>{visits.length === 0 && <div className="text-center text-muted">No one has viewed your profile yet.</div>}</CardBody>
+                <CardBody>
+                  <div className="text-center text-muted">No one has viewed your profile yet.</div>
+                </CardBody>
               </Card>
             </div>
           ) : (
             <ListGroup>
-              {visits.map((visit, index) => (
-                <a href={`/profile/feed/${visit.visitor.id}`} key={index}>
-                <ListGroupItem  className="d-flex align-items-center justify-content-between py-3 px-4 rounded shadow-sm mb-3">
-                  <Link to={`/profile/feed/${visit.visitor.id}`} className="d-flex align-items-center text-decoration-none">
-                    <img
-                      src={visit.visitor.profilePicture || avatar7}
-                      alt="Profile"
-                      className="rounded-circle mx-3"
-                      style={{ width: '50px', height: '50px' }}
-                    />
-                    <div>
-                      <h6 className="mb-1 fw-semibold d-flex justify-content-between">
-                        <span>
-                          {visit.visitor.firstName} {visit.visitor.lastName}
-                        </span>
-                        <span className="badge text-success small">{visit.visitCount}</span>
-                      </h6>
-                      <p className="mb-0 text-muted">{visit.visitor.userRole}</p>
-                      <p className="mb-0 text-muted">{visit.visitor.visitedAt}</p>
-                    </div>
-                  </Link>
-                  <div className="d-flex align-items-center">
-                    {visit.connectionStatus === 'accepted' ? (
-                      <Link to="/messaging" className="mx-2 btn btn-primary btn-sm">
-                        Message
+              {visits.map((visit, index) => {
+                const visitedDate = new Date(visit.visitor.visitedAt)
+                const formattedDate = isNaN(visitedDate.getTime()) ? 'Unknown' : formatDistanceToNow(visitedDate, { addSuffix: true })
+
+                return (
+                  <a href={`/profile/feed/${visit.visitor.id}`} key={index}>
+                    <ListGroupItem className="d-flex align-items-center justify-content-between py-3 px-4 rounded shadow-sm mb-3">
+                      <Link to={`/profile/feed/${visit.visitor.id}`} className="d-flex align-items-center text-decoration-none">
+                        <img
+                          src={visit.visitor.profilePicture || avatar7}
+                          alt="Profile"
+                          className="rounded-circle mx-3"
+                          style={{ width: '50px', height: '50px' }}
+                        />
+                        <div>
+                          <h6 className="mb-1 fw-semibold d-flex justify-content-between">
+                            <span>
+                              {visit.visitor.firstName} {visit.visitor.lastName}
+                            </span>
+                            <span className="badge text-success small">{visit.visitCount}</span>
+                          </h6>
+                          <p className="mb-0 text-muted">{visit.visitor.userRole}</p>
+                          <p className="mb-0 text-muted">{visit.visitor.visitedAt}</p>
+                        </div>
                       </Link>
-                    ) : visit.connectionStatus === 'none' ? (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="mb-0 me-2"
-                        style={{ minWidth: '85px' }}
-                        onClick={() => handleUserRequest(visit.visitor.id)}
-                        disabled={loading === visit.visitor.id}>
-                        {loading === visit.visitor.id ? <Loading size={16} /> : 'Connect'}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant={
-                          visit.connectionStatus === 'accepted'
-                            ? 'outline-success'
-                            : visit.connectionStatus === 'rejected'
-                              ? 'outline-danger'
-                              : 'outline-secondary'
-                        }
-                        className="ms-sm-2 mb-0"
-                        disabled
-                        style={{ minWidth: '85px' }}>
-                        {(visit.connectionStatus === 'pending' && 'Pending') || (visit.connectionStatus === 'rejected' && 'Pending')}
-                      </Button>
-                    )}
-                  </div>
-                </ListGroupItem>
-                </a>
-              ))}
+                      <div className="d-flex align-items-center">
+                        {visit.connectionStatus === 'accepted' ? (
+                          <Link to="/messaging" className="mx-2 btn btn-primary btn-sm" style={{ minWidth: '120px' }}>
+                            Message
+                          </Link>
+                        ) : visit.connectionStatus === 'none' ? (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="mb-0 me-2"
+                            style={{ minWidth: '120px' }}
+                            onClick={() => handleUserRequest(visit.visitor.id)}
+                            disabled={loading === visit.visitor.id}>
+                            {loading === visit.visitor.id ? <Loading size={16} /> : 'Connect'}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant={
+                              visit.connectionStatus === 'accepted'
+                                ? 'outline-success'
+                                : visit.connectionStatus === 'rejected'
+                                  ? 'outline-danger'
+                                  : 'outline-secondary'
+                            }
+                            className="ms-sm-2 mb-0"
+                            disabled
+                            style={{ minWidth: '85px', fontSize: '16px' }}>
+                            {(visit.connectionStatus === 'pending' && 'Pending') || (visit.connectionStatus === 'rejected' && 'Pending')}
+                          </Button>
+                        )}
+                      </div>
+                    </ListGroupItem>
+                  </a>
+                )
+              })}
             </ListGroup>
           )}
         </CardBody>
-      </Card>
+      </div>
     </div>
   )
 }
@@ -211,21 +215,14 @@ const ProfileVisited = () => {
   useEffect(() => {
     const fetchProfileVisits = async () => {
       try {
-        const response = await fetch(
-          "https://strengthholdings.com/api/api/v1/auth/get-profile-visited",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId: user?.id,
-              page: 1, 
-              limit: 10,
-             }),
-            
-          }
-        );
-
+        const response = await fetch(`${LIVE_URL}api/v1/auth/get-profile-visited`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user?.id, page: 1, limit: 10 }),
+        })
+        // console.log(response)
         if (response.ok) {
           const data = await response.json()
           setVisits(data?.data || [])
@@ -249,9 +246,7 @@ const ProfileVisited = () => {
     setSentStatus(newSentStatus)
     setLoading(userId)
 
-    const apiUrl = isSending
-      ? `${LIVE_URL}api/v1/connection/send-connection-request`
-      : `${LIVE_URL}api/v1/connection/unsend-connection-request`;
+    const apiUrl = isSending ? `${LIVE_URL}api/v1/connection/send-connection-request` : `${LIVE_URL}api/v1/connection/unsend-connection-request`
 
     try {
       const res = await fetch(apiUrl, {
@@ -293,71 +288,75 @@ const ProfileVisited = () => {
   }
 
   return (
-    <div className="container mt-0">
-      <Card >
+    <div className="container ">
+      <div style={{width:"91%", marginLeft:"4.5%" }}>
         <CardBody>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h1 className="h5 mb-0 d-flex align-items-center">
+          <div className="d-flex align-items-center p-3 bg-light border-bottom mb-2">
+            <h5 className="mb-0 me-2">Total Profiles I've Viewed:</h5>
+            <h5 className="mb-0 text-black">{visits.length}</h5>
+          </div>
+          {/* <div className="d-flex justify-content-between align-items-center mb-3">
+            <h1 className="h6 mb-0 d-flex align-items-center">
               <FaUserAlt className="me-2" />
               Profiles I've Viewed
               <span className="badge bg-success ms-2">{visits.length}</span>
             </h1>
-          </div>
+          </div> */}
           {visits.length > 0 ? (
             <ListGroup>
               {visits.map((visit, index) => (
                 <a href={`/profile/feed/${visit.profile.id}`} key={index}>
-                <ListGroupItem key={index} className="d-flex align-items-center justify-content-between py-3 px-4 rounded shadow-sm mb-3">
-                  <Link to={`/profile/feed/${visit.profile.id}`} className="d-flex align-items-center text-decoration-none">
-                    <img
-                      src={visit.profile.profilePicture || avatar7}
-                      alt="Profile"
-                      className="rounded-circle mx-3"
-                      style={{ width: '50px', height: '50px' }}
-                    />
-                    <div>
-                      <h6 className="mb-1 fw-semibold d-flex justify-content-between">
-                        <span>
-                          {visit.profile.firstName} {visit.profile.lastName}
-                        </span>
-                        <span className="badge text-success small">{visit.visitCount}</span>
-                      </h6>
-                      <p className="mb-0 text-muted">{visit.profile.userRole}</p>
-                      <p className="mb-0 text-muted">{visit.profile.visitedAt}</p>
+                  <ListGroupItem key={index} className="d-flex align-items-center justify-content-between py-3 px-4 rounded shadow-sm mb-3">
+                    <Link to={`/profile/feed/${visit.profile.id}`} className="d-flex align-items-center text-decoration-none">
+                      <img
+                        src={visit.profile.profilePicture || avatar7}
+                        alt="Profile"
+                        className="rounded-circle mx-3"
+                        style={{ width: '50px', height: '50px' }}
+                      />
+                      <div>
+                        <h6 className="mb-1 fw-semibold d-flex justify-content-between">
+                          <span>
+                            {visit.profile.firstName} {visit.profile.lastName}
+                          </span>
+                          <span className="badge text-success small">{visit.visitCount}</span>
+                        </h6>
+                        <p className="mb-0 text-muted">{visit.profile.userRole}</p>
+                        <p className="mb-0 text-muted">{visit.profile.visitedAt}</p>
+                      </div>
+                    </Link>
+                    <div className="d-flex align-items-center">
+                      {visit.connectionStatus === 'accepted' ? (
+                        <Link to="/messaging" className="mx-2 btn btn-primary btn-sm" style={{ minWidth: '120px' }}>
+                          Message
+                        </Link>
+                      ) : visit.connectionStatus === 'none' ? (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          className="mb-0 me-2"
+                          style={{ minWidth: '120px', fontSize: '16px' }}
+                          onClick={() => handleUserRequest(visit.profile.id)}
+                          disabled={loading === visit.profile.id}>
+                          {loading === visit.profile.id ? <Loading size={16} /> : 'Connect'}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant={
+                            visit.connectionStatus === 'accepted'
+                              ? 'outline-success'
+                              : visit.connectionStatus === 'rejected'
+                                ? 'outline-danger'
+                                : 'outline-secondary'
+                          }
+                          className="ms-sm-2 mb-0"
+                          disabled
+                          style={{ minWidth: '85px' }}>
+                          {(visit.connectionStatus === 'pending' && 'Pending') || (visit.connectionStatus === 'rejected' && 'Pending')}
+                        </Button>
+                      )}
                     </div>
-                  </Link>
-                  <div className="d-flex align-items-center">
-                    {visit.connectionStatus === 'accepted' ? (
-                      <Link to="/messaging" className="mx-2 btn btn-primary btn-sm">
-                        Message
-                      </Link>
-                    ) : visit.connectionStatus === 'none' ? (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="mb-0 me-2"
-                        style={{ minWidth: '85px' }}
-                        onClick={() => handleUserRequest(visit.profile.id)}
-                        disabled={loading === visit.profile.id}>
-                        {loading === visit.profile.id ? <Loading size={16} /> : 'Connect'}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant={
-                          visit.connectionStatus === 'accepted'
-                            ? 'outline-success'
-                            : visit.connectionStatus === 'rejected'
-                              ? 'outline-danger'
-                              : 'outline-secondary'
-                        }
-                        className="ms-sm-2 mb-0"
-                        disabled
-                        style={{ minWidth: '85px' }}>
-                        {(visit.connectionStatus === 'pending' && 'Pending') || (visit.connectionStatus === 'rejected' && 'Pending')}
-                      </Button>
-                    )}
-                  </div>
-                </ListGroupItem>
+                  </ListGroupItem>
                 </a>
               ))}
             </ListGroup>
@@ -369,52 +368,117 @@ const ProfileVisited = () => {
             </div>
           )}
         </CardBody>
-      </Card>
+      </div>
     </div>
   )
 }
 
-const visitProfile = () => {
-  const [step, setStep] = useState(0)
+const VisitProfile = () => {
+  const [step, setStep] = useState(0);
 
   const sections = [
     {
-      title: 'Who Viewed My Profile',
-      icon: <FaEye style={{ marginRight: '8px' }} />,
+      title: "Who Viewed My Profile",
+      icon: <FaEye className="icon" style={{ color: "#007bff" }} />,
       component: <ProfileVisits />,
     },
     {
       title: "Profiles I've Viewed",
-      icon: <FaUserAlt style={{ marginRight: '8px' }} />,
+      icon: <FaUserAlt className="icon" style={{ color: "#28a745" }} />,
       component: <ProfileVisited />,
     },
-  ]
-
-  const setCurrentSection = (index) => {
-    setStep(index)
-  }
+  ];
 
   return (
-    <div className="container">
-      <div className="d-flex justify-content-center mb-4 flex-wrap">
-        {sections.map((section, index) => (
-          <button
-            key={index}
-            type="button"
-            className="btn mx-2 mb-2 d-flex align-items-center"
-            style={{
-              backgroundColor: step === index ? '#1ea1f2' : 'transparent',
-              borderColor: '#1ea1f2',
-              color: step === index ? 'white' : '#1ea1f2',
-            }}
-            onClick={() => setCurrentSection(index)}>
-            {section.icon} {section.title}
-          </button>
-        ))}
+    <div className="container-fluid px-0">
+      <div className="card p-4 shadow-sm rounded">
+        <div className="tabs-container">
+          {sections.map((section, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`tab-btn ${step === index ? "active" : ""}`}
+              onClick={() => setStep(index)}
+            >
+              <div className="icon">{section.icon}</div>
+              <span className="title">{section.title}</span>
+            </button>
+          ))}
+        </div>
+        <div className="content-container p-4">{sections[step].component}</div>
       </div>
-      <div>{sections[step].component}</div>
-    </div>
-  )
-}
+      <style>
+        {`
+          .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            margin: auto;
+            font-family: 'Arial', sans-serif;
+          }
+          
+          .tab-btn {
+            background: white;
+            border: 2px solid #d6d6d6;
+            border-radius: 12px;
+            color: black;
+            width: 180px;
+            height: 80px;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin: 10px;
+            font-family: 'Arial', sans-serif;
+          }
 
-export default visitProfile
+          .tab-btn.active {
+            background: white;
+            border: 2px solid #007bff;
+            color: #007bff;
+           
+          }
+
+          .icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+          }
+
+          .title {
+            font-size: 14px;
+          }
+
+          .tabs-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            gap: 5px;
+          }
+
+          .content-container {
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
+export default VisitProfile;

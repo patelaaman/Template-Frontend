@@ -9,6 +9,8 @@ import AboutBusinessBuyer from './AboutBusinessBuyer'
 import AboutFounder from './AboutFounder'
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '@/context/useAuthContext'
+import AboutGeneral from './AboutGeneral'
+import { LIVE_URL } from '@/utils/api'
 
 const Interests = () => {
   return (
@@ -83,20 +85,28 @@ const ActionDropdown = () => {
 
 
 const About = () => {
-  const [subrole, setSubrole] = useState(null);
+  const [subrole, setSubrole] = useState("");
   const {user} = useAuthContext(); // Replace with actual user ID from context or props
   const { id } = useParams();
 console.log("----------------------------",id)
 
+
+const handledelete = async () => {
+   await fetch(`${LIVE_URL}api/v1/subrole/delete/${id}` , {
+    method :"DELETE"
+   })
+}
+
+
   useEffect(() => {
     const fetchSubrole = async () => {
       try {
-        const response = await fetch(`http://13.216.146.100/api/v1/subrole/get/${id}`);
+        const response = await fetch(`${LIVE_URL}api/v1/subrole/get/${id}`);
         console.log("----------" ,user?.id)
         const data = await response.json();
         console.log("-------ddd----------" , data.data.SubRole )
-        setSubrole(data.data.SubRole); // Ensure the API returns { subrole: "BusinessBuyer" }
-        console.log("----SubRole-----", subrole)
+        setSubrole(data.data.SubRole); 
+        console.log("----SubRole-----", data.data.SubRole)
       } catch (error) {
         console.error("Error fetching subrole:", error);
       }
@@ -109,27 +119,39 @@ console.log("----------------------------",id)
 <div style={{ width: "100%" }}>
   <PageMetaData title="About" />
   <Card>
-    <CardHeader className="border-0 pb-0">
-      <CardTitle>Business Profile Info</CardTitle>
-    </CardHeader>
+    {/* <CardHeader className="border-0 pb-0">
+      {/* <CardTitle>Business Profile Information</CardTitle> }
+    </CardHeader> */}
     <CardBody>
       {subrole === "BusinessBuyer" && <AboutBusinessBuyer />}
       {subrole === "Investor" && <InvestorCards />}
       {subrole === "Founder" && <AboutFounder />}
+      {subrole ==="General" && <AboutGeneral></AboutGeneral>}
       {subrole === "BusinessSeller" && (
-        <div>
-          <p>Business Seller</p>
-          <p>Visit AquireRoom To see All Listed Business</p>
-          <Link to="/marketplace">
-            <Button>AcquireRoom</Button>
-          </Link>
-        </div>
+        <><div>
+              <p>Business Seller</p>
+              <p>Visit AquireRoom To see All Listed Business</p>
+              <Link to="/marketplace">
+                <Button>AcquireRoom</Button>
+              </Link>
+
+
+            </div>
+
+            <Button
+  onClick={handledelete}
+  className="mt-4 px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-300"
+>
+  🗑 Delete Business Seller Profile
+</Button>
+            
+            </>
       )}
 
-      {(subrole === "" || subrole == null) && <p>No About Section Was Created by the user.</p>}
+      {(subrole === "" || subrole == null) && <p>This business profile is not yet complete.</p>}
     </CardBody>
   </Card>
-  <Interests />
+  
 </div>
   );
 };

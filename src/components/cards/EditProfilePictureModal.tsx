@@ -1,18 +1,16 @@
 import React, { useState } from "react";
+import Cropper, { Point } from 'react-easy-crop'
 import { Modal, Button, Container, Image, Form, Spinner } from "react-bootstrap";
 import { FaEdit, FaPlus, FaBorderStyle, FaTrash } from "react-icons/fa";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useAuthContext } from "@/context/useAuthContext";
-import { FileUpload, uploadDoc,GetImageWithUrl } from "@/utils/CustomS3ImageUpload";
+import { FileUpload, uploadDoc, GetImageWithUrl } from "@/utils/CustomS3ImageUpload";
 import { useNavigate } from "react-router-dom";
 import { LIVE_URL } from "@/utils/api";
-
-
+import { UserProfile } from "@/app/(social)/feed/(container)/home/page";
 
 const handleAcceptedFiles = async (files: File[]): Promise<FileUpload[]> => {
   const allFiles: FileUpload[] = [];
-
-  console.log('---files in handleAcceptedFiles---', files);
 
   const fileProcessingPromises = files.map(
     (file) =>
@@ -61,105 +59,160 @@ const handleAcceptedFiles = async (files: File[]): Promise<FileUpload[]> => {
   }
 };
 
+const EditProfilePictureModal = ({
+  show,
+  onHide,
+  onPhotoUpdate,
+  src = "",
+  forCover = false,
+  profile
+}:
+  {
+    show: boolean;
+    onHide: () => void;
+    onPhotoUpdate: () => void;
+    src: string
+    forCover?: boolean
+    profile: UserProfile
+  }) => {
+  const [exp, setExp] = useState(0);
+  const [zoom, setZoom] = useState(
+    forCover ? profile?.personalDetails?.zoom ?? 50 : profile?.personalDetails?.zoomProfile ?? 50
+  );
+  const [straighten, setStraighten] = useState(
+    forCover ? profile?.personalDetails?.rotate ?? 50 : profile?.personalDetails?.rotateProfile ?? 50
+  );
+  const [uploadedFile, setUploadedFile] = useState<Files[]>(null);
+  const { user } = useAuthContext();
+  const [awsUrl, setAwsUrl] = useState<string>("");
+  const [objectUrl, setObjectUrl] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const navigate = useNavigate();
 
+  const FinalUpload = async () => {
+    setLoading(true);
+    const url: string[] | false = await handleUploadprofile();
 
-const EditProfilePictureModal = ({ show, onHide, onPhotoUpdate,src = "",forCover = false}) => {
-    const [exp,setExp] = useState(0);
-    const[zoom,setZoom] = useState(50);
-    const [straighten, setStraighten] = useState(50);
-    const [uploadedFile, setUploadedFile] = useState<Files[]>(null);
-    const {user} = useAuthContext();
-    const [awsUrl,setAwsUrl] = useState<string>("");
-    const [objectUrl,setObjectUrl] = useState<string>("");
-    const [loading,setLoading] = useState<boolean>(false);
-    // console.log('---awsUrl---',awsUrl);
-    const navigate = useNavigate();
-    const FinalUpload = async () => {
-      
-      setLoading(true);
-      const url : string[] | false  = await handleUploadprofile();
-      // if (url) {
-      //   setAwsUrl(url[0]); 
-      // }
-
-      try {
-          const requestBody = forCover ? {
-            userId: user?.id,
-            bgPictureUploadId: url[0],
-            zoom : zoom,
-            rotate : straighten
-          } : {
-            userId: user?.id,
-            profilePictureUploadId: url[0],
-            zoomProfile : zoom,
-            rotateProfile : straighten
-          };
-  
-          console.log('Request body:', requestBody);
-  
-          const response = await fetch(
-            `${LIVE_URL}api/v1/auth/update-or-create-Profile`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-            }
-          );
-  
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-  
-          const result = await response.json();
-          console.log(result);
-      } catch (error) {
-        console.error('Error updating profile:', error);
-      } finally {
-        setLoading(false);
-        navigate("/");
-      }
-    }
-
-      const handleUploadprofile = async () => {
-        try {
-            const modedFiles = await handleAcceptedFiles([uploadedFile])
-          const response = await uploadDoc(modedFiles, user?.id);
-          console.log('response of uploadDoc',response);
-          // const srcUrl = await GetImageWithUrl(response[0]);
-          // console.log('---- response in the upload doc function ----', srcUrl);
-          return response;
-        } catch (err) {
-          console.error('Error in the createpostcard:', err);
-          return false;
-        }
+    try {
+      const requestBody = forCover ? {
+        userId: user?.id,
+        bgPictureUploadId: url[0],
+        zoom: zoom,
+        rotate: straighten,
+        crop: crop
+      } : {
+        userId: user?.id,
+        profilePictureUploadId: url[0],
+        zoomProfile: zoom,
+        rotateProfile: straighten,
+        crop: crop
       };
 
-    const handleDelete = () => {
-    onPhotoUpdate(null); // Reset to default or remove profile picture
-    onHide();
-    };
+      console.log('Request body:', requestBody);
 
-    const handleFileChange = async (e) => {
-      const file = e.target.files[0];
-      console.log(file);
-      
-      if (file && file instanceof File) {
-        setUploadedFile(file);
-        setObjectUrl(URL.createObjectURL(file));
-        // alert(`File uploaded: ${file.name}`);
-        setExp(2);
-      } else {
-        console.error("Uploaded file is not a valid File.");
+      const response = await fetch(
+        `${LIVE_URL}api/v1/auth/update-or-create-Profile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-    const handleClose = () => {
-        console.log('clicking')
-        setExp(0);
+
+      const result = await response.json();
+      console.log(result);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    } finally {
+      setLoading(false);
+      window.location.reload()
     }
-    const handleZoomChange = (e) => setZoom(e.target.value);
-    const handleStraightenChange = (e) => setStraighten(e.target.value);
+  }
+
+  const handleUploadprofile = async () => {
+    try {
+      const modedFiles = await handleAcceptedFiles([uploadedFile])
+      const response = await uploadDoc(modedFiles, user?.id);
+      console.log('response of uploadDoc', response);
+      return response;
+    } catch (err) {
+      console.error('Error in the createpostcard:', err);
+      return false;
+    }
+  };
+
+  const handleDelete = async () => {
+    onPhotoUpdate(null); // Reset to default or remove profile picture
+    try {
+      const requestBody = forCover ? {
+        userId: user?.id,
+        bgPictureUploadId: null,
+        zoom: 50,
+        rotate: 50,
+      } : {
+        userId: user?.id,
+        profilePictureUploadId: null,
+        zoomProfile: 50,
+        rotateProfile: 50
+      };
+
+      console.log('Request body:', requestBody);
+
+      const response = await fetch(
+        `${LIVE_URL}api/v1/auth/update-or-create-Profile`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const result = await response.json();
+      console.log(result);
+    }
+    catch (error) {
+      console.error('Error updating profile:', error);
+    }
+    finally {
+      window.location.reload()
+    }
+  };
+
+  const handleEdit = () => {
+    setObjectUrl(src)
+    setExp(2);
+  }
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    console.log(file);
+
+    if (file && file instanceof File) {
+      setUploadedFile(file);
+      setObjectUrl(URL.createObjectURL(file));
+      setExp(2);
+    } else {
+      console.error("Uploaded file is not a valid File.");
+    }
+  };
+  const handleClose = () => {
+    console.log('clicking')
+    setExp(0);
+  }
+  const handleZoomChange = (e) => setZoom(e.target.value);
+  const handleStraightenChange = (e) => setStraighten(e.target.value);
 
   return (
     <Modal
@@ -170,7 +223,6 @@ const EditProfilePictureModal = ({ show, onHide, onPhotoUpdate,src = "",forCover
       keyboard={false}
       dialogClassName="profile-modal"
     >
-      {/* Header */}
       <Modal.Header
         className="border-0 bg-light justify-content-between align-items-center"
         style={{
@@ -198,123 +250,50 @@ const EditProfilePictureModal = ({ show, onHide, onPhotoUpdate,src = "",forCover
       <Modal.Body
         className="text-center"
         style={{
-            padding: "30px",
-            paddingBottom: "0", // Removed padding from the bottom
-            minHeight: "400px", // Increased height
-            minWidth: "350px", // Increased width
-            backgroundColor: "#f8f9fa",
+          padding: "30px",
+          paddingBottom: "0",
+          minHeight: "400px",
+          minWidth: "350px",
+          backgroundColor: "#f8f9fa",
         }}
-        >
-  {(() => {
-    switch (exp) {
-      case 0:
-        return (
-          <>
-            {/* Circular Profile Picture */}
-            {forCover ? <>
-            
-              <div
-                      className="h-200px rounded-top"
-                      style={{
-                        backgroundImage: `url(${src})`,
-                        backgroundPosition: 'center',
-                        backgroundSize: 'cover',
-                        backgroundRepeat: 'no-repeat',
-                      }}
-                    />
-            
-            
-            
-            </> : <div
-                className="rounded-circle overflow-hidden mx-auto"
-                style={{
-                  width: "180px", // Increased size
-                  height: "180px",
-                  border: "3px solid #ccc",
-                  marginBottom: "20px",
-                }}
-              >
-                <img
-                  src={src} // Replace with dynamic photo
-                  alt="Profile"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </div>}
-            
+      >
+        {(() => {
+          switch (exp) {
+            case 0:
+              return (
+                <>
+                  {forCover ? <>
 
-            {/* Options Below Profile */}
-            <div className="d-flex justify-content-around align-items-center mt-4">
-              <div className="text-center">
-                <FaEdit size={24} className="mb-2" />
-                <p className="small mb-0">Edit</p>
-              </div>
-              <div className="text-center" onClick={()=> setExp(1)}>
-                <FaPlus size={24} className="mb-2" />
-                <p className="small mb-0">Add photo</p>
-              </div>
-              <div className="text-center">
-                <FaBorderStyle size={24} className="mb-2" />
-                <p className="small mb-0">Frames</p>
-              </div>
-              <div className="text-center">
-                <FaTrash size={24} className="mb-2 text-danger" />
-                <p
-                  className="small text-danger mb-0"
-                  onClick={handleDelete}
-                  style={{ cursor: "pointer" }}
-                >
-                  Delete
-                </p>
-              </div>
-            </div>
-          </>
-        );
-
-        case 2 : 
-            return (
-                <Modal.Body>
-                <Container className="text-center">
-                  {
-                    forCover ?  <>
-                    
                     <div
-                      className="h-200px rounded-top"
+                      className="h-130px rounded-top"
                       style={{
                         overflow: "hidden",
+                        width: '100%',
                         margin: "0 auto",
-                        backgroundPosition: 'center',
-                        backgroundSize: 'cover',
-                        backgroundRepeat: 'no-repeat',
-                    
+                        overflowY: 'hidden'
                       }}
                     >
                       <Image
-                      src={objectUrl || src} // Replace with your actual image source
-                      alt="Profile"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        transform: `scale(${zoom / 50}) rotate(${straighten - 50}deg)`,
-                      }}
-                    />
+                        src={objectUrl || src}
+                        alt="Profile"
+                        style={{
+                          width: "100%",
+                          transform: `scale(${zoom / 50}) rotate(${straighten - 50}deg)`,
+                        }}
+                      />
                     </div>
-                    </> : 
 
-
-
-
-                    <div
+                  </> : <div
+                    className="rounded-circle overflow-hidden mx-auto"
                     style={{
-                      width: "300px",
-                      height: "300px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-                      margin: "0 auto",
-                      position: "relative",
+                      width: "180px",
+                      height: "180px",
+                      border: "3px solid #ccc",
+                      marginBottom: "20px",
                     }}
                   >
                     <Image
-                      src={objectUrl || src} // Replace with your actual image source
+                      src={objectUrl || src}
                       alt="Profile"
                       style={{
                         width: "100%",
@@ -322,94 +301,223 @@ const EditProfilePictureModal = ({ show, onHide, onPhotoUpdate,src = "",forCover
                         transform: `scale(${zoom / 50}) rotate(${straighten - 50}deg)`,
                       }}
                     />
-                  </div>
-                  }
-                  <div className="mt-4">
-                    <h6>Crop</h6>
-                    <Form.Label>Zoom</Form.Label>
-                    <Form.Range value={zoom} onChange={handleZoomChange} />
-                    <Form.Label>Straighten</Form.Label>
-                    <Form.Range value={straighten} onChange={handleStraightenChange} />
-                  </div>
-                  <div className="d-flex justify-content-center mt-3">
-                  <Button variant="primary" onClick={FinalUpload} disabled={loading}>
-        {loading ? (
-          <>
-            <Spinner
-              as="span"
-              animation="border"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-            />{" "}
-            Uploading...
-          </>
-        ) : (
-          "Set Profile Image"
-        )}
-      </Button>
-                  </div>
-                </Container>
-              </Modal.Body>
-            )
-        case 1 : return (
-            <>
-            <Modal.Body className="text-center">
-            <h5>{user?.firstName}, {forCover ? "Personalize your cover photo"  : "help others recognize you!"}</h5>
-            {
-              forCover ? <>
-              
-              <div
-                      className="h-200px rounded-top"
-                      style={{
-                        backgroundImage: `url(${src})`,
-                        backgroundPosition: 'center',
-                        backgroundSize: 'cover',
-                        backgroundRepeat: 'no-repeat',
-                        marginTop : '20px',
-                        marginBottom : '20px'
-                      }}
-                    />
-              
-              
-              </> : 
+                  </div>}
 
-              <Image
-              src={src} // Replace with actual profile image URL
-              roundedCircle
-              alt="Profile"
-              style={{ width: "100px", height: "100px", margin: "20px 0" }}
-            />
-            }
-            <p>
-              On Businessroom, we require members to use their real identities, so take
-              or upload a {forCover ? 'cover photo' : "photo"} of yourself. Then crop, filter, and adjust it to
-              perfection.
-            </p>
-          </Modal.Body>
-          <Modal.Footer className="d-flex justify-content-center">
-            <Form.Group>
-              <Form.Label htmlFor="fileInput" className="btn btn-primary">
-                Upload photo
-              </Form.Label>
-              <Form.Control
-                type="file"
-                id="fileInput"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={handleFileChange}
-              />
-            </Form.Group>
-          </Modal.Footer>
-          </>
-        )
-      default:
-        return <p>No content available for this case.</p>;
-    }
-  })()}
-</Modal.Body>
+                  <div className="d-flex justify-content-around align-items-center mt-4">
+                    <div className="text-center" onClick={() => handleEdit()}>
+                      <FaEdit size={24} className="mb-2" />
+                      <p className="small mb-0">Edit</p>
+                    </div>
+                    <div className="text-center" onClick={() => setExp(1)}>
+                      <FaPlus size={24} className="mb-2" />
+                      <p className="small mb-0">Add photo</p>
+                    </div>
+                    <div className="text-center">
+                      <FaBorderStyle size={24} className="mb-2" />
+                      <p className="small mb-0">Frames</p>
+                    </div>
+                    <div className="text-center" onClick={handleDelete} style={{ cursor: "pointer" }}>
+                      <FaTrash size={24} className="mb-2 text-danger" />
+                      <p
+                        className="small text-danger mb-0"
+
+                      >
+                        Delete
+                      </p>
+                    </div>
+                  </div>
+                </>
+              );
+
+            case 2:
+              return (
+                <Modal.Body>
+                  <Container className="text-center">
+                    {
+                      forCover ? <>
+
+                        <div
+                          className="h-200px rounded-top"
+                          style={{
+                            overflow: "hidden",
+                            margin: "0 auto",
+                            backgroundPosition: 'center',
+                            backgroundSize: 'cover',
+                            backgroundRepeat: 'no-repeat',
+
+                          }}
+                        >
+                          {/* <Image
+                            src={objectUrl || src} 
+                            alt="Profile"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              transform: `scale(${zoom / 50}) rotate(${straighten - 50}deg)`,
+                            }}
+                          /> */}
+
+                          <Cropper
+                            image={objectUrl || src}
+                            crop={crop}
+                            zoom={zoom / 50}
+                            aspect={forCover ? 16 / 9 : 1}
+                            onCropChange={(crop) => setCrop(crop)}
+                            onCropComplete={(croppedArea, croppedAreaPixels) => {
+                              console.log(croppedArea, croppedAreaPixels);
+                            }}
+                            onZoomChange={(zoom) => setZoom(zoom * 50)}
+
+                          />
+                        </div>
+                      </> :
+                        <div
+                          style={{
+                            width: "300px",
+                            height: "300px",
+                            borderRadius: "50%",
+                            overflow: "hidden",
+                            margin: "0 auto",
+                            position: "relative",
+                          }}
+                        >
+                          <Cropper
+                            image={objectUrl || src}
+                            crop={crop}
+                            zoom={zoom / 50}
+                            aspect={forCover ? 16 / 9 : 1}
+                            onCropChange={(crop) => setCrop(crop)}
+                            onCropComplete={(croppedArea, croppedAreaPixels) => {
+                              console.log(croppedArea, croppedAreaPixels);
+                            }}
+                            onZoomChange={(zoom) => setZoom(zoom * 50)}
+                          />
+                        </div>
+                    }
+                    <div className="mt-4">
+                      <h6>Crop</h6>
+                      <Form.Label>Zoom</Form.Label>
+                      <Form.Range style={{zIndex:999}} value={zoom} onChange={handleZoomChange} />
+                      <Form.Label>Straighten</Form.Label>
+                      <Form.Range style={{zIndex:999}} value={straighten} onChange={handleStraightenChange} />
+                    </div>
+                    <div className="d-flex justify-content-center mt-3">
+                      <Button variant="primary" onClick={FinalUpload} disabled={loading} style={{zIndex:9999}}>
+                        {loading ? (
+                          <>
+                            <Spinner
+                              as="span"
+                              animation="border"
+                              size="sm"
+                              role="status"
+                              aria-hidden="true"
+                            />{" "}
+                            Uploading...
+                          </>
+                        ) : (
+                          "Set Profile Image"
+                        )}
+                      </Button>
+                    </div>
+                  </Container>
+                </Modal.Body>
+              )
+            case 1: return (
+              <>
+                <Modal.Body className="text-center">
+                  <h5>{user?.firstName}, {forCover ? "Personalize your cover photo" : "help others recognize you!"}</h5>
+                  {
+                    forCover ? <>
+
+                      <div
+                        className="h-200px rounded-top"
+                        style={{
+                          overflow: "hidden",
+                          margin: "0 auto",
+                          backgroundPosition: 'center',
+                          backgroundSize: 'cover',
+                          backgroundRepeat: 'no-repeat',
+
+                        }}
+                      >
+                        {/* <Image
+                          src={objectUrl || src} // Replace with your actual image source
+                          alt="Profile"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            transform: `scale(${zoom / 50}) rotate(${straighten - 50}deg)`,
+                          }}
+
+                        /> */}
+                        <Cropper
+                          image={objectUrl || src}
+                          crop={crop}
+                          zoom={zoom / 50}
+                          aspect={forCover ? 16 / 9 : 1}
+                          onCropChange={(crop) => setCrop(crop)}
+                          onCropComplete={(croppedArea, croppedAreaPixels) => {
+                            console.log(croppedArea, croppedAreaPixels);
+                          }}
+                          onZoomChange={(zoom) => setZoom(zoom * 50)}
+                        />
+                      </div>
+
+
+                    </> :
+
+                      <div
+                        style={{
+                          width: "100px",
+                          height: "100px",
+                          borderRadius: "50%",
+                          overflow: "hidden",
+                          margin: "0 auto",
+                          position: "relative",
+                        }}
+                      >
+                        <Image
+                          src={objectUrl || src} // Replace with your actual image source
+                          alt="Profile"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            transform: `scale(${zoom / 50}) rotate(${straighten - 50}deg)`,
+                          }}
+                        />
+                      </div>
+                  }
+                  <p>
+                    On Businessroom, we require members to use their real identities, so take
+                    or upload a {forCover ? 'cover photo' : "photo"} of yourself. Then crop, filter, and adjust it to
+                    perfection.
+                  </p>
+                </Modal.Body>
+                <Modal.Footer className="d-flex justify-content-center">
+                  <Form.Group>
+                    <Form.Label htmlFor="fileInput" className="btn btn-primary">
+                      Upload photo
+                    </Form.Label>
+                    <Form.Control
+                      type="file"
+                      id="fileInput"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={handleFileChange}
+                    />
+                  </Form.Group>
+                </Modal.Footer>
+              </>
+            )
+            default:
+              return <p>No content available for this case.</p>;
+          }
+        })()}
+      </Modal.Body>
     </Modal>
   );
 };
+
+
 
 export default EditProfilePictureModal;

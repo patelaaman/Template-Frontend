@@ -1,66 +1,124 @@
-import { useEffect, useState } from 'react';
-import 'react-toastify/dist/ReactToastify.css';
+import { useEffect, useState } from "react";
+import "react-toastify/dist/ReactToastify.css";
 import { ConnectionRequest } from "@/layouts/ProfileLayout";
-import MyConnections from '@/assets/data/clone/MyConnections';
-import ConnectionsStatus from '@/assets/data/clone/ConnectionsStatus';
-import SuggestedConnections from '@/assets/data/clone/SuggestedConnections';
-import { FaUserFriends, FaUserCheck, FaUserPlus, FaUsers } from 'react-icons/fa';
-import PageMetaData from '@/components/PageMetaData';
-import { useSearchParams } from 'react-router-dom';
+import MyConnections from "@/assets/data/clone/MyConnections";
+import ConnectionsStatus from "@/assets/data/clone/ConnectionsStatus";
+import SuggestedConnections from "@/assets/data/clone/SuggestedConnections";
+import { FaUserFriends, FaUserCheck, FaUserPlus, FaUsers } from "react-icons/fa";
+import PageMetaData from "@/components/PageMetaData";
+import { useSearchParams } from "react-router-dom";
 
 const ManageConnections = () => {
-  
-  const [searchParams] = useSearchParams();
-  const [step, setStep] = useState(0); // Default step
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
-    let index = searchParams.get("t");
-    if (index === null) index = "0";
-
+    let index = searchParams.get("t") || "0";
     let parsedIndex = parseInt(index, 10);
     if (isNaN(parsedIndex)) parsedIndex = 0;
-    
-    setStep(parsedIndex % 4); // Ensure it's within bounds
-  }, [searchParams]); // Run effect when searchParams change
+    setStep(parsedIndex % 4);
+  }, [searchParams]);
 
   const sections = [
-    { title: "My Connections", icon: <FaUserPlus style={{ marginRight: "8px" }} />, component: <MyConnections /> },
-    { title: "Request Sent", icon: <FaUserCheck style={{ marginRight: "8px" }} />, component: <ConnectionsStatus /> },
-    { title: "Request Received", icon: <FaUserFriends style={{ marginRight: "8px" }} />, component: <ConnectionRequest /> },
-    { title: "Suggested Connections", icon: <FaUsers style={{ marginRight: "8px" }} />, component: <SuggestedConnections /> },
+    { title: "My Connections", icon: <FaUserPlus className="icon" style={{ color: "#007bff" }} />, component: <MyConnections /> },
+    { title: "Request Sent", icon: <FaUserCheck className="icon" style={{ color: "#28a745" }} />, component: <ConnectionsStatus /> },
+    { title: "Request Received", icon: <FaUserFriends className="icon" style={{ color: "#ffc107" }} />, component: <ConnectionRequest /> },
+    { title: "Connect 'n' Grow", icon: <FaUsers className="icon" style={{ color: "#17a2b8" }} />, component: <SuggestedConnections /> },
   ];
 
   const setCurrentSection = (index) => {
     setStep(index);
+    setSearchParams({ t: index });
   };
 
   return (
-    <div style={{padding:"0px", marginRight:"6.5%", width:"94.5%"}}>
-      
-      <PageMetaData title='ManageConnections'/>
-      
-      <div className="d-flex justify-content-center mb-4 flex-wrap"   >
-        {sections.map((section, index) => (
-          <button
-            key={index}
-            type="button"
-            className="btn mx-2 mb-2 d-flex align-items-center"
-            style={{
-              backgroundColor: step === index ? '#1ea1f2' : 'transparent',
-              borderColor: '#1ea1f2',
-              color: step === index ? 'white' : '#1ea1f2'
-            }}
-            onClick={() => setCurrentSection(index)}
-          >
-            {section.icon} {section.title}
-          </button>
-        ))}
+    <div className="container-fluid px-0">
+      <PageMetaData title="Manage Connections" />
+      <div className="card p-4 shadow-sm rounded">
+        <div className="tabs-container">
+          {sections.map((section, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`tab-btn ${step === index ? "active" : ""}`}
+              onClick={() => setCurrentSection(index)}
+            >
+              <div className="icon">{section.icon}</div>
+              <span className="title">{section.title}</span>
+            </button>
+          ))}
+        </div>
+        <div className="content-container p-4">{sections[step].component}</div>
       </div>
+      <style>
+        {`
+          .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            margin: auto;
+            font-family: 'Arial', sans-serif;
+          }
+          
+          .tab-btn {
+            background: white;
+            border: 2px solid #d6d6d6;
+            border-radius: 12px;
+            color: black;
+            width: 180px;
+            height: 80px;
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin: 10px;
+            font-family: 'Arial', sans-serif;
+          }
 
-      <div style={{width:"106%"}}>
-        {sections[step].component}
-      </div>
-    
+          .tab-btn.active {
+            border: 2px solid #007bff;
+            color: #007bff;
+            
+          }
+
+          .icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+          }
+
+          .title {
+            font-size: 14px;
+          }
+
+          .tabs-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            gap: 5px;
+          }
+
+          .content-container {
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+          }
+        `}
+      </style>
     </div>
   );
 };

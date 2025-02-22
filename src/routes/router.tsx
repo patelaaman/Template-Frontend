@@ -21,9 +21,9 @@ import VisitProfile from '@/components/VisitProfile'
 import { io } from 'socket.io-client'
 import { useEffect } from 'react'
 import { SOCKET_URL } from '@/utils/api'
-import { LIVE_URL } from '@/utils/api'
 import { useOnlineUsers } from '@/context/OnlineUser.'
 import { useUnreadMessages } from '@/context/UnreadMessagesContext'
+import GeneralForm from '@/app/(plain)/GeneralForm.tsx/GeneralForm'
 
 
 //api/v1/chat/get-messages-unread
@@ -39,7 +39,7 @@ const AppRouter = (props: RouteProps) => {
   const { isAuthenticated } = useAuthContext()
   const {fetchOnlineUsers} = useOnlineUsers()
   const {fetchUnreadMessages} = useUnreadMessages()
-
+  // isAuthenticated = true
 
   
     // useEffect(() => {
@@ -64,10 +64,10 @@ const AppRouter = (props: RouteProps) => {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchOnlineUsers();
-    }, 60000);
+    }, 7000);
 
     return () => clearInterval(interval);
-  }, [fetchOnlineUsers])
+  }, [fetchOnlineUsers,user?.id])
   //  useEffect(() => {
   //     if (user) {
   //       socket.emit("userOnline", user.id);
@@ -83,37 +83,79 @@ const AppRouter = (props: RouteProps) => {
   //       }
   //     };
   //   }, [user]);
+
+
   useEffect(() => {
-    // Mark user as online when component mounts
-    socket.emit("userOnline", user?.id); // Replace 'user123' with dynamic user info
-    socket.on('newMessage', async () => {
-      if (user?.id) {
-        await fetchUnreadMessages();
-      }
-    });
-    socket.on('messageRead', async () => {
-      if (user?.id) {
-        await fetchUnreadMessages();
-      }
-    });
+    if (!user?.id) return;
+  
+    socket.emit("userOnline", user.id);
+  
+    const handleNewMessage = async () => {
+      // console.log("------________newMessage______-----");
+      if (user?.id) await fetchUnreadMessages();
+      // console.log("------________ After Fetch newMessage______-----");
+    };
+  
+    const handleMessageRead = async () => {
+     console.log("messageRead");
+     fetchUnreadMessages();
+    };
+  
+    // socket.on("newMessage", handleNewMessage);
+    socket.on("messageRead", handleMessageRead);
+  
     const handleBeforeUnload = () => {
-      socket.emit("userOffline", user?.id); // Mark user as offline
-      // socket.emit("userOffline", user?.id); // Mark user as offline
+      socket.emit("userOffline", user.id);
     };
-
-    // Add 'beforeunload' event listener to handle tab closure
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Cleanup event listener when component unmounts
+  
+    window.addEventListener("beforeunload", handleBeforeUnload);
+  
     return () => {
-      // Emit useroffline on unmount as well (in case the user navigates away)
-      socket.emit("userOffline", user?.id);
-      // socket.emit("userOffline", user?.id);
-      
-      // Remove event listener to avoid memory leaks
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      socket.emit("userOffline", user.id);
+      socket.off("newMessage", handleNewMessage);
+      socket.off("messageRead", handleMessageRead);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [user?.id]);
+  }, [user?.id,socket]);
+  
+
+
+  // useEffect(() => {
+  //   // Mark user as online when component mounts
+  //   socket.emit("userOnline", user?.id); // Replace 'user123' with dynamic user info
+  //   socket.on('newMessage', async () => {
+  //     if (user?.id) {
+  //       await fetchUnreadMessages();
+  //     }
+  //   });
+  //   socket.on('messageRead', async () => {
+  //     console.log('messageRead')
+  //     if (user?.id) {
+  //       await fetchUnreadMessages();
+  //     }
+  //   });
+  //   const handleBeforeUnload = () => {
+  //     socket.emit("userOffline", user?.id); // Mark user as offline
+  //     // socket.emit("userOffline", user?.id); // Mark user as offline
+  //   };
+  //   // Add 'beforeunload' event listener to handle tab closure
+  //   window.addEventListener('beforeunload', handleBeforeUnload);
+
+  //   // Cleanup event listener when component unmounts
+  //   return () => {
+  //     // Emit useroffline on unmount as well (in case the user navigates away)
+  //     socket.emit("userOffline", user?.id);
+  //     // socket.emit("userOffline", user?.id);
+      
+  //     // Remove event listener to avoid memory leaks
+  //     window.removeEventListener('beforeunload', handleBeforeUnload);
+  //   };
+  // }, [user?.id]);
+
+
+
+
+  
 //   useEffect(() => {
 //     if (!user?.id) return;
 
@@ -234,6 +276,7 @@ const AppRouter = (props: RouteProps) => {
       <Route path='/founder' element={<Founderforms></Founderforms>} />
       <Route path='/marketplacedetails/:id' element={<MarketplaceDetails/>}></Route>
       <Route path='/profile-visitors' element={<VisitProfile/>}></Route>
+      <Route path='/generalprofile' element={<GeneralForm></GeneralForm>}></Route>
     </Routes>
   )
 }

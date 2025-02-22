@@ -6,6 +6,7 @@ import Picker from 'emoji-picker-react'
 import { useAuthContext } from '@/context/useAuthContext'
 import GifPicker from 'gif-picker-react'
 import useToggle from '@/hooks/useToggle'
+import { useLastMessage } from '@/context/LastMesageContext'
 import { useOnlineUsers } from '@/context/OnlineUser.'
 import { formatDistanceToNow } from 'date-fns'
 import { type ChatMessageType, type UserType } from '@/types/data'
@@ -39,7 +40,7 @@ import { useUnreadMessages } from '@/context/UnreadMessagesContext'
 import SimplebarReactClient from '../wrappers/SimplebarReactClient'
 import avatar from '@/assets/images/avatar/default avatar.png'
 import avatar10 from '@/assets/images/avatar/10.jpg'
-import { SOCKET_URL } from '@/utils/api'
+import { SOCKET_URL, LIVE_URL } from '@/utils/api'
 
 const socket = io(`${SOCKET_URL}`, {
   // path: "/socket.io",
@@ -202,6 +203,9 @@ const Messaging = () => {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null)
   const [messageMap, setMessageMap] = useState<{ [key: string]: string }>({}) // Track messages per user
   const [isOpenCollapseToast, setIsOpenCollapseToast] = useState<{ [key: string]: boolean }>({})
+  const [originalMessages, setOriginalMessages] = useState<UserType[]>([])
+  const {changeActiveChat} = useChatContext();
+  const { lastMessages } = useLastMessage()
   const messageSchema = yup.object({
     newMessage: yup.string().required('Please enter message'),
   })
@@ -209,6 +213,21 @@ const Messaging = () => {
   const { reset, handleSubmit, control, getValues, setValue } = useForm({
     resolver: yupResolver(messageSchema),
   })
+
+  useEffect(() => {
+    if (allUserMessages.length > 0) {
+      // console.log(lastMessages);
+      const updatedChats = allUserMessages.map(user => {
+        const lastMessage = lastMessages[user.userId]; 
+        return {
+          ...user,
+          lastMessage: lastMessage ? lastMessage : 'No message yet'
+        };
+      });
+      setAllUserMessages(updatedChats);
+      setIsLoading(false);
+    }
+  }, [allUserMessages]);
 
   useEffect(() => {
     if (!selectedUser) return
@@ -245,6 +264,7 @@ const Messaging = () => {
         data: { userId: user?.id, profileId: user?.id },
       })
       setAllUserMessages(res.connections)
+      setOriginalMessages(res.connections)
     } catch (error) {
       console.error(error)
     } finally {
@@ -257,40 +277,47 @@ const Messaging = () => {
   }, [page])
 
   const fetchMessages = useCallback(async () => {
-    if (!selectedUser) return
-    setIsLoading(true)
-
+    if (!selectedUser) return;
+    setIsLoading(true);
+  
     try {
       const response = await makeApiRequest<{ data: { messages: ChatMessageType[]; total: number } }>({
-        method: 'POST',
-        url: 'api/v1/chat/get-messages-user-wise',
+        method: "POST",
+        url: "api/v1/chat/get-messages-user-wise",
         data: {
           senderId: user?.id,
           receiverId: selectedUser.userId,
           page,
           limit: 100,
         },
-      })
+      });
+  
       if (response?.data?.messages) {
         if (response.data.total === 0) {
-          setHasMore(false)
+          setHasMore(false);
         } else {
-          const sortedMessages = response.data.messages.sort((a, b) => new Date(a.sentOn).getTime() - new Date(b.sentOn).getTime())
+          const sortedMessages = [...response.data.messages] // Ensure a new array
+            .sort((a, b) => new Date(a.sentOn).getTime() - new Date(b.sentOn).getTime())
+            .reverse(); // Reverse immediately
+  
+          // console.log("Final reversed messages:", sortedMessages);
+  
           setUserMessages((prevMessages) => ({
             ...prevMessages,
-            [selectedUser.userId]: sortedMessages.reverse(),
-          }))
+            [selectedUser.userId]: sortedMessages,
+          }));
         }
       }
     } catch (error) {
-      console.error('Error fetching messages:', error)
+      console.error("Error fetching messages:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [selectedUser?.userId, page, user])
+  }, [selectedUser?.userId, page, user]);
+  
 
   const sendChatMessage = async (values, chatUser) => {
-    console.log('values', values)
+    // console.log('values', values)
     if (!values.newMessage || !chatUser) return
 
     const newMessage = {
@@ -339,7 +366,9 @@ const Messaging = () => {
     setIsGifPickerVisible(false)
   }
 
-  const handleUserToggle = (user) => {
+ 
+
+  const handleUserToggle = async (user) => {
     setOpenToasts((prevState) => ({
       ...prevState,
       [user.userId]: !prevState[user.userId],
@@ -351,9 +380,24 @@ const Messaging = () => {
       if (updatedChats.length > 3) {
         updatedChats.shift()
       }
-
       return updatedChats
     })
+    console.log("triggering----------")
+
+    changeActiveChat(user.userId);
+    console.log(user,"-----user-----")
+    try {
+      await fetch(`${LIVE_URL}/api/v1/chat/mark-as-read`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ senderId: user.userId, receiverId: user?.id }),
+      });
+    } catch (error) {
+      console.error("Failed to mark messages as read:", error);
+    }
+
     setSelectedUser(user)
     fetchMessages()
     setIsOpenCollapseToast((prevState) => ({
@@ -393,8 +437,8 @@ const Messaging = () => {
           placeholder="Search users..."
           onChange={(e) => {
         const searchTerm = e.target.value.toLowerCase();
-        if (searchTerm === '') {
-          fetchChatsList(); // Reset to original list when input is cleared
+        if (searchTerm == '') {
+          setAllUserMessages(originalMessages);
         } else {
           const filteredUsers = allUserMessages.filter((user) =>
             `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm)

@@ -2,73 +2,50 @@ import {
   Button,
   Card,
   Col,
-  Dropdown,
-  DropdownDivider,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
   Image,
   Modal,
   ModalBody,
   ModalFooter,
   ModalHeader,
   OverlayTrigger,
-  Row,
   Tooltip,
 } from 'react-bootstrap'
-import Skeleton from 'react-loading-skeleton'
 
 import 'react-loading-skeleton/dist/skeleton.css'
 import {
-  BsBookmarkCheck,
   BsCalendar2EventFill,
   BsCameraReels,
   BsCameraReelsFill,
   BsCameraVideoFill,
   BsEmojiSmileFill,
-  BsEnvelope,
-  BsFileEarmarkText,
   BsGeoAltFill,
   BsImageFill,
   BsImages,
-  BsPencilSquare,
   BsTagFill,
-  BsThreeDots,
 } from 'react-icons/bs'
+import { LIVE_URL } from '@/utils/api'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import useToggle from '@/hooks/useToggle'
 import DropzoneFormInput from '../form/DropzoneFormInput'
-import TextFormInput from '../form/TextFormInput'
-import TextAreaFormInput from '../form/TextAreaFormInput'
-import DateFormInput from '../form/DateFormInput'
-import avatar1 from '@/assets/images/avatar/default avatar.png'
-import avatar2 from '@/assets/images/avatar/02.jpg'
-import avatar3 from '@/assets/images/avatar/03.jpg'
-import avatar4 from '@/assets/images/avatar/04.jpg'
-import avatar5 from '@/assets/images/avatar/05.jpg'
-import avatar6 from '@/assets/images/avatar/06.jpg'
 import avatar7 from '@/assets/images/avatar/default avatar.png'
 import ChoicesFormInput from '../form/ChoicesFormInput'
 import { Link } from 'react-router-dom'
 import { SendHorizontal } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import makeApiRequest from '@/utils/apiServer'
-import { CREATE_POST, LIVE_URL } from '@/utils/api'
+import { CREATE_POST } from '@/utils/api'
 import { FileUpload, uploadDoc, uploadMulti } from '@/utils/CustomS3ImageUpload'
-import { MentionsInput, Mention } from "react-mentions";
-const skeletonBaseColor = '#e3e3e3'
-const skeletonHighlightColor = '#f2f2f2'
 
 interface CreatePostCardProps {
   isCreated: boolean,
   setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
 }
 import { useAuthContext } from '@/context/useAuthContext'
-import UserModel from './UserModel'
 import { Spinner } from "react-bootstrap";
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
+import { toast } from 'react-toastify'
 interface ApiResponse<T> {
   status: number
   data: T
@@ -85,6 +62,19 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [thoughts, setThoughts] = useState('')
+  const [photoQuote, setPhotoQuote] = useState('')
+  const [videoQuote, setVideoQuote] = useState('')
+  const [awsIds, setAwsIds] = useState<any>([])
+  const [skeletonLoading, setSkeletonLoading] = useState(true)
+  const { isTrue: isOpenPost, toggle: togglePost } = useToggle()
+  const [profile, setProfile] = useState<UserProfile>({})
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [mentionMap, setMentionMap] = useState<Record<string, string>>({});
+  const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false);
+  const textareaRef = useRef(null);
+
   const eventFormSchema = yup.object({
     title: yup.string().required('Please enter event title'),
     description: yup.string().required('Please enter event description'),
@@ -97,16 +87,6 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     resolver: yupResolver(eventFormSchema),
   })
 
-  const [thoughts, setThoughts] = useState('')
-  const [photoQuote, setPhotoQuote] = useState('')
-  const [videoQuote, setVideoQuote] = useState('')
-  const [awsIds, setAwsIds] = useState<any>([])
-  const [skeletonLoading, setSkeletonLoading] = useState(true)
-  const { isTrue: isOpenPost, toggle: togglePost } = useToggle()
-
-  // const {user} = useAuthContext();
-  const [profile, setProfile] = useState<UserProfile>({})
-
   useEffect(() => {
     if (modelTime) {
       return
@@ -114,12 +94,10 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     fetchUser()
   }, [])
 
-
-
   const fetchUser = async () => {
     try {
       setSkeletonLoading(true)
-      const response = await fetch('http://13.216.146.100/api/v1/auth/get-user-Profile', {
+      const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,152 +121,70 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
     }
   }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    const options = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
+  const handleFileUpload = async (files: FileUpload[]) => {
+    setUploadProgress(0); // Reset progress
+    setUploadedFiles(prevFiles => [...prevFiles, ...files]);
+    const result = await uploadDoc(files, user?.id, (progress) => {
+      setUploadProgress(progress);
+    });
+
+    if (result) {
+      toast.success('File uploaded successfully!');
     }
-    return date.toLocaleString('en-GB', options).replace(',', ' at')
-  }
-
-  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
-
-  // This function will be triggered when files are uploaded
-  const handleFileUpload = (files: FileUpload[]) => {
-    if (files.length >= 9) {
-      alert('Max Limit Reached');
-      return;
-    }
-    setUploadedFiles([...uploadedFiles, ...files])
-  }
-
-  // console.log('---- photo uploading -----', uploadedFiles)
+  };
 
   const handleUpload = async () => {
     try {
-      const response = await uploadMulti(uploadedFiles, user?.id) // Await the uploadDoc promise
-      console.log('---- response in the upload doc function ----', response)
-      return response
+      if (uploadedFiles.length === 0) {
+        toast.error("No Photos or Videos are Uploaded");
+        return null;
+      }
+      const mediaKeys = await uploadMulti(uploadedFiles, user?.id);
+      return mediaKeys.length > 0 ? mediaKeys : null;
     } catch (err) {
-      console.error('Error in the createpostcard:', err)
-      return false // Indicate failure
+      console.error("Error in handleUpload:", err);
+      return null;
     }
-  }
-
-  const handlePhotoSubmit = async () => {
+  };
+  const handleMediaSubmit = async () => {
     if (uploadedFiles.length === 0) {
-      alert('No Photos are Uploaded');
+      toast.error("No Photos or Videos are Uploaded");
       return;
     }
-    setIsSubmittingPhoto(true);
-    const uploadSuccess = await handleUpload()
 
+    setIsSubmittingPhoto(true);
 
     try {
-      // Wait for handleUpload to complete before proceeding
-
-      if (uploadSuccess) {
-        // Regular expression to match hashtags
-        const hashtagRegex = /#\w+/g
-        const hashtags = photoQuote.match(hashtagRegex) || []
-
-        // console.log('-------------awsIds----------------------------- :', awsIds)
-        // Making the API request
+      togglePhotoModel();
+      const mediaKeys = await handleUpload();
+      if (mediaKeys && mediaKeys.length > 0) {
         const response = await makeApiRequest<ApiResponse<{ url: string }>>({
-          method: 'POST',
+          method: "POST",
           url: CREATE_POST,
           data: {
             userId: user?.id,
-            content: photoQuote,
-            hashtags: hashtags,
-            mediaKeys: uploadSuccess,
+            content: thoughts,
+            mediaKeys: mediaKeys,
           },
-        })
+        });
         if (response.data) {
-          console.log('went inside')
-          setThoughts('') // Reset thoughts after successful post
-          togglePhotoModel()
+          toast.success("Post submitted successfully!");
+          setThoughts("");
         }
       } else {
-        console.log('Upload failed. Post not submitted.')
+        toast.error("Upload failed. Post not submitted.");
       }
     } catch (err) {
-      console.log('Error in the posting', err)
-    }
-    finally {
-      setIsCreated(() => !isCreated)
+      console.error("Error in the posting", err);
+      toast.error("Error in the posting. Please try again.");
+    } finally {
+      setIsCreated((prev) => !prev);
       setIsSubmittingPhoto(false);
       setUploadedFiles([]);
+      setThoughts("");
     }
-  }
+  };
 
-  const handleVideoSubmit = async () => {
-    if (uploadedFiles.length === 0) {
-      alert('You must add a Video');
-      return;
-    }
-    setIsSubmittingVideo(true);
-    try {
-      // Wait for handleUpload to complete before proceeding
-      const uploadSuccess = await handleUpload()
-      // console.log('video upload success', uploadSuccess)
-
-      if (uploadSuccess) {
-        // Regular expression to match hashtags
-        const hashtagRegex = /#\w+/g
-        const hashtags = videoQuote.match(hashtagRegex) || []
-        // console.log('hashtags match', hashtags)
-        // console.log('---videoupload----', videoQuote)
-        // console.log('---upload success---', uploadSuccess)
-        // Making the API request
-        const data = {
-          userId: user?.id,
-          content: videoQuote,
-          hashtags: hashtags,
-          mediaKeys: uploadSuccess || [],
-        }
-        console.log('video request data', data)
-        const response = await makeApiRequest<ApiResponse<{ url: string }>>({
-          method: 'POST',
-          url: CREATE_POST,
-          data: data,
-        })
-
-        if (response.data) {
-          setThoughts('') // Reset thoughts after successful post
-
-          console.log('isCreated before', isCreated)
-
-          console.log('isCreated after', isCreated)
-        }
-      } else {
-        console.log('Upload failed. Post not submitted.')
-      }
-    } catch (err) {
-      console.log('Error in the posting', err)
-    }
-    finally {
-      setIsSubmittingVideo(false);
-      toggleVideoModel();
-      setUploadedFiles([]);
-      setIsCreated(() => !isCreated)
-    }
-  }
-  // console.log("profile", profile);
-
-  const [show, setShow] = useState(true)
-  const handleClose = () => {
-    setShow(false)
-    setModelTime(false)
-  }
-
-  const handleShow = () => setShow(true)
 
   setTimeout(() => {
     if (profile?.personalDetails?.profilePictureUploadId === null) {
@@ -300,45 +196,38 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   }, 3000)
 
 
-  const handlePostClick = async (values) => {
-    // Check if thoughts is empty
+  const handlePostClick = async (values: any) => {
     if (!thoughts.trim()) {
-      console.log('Thoughts cannot be empty.')
-      alert('Thoughts cannot be empty.')
-      return
+      console.log('Thoughts cannot be empty.');
+      toast.error('Thoughts cannot be empty.');
+      return;
     }
     setIsSubmittingPost(true);
-    try {
-      const hashtagRegex = /#\w+/g
-      const hashtags = thoughts.match(hashtagRegex) || []
+    try {     
       const response = await makeApiRequest<ApiResponse<{ url: string }>>({
         method: 'POST',
         url: CREATE_POST,
         data: {
           userId: user?.id,
-          content: values,
-          hashtags: hashtags,
+          content: processMentionsForSubmission(values),
         },
-      })
-
+      });
+      console.log('ol ----------- response', response);
       if (response.data) {
-        setThoughts('')
-        console.log('isCreated before', isCreated)
-        setIsCreated(() => !isCreated)
-        console.log('isCreated after', isCreated)
+        setThoughts('');
+        console.log('isCreated before', isCreated);
+        setIsCreated(() => !isCreated);
+        toast.success('Post created successfully!');
       }
     } catch (err) {
-      console.log('Error in the posting', err)
+      console.log('Error in the posting', err);
+      toast.error('Error creating the post. Please try again.');
     }
     finally {
       setIsSubmittingPost(false);
       setUploadedFiles([]);
     }
   }
-
-  const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false);
-  const textareaRef = useRef(null);
-
   // Function to handle textarea change
   const handleChange = (e: any) => {
     const value = e.target.value;
@@ -348,13 +237,13 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
 
   // Function to handle photo quote change
   const handleChangePhotoQuote = (e: any) => {
-    setPhotoQuote(e.target.value);
+    setThoughts(e.target.value);
     checkForMention(e.target.value);
   };
 
   // Function to handle video quote change
   const handleChangeVideoQuote = (e: any) => {
-    setVideoQuote(e.target.value);
+    setThoughts(e.target.value);
     checkForMention(e.target.value);
   };
 
@@ -362,23 +251,20 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   const checkForMention = (text: string) => {
     const match = text.match(/@\S*$/);
     if (text.endsWith("@")) {
-      fetchUsers("")
-    }
-    else if (match) {
+      fetchUsers("");
+    } else if (match) {
       fetchUsers(match[0].slice(1));
-    }
-    else {
+    } else {
       setMentionDropdownVisible(false);
     }
   };
 
   // Function to fetch users when '@' is typed
   const fetchUsers = async (query: string) => {
-    if (!query) return; 
-    console.log('query', query);
+    if (!query) return;
 
     try {
-      const response = await fetch("http://13.216.146.100/api/v1/post/mention", {
+      const response = await fetch(`${LIVE_URL}api/v1/post/mention`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user?.id, query: query }),
@@ -394,52 +280,65 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
   };
 
   // Function to insert mention correctly
-  const handleMentionClick = (user: any, type: string) => {
-    const mention = `@${user.userName} `;
-
-    const updateText = (prev: string) => {
-      return prev.replace(/@\S*$/, mention); 
-    };
-
-    if (type === "thoughts") {
-      setThoughts(updateText);
-    } else if (type === "photoQuote") {
-      setPhotoQuote(updateText);
-    } else if (type === "videoQuote") {
-      setVideoQuote(updateText);
-    }
-
+  const handleMentionClick = (mentionedUser: any) => {
+    const mentionDisplay = `@${mentionedUser.fullName}`;
+    const mentionActual = `@${mentionedUser.userName}`;
+    setMentionMap((prev) => ({ ...prev, [mentionDisplay]: mentionActual }));
+    setThoughts((prev) => prev.replace(/@\S*$/, mentionDisplay + " "));
     setMentionDropdownVisible(false);
+  };
+
+  // Function to process text before submitting
+  const processMentionsForSubmission = (text: string) => {
+    let processedText = text;
+
+    // Replace each mention display with actual username
+    Object.entries(mentionMap).forEach(([display, actual]) => {
+      processedText = processedText.replace(display, actual);
+    });
+
+    return processedText;
   };
 
 
   return (
     <>
-      <Card className="card-body" style={{ maxHeight: '10em' }}>
+      <Card className="card-body" style={{ maxHeight: '10em', position: "relative" }}>
+
+        {uploadProgress > 0 && uploadProgress < 99.95 && (
+          <div style={{ position: "absolute", zIndex: 999, top: "9.8em", left: "30%", textAlign: "center" }}>
+            <progress value={uploadProgress} max="100" style={{ width: "300px", height: "10px" }}></progress>
+            <div style={{ marginTop: -10, fontSize: "10px", fontWeight: "bold", color: "#333" }}>
+              {uploadProgress.toFixed(2)}%
+            </div>
+          </div>
+        )}
+
+
         <div className="d-flex mb-3">
           <Link to={`/profile/feed/${user?.id}`}>
             <div className="me-2" style={{ marginTop: "-25px" }}>
               <span role="button">
-              <div
+                <div
+                  style={{
+                    border: '3px solid white',
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    marginTop: '30px'
+                  }}
+                >
+                  <Image
+                    src={profile.profileImgUrl || avatar7} // Replace with your actual image source
+                    alt="Profile"
                     style={{
-                      border : '3px solid white',
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-                      marginTop : '30px'
+                      width: "100%",
+                      height: "100%",
+                      transform: `scale(${(profile.personalDetails?.zoomProfile || 50) / 50}) rotate(${(profile.personalDetails?.rotateProfile || 50) - 50}deg)`,
                     }}
-                  >
-                    <Image
-                      src={profile.profileImgUrl || avatar7} // Replace with your actual image source
-                      alt="Profile"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        transform: `scale(${(profile.personalDetails?.zoomProfile || 50)  / 50}) rotate(${(profile.personalDetails?.rotateProfile || 50) - 50}deg)`,
-                      }}
-                    />
-                  </div>
+                  />
+                </div>
               </span>
             </div>
           </Link>
@@ -458,11 +357,10 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
                 resize: "none",
               }}
               rows={2}
-              placeholder="Share your thoughts, Use @ to mention your connections and # to add topics or keywords"
+              placeholder="Start a post"
               value={thoughts}
               onChange={handleChange}
             />
-
             {/* Mention Dropdown */}
             {mentionDropdownVisible && searchResults.length > 0 && (
               <div
@@ -505,13 +403,13 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           <li className="nav-item d-inline">
             <a className="nav-link bg-light py-2 px-4 mb-2" onClick={togglePhotoModel}>
               <BsImageFill size={20} className="text-success pe-2" />
-              Photo
+              Upload Media
             </a>
           </li>
           <li className="nav-item d-inline">
             <a className="nav-link bg-light py-2 px-4 mb-2" onClick={toggleVideoModel}>
               <BsCameraReelsFill size={20} className="text-info pe-2" />
-              Video
+              Goto Live
             </a>
           </li>
           <li className="nav-item d-inline">
@@ -535,7 +433,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
         aria-hidden="true">
         <ModalHeader closeButton>
           <h5 className="modal-title" id="feedActionPhotoLabel">
-            Add post photo
+            Add post media
           </h5>
         </ModalHeader>
         <ModalBody>
@@ -548,7 +446,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
                 className="form-control pe-4 fs-3 lh-1 border-0"
                 rows={2}
                 onChange={(e) => setPhotoQuote(e.target.value)}
-                placeholder="Share your thoughts, Use @ to mention your connections and # to add topics or keywords"
+                placeholder="Start a post"
                 value={photoQuote} // Only use value for controlled input
 
                 
@@ -567,8 +465,8 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
                     resize: "none",
                   }}
                   rows={2}
-                  placeholder="Share your thoughts, Use @ to mention your connections and # to add topics or keywords"
-                  value={photoQuote}
+                  placeholder="Start a post"
+                  value={thoughts}
                   onChange={handleChangePhotoQuote}
                 />
 
@@ -613,14 +511,19 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
           </div>
           <div>
             <label className="form-label">Upload attachment</label>
-            <DropzoneFormInput icon={BsImages} onFileUpload={handleFileUpload} showPreview text="Drag here or click to upload photo." />
+            <DropzoneFormInput
+              icon={BsImages}
+              onFileUpload={handleFileUpload}
+              showPreview
+              text="Drag here or click to upload media."
+            />
           </div>
         </ModalBody>
         <ModalFooter>
           <button type="button" className="btn btn-danger-soft me-2" data-bs-dismiss="modal" onClick={() => togglePhotoModel()}>
             Cancel
           </button>
-          <button type="submit" onClick={handlePhotoSubmit} className="btn btn-success-soft">
+          <button type="submit" onClick={handleMediaSubmit} className="btn btn-success-soft">
             {isSubmittingPhoto ? <Spinner size="sm" animation="border" /> : "Post"}
           </button>
         </ModalFooter>
@@ -630,7 +533,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
       <Modal centered show={isOpenVideo} onHide={toggleVideoModel} className="fade" id="feedActionVideo" tabIndex={-1}>
         <ModalHeader closeButton>
           <h5 className="modal-title" id="feedActionVideoLabel">
-            Add post video
+            Goto Live
           </h5>
         </ModalHeader>
         <ModalBody>
@@ -638,13 +541,13 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
             <div className="avatar avatar-xs me-2">
               <img className="avatar-img rounded-circle" src={profile.profileImgUrl ? profile.profileImgUrl : avatar7} alt="" />
             </div>
-            <form className="w-100">
+            {/* <form className="w-100">
               <textarea
                 onChange={handleChangeVideoQuote}
-                value={videoQuote}
+                value={thoughts}
                 className="form-control pe-4 fs-3 lh-1 border-0"
                 rows={2}
-                placeholder="Share your thoughts, Use @ to mention your connections and # to add topics or keywords"
+                placeholder="Start a post"
                 defaultValue={''}
               />
 
@@ -683,9 +586,10 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
                 </div>
               )}
 
-            </form>
+            </form> */}
+            <h4>UpComming</h4>
           </div>
-          <div>
+          {/* <div>
             <DropzoneFormInput
               label="Upload attachment"
               onFileUpload={handleFileUpload}
@@ -693,15 +597,15 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
               showPreview
               text="Drag here or click to upload video."
             />
-          </div>
+          </div> */}
         </ModalBody>
         <ModalFooter>
           <Button variant="danger-soft" type="button" className="me-2">
             <BsCameraVideoFill className="pe-1" /> Live video
           </Button>
-          <button type="submit" onClick={handleVideoSubmit} className="btn btn-success-soft">
+          {/* <button type="submit" onClick={handleVideoSubmit} className="btn btn-success-soft">
             {isSubmittingVideo ? <Spinner size="sm" animation="border" /> : "Post"}
-          </button>
+          </button> */}
         </ModalFooter>
       </Modal>
 
@@ -717,7 +621,7 @@ const CreatePostCard = ({ setIsCreated, isCreated }: CreatePostCardProps) => {
               <img className="avatar-img rounded-circle" src={profile.profileImgUrl ? profile.profileImgUrl : avatar7} alt="" />
             </div>
             <form className="w-100">
-              <textarea className="form-control pe-4 fs-3 lh-1 border-0" rows={4} placeholder="Share your thoughts, Use @ to mention your connections and # to add topics or keywords" defaultValue={''} />
+              <textarea className="form-control pe-4 fs-3 lh-1 border-0" rows={4} placeholder="Start a post" defaultValue={''} />
               {mentionDropdownVisible && searchResults.length > 0 && (
                 <div
                   className="position-absolute bg-white shadow rounded w-100 mt-1"

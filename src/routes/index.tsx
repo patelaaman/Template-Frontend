@@ -6,6 +6,9 @@ import VisitProfile from '@/components/VisitProfile'
 import MarketPlace from '@/app/(plain)/MarketPlace/MarketPlace'
 import path from 'path'
 import EditAbout from '@/app/(social)/profile/about/EditAbout'
+import EditInvestor from '@/app/(social)/profile/about/EditInvestor'
+import EditFounder from '@/app/(social)/profile/about/EditFounder'
+import EditGeneral from '@/app/(social)/profile/about/EditGeneral'
 
 // profiles for seller //
 // const BusinessSeller = lazy(() => import('@/app/(plain)/BusinessSeller/BusinessSeller'))
@@ -75,6 +78,7 @@ const ForgotPass = lazy(() => import('@/app/(plain)/(authentication)/auth/forgot
 const SignInAdvance = lazy(() => import('@/app/(plain)/(authentication)/auth-advance/sign-in/page'))
 const SignUpAdvance = lazy(() => import('@/app/(plain)/(authentication)/auth-advance/sign-up/page'))
 const ForgotPassAdvance = lazy(() => import('@/app/(plain)/(authentication)/auth-advance/forgot-pass/page'))
+const ChangePass = lazy(() => import('@/app/(plain)/(authentication)/auth/change-pass/page'))
 
 const NotFoundPage = lazy(() => import('@/app/(social)/(with-topbar)/not-found/page'))
 const OfflinePage = lazy(() => import('@/app/(plain)/offline/page'))
@@ -327,11 +331,26 @@ export const profilePagesRoutes: RoutesProps[] = [
     name: 'Feed',
     element: <ProfileFeed />,
   },
-  // {
-  //   path: '/profile/editabout/:id', 
-  //   name: 'Feed',
-  //   element: <EditAbout></EditAbout>,
-  // },
+  {
+    path: '/profile/editabout/:id', 
+    name: 'Feed',
+    element: <EditAbout></EditAbout>,
+  },
+  {
+    path: '/profile/editinvestor/:id', 
+    name: 'Feed',
+    element: <EditInvestor></EditInvestor>,
+  },
+  {
+    path: '/profile/editfounder/:id', 
+    name: 'Feed',
+    element: <EditFounder></EditFounder>,
+  },
+  {
+    path: '/profile/editgeneral/:id', 
+    name: 'Feed',
+    element: <EditGeneral></EditGeneral>,
+  },
   {
     path: '/profile/about/:id',
     name: 'About',
@@ -369,6 +388,11 @@ export const authRoutes: RoutesProps[] = [
     path: '/auth/sign-in', // change according to  auth/verify-email/verify?token=${verificationToken}
     name: 'Sign In',
     element: <SignIn />,
+  },
+  {
+    path : '/auth/change-password',
+    name : 'Change Password',
+    element : <ChangePass/>
   },
   {
     path: '/auth/verify-email',

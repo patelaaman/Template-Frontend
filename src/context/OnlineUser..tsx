@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuthContext } from './useAuthContext';
 import makeApiRequest from '@/utils/apiServer';
 import { json } from 'stream/consumers';
+import { LIVE_URL } from '@/utils/api';
 interface OnlineUsersContextProps {
     onlineUsers: string[];
     fetchOnlineUsers: () => void;
@@ -20,7 +21,7 @@ export const OnlineUsersProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
         }
 
         try {
-            const response = await fetch('http://13.216.146.100/api/v1/auth/online-users', {
+            const response = await fetch(`${LIVE_URL}api/v1/auth/online-users`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -31,22 +32,19 @@ export const OnlineUsersProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            console.log('data',data.data.activeUsers)
             setOnlineUsers(data.data.activeUsers);
             const userIds = data.data.activeUsers.map((user: any) => user.userId);
             setOnlineUsers(userIds);
             
         } catch (error) {
             console.error('Error fetching online users:', error);
-            setOnlineUsers([]); // Handle errors gracefully
+            setOnlineUsers([]);
         }
     };
 
     useEffect(() => {
         fetchOnlineUsers();
-
-        // Polling every 1 minute to update the list of online users
-        const interval = setInterval(fetchOnlineUsers, 60000);
+        const interval = setInterval(fetchOnlineUsers, 7000);
         return () => clearInterval(interval);
     }, []);
 

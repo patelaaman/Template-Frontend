@@ -1,5 +1,5 @@
-import React, { useState,useEffect } from "react";
-import { Col, Row } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Button, Card, CardBody, CardHeader, CardTitle, Col, Modal, ModalBody, ModalFooter, ModalHeader, Row } from "react-bootstrap";
 import Feeds from "./components/Feeds";
 import Followers from "./components/Followers";
 import { io } from "socket.io-client";
@@ -8,7 +8,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useOnlineUsers } from "@/context/OnlineUser.";
 import LoadContentButton from "@/components/LoadContentButton";
 import { useAuthContext } from "@/context/useAuthContext";
-import {  LIVE_URL, SOCKET_URL } from "@/utils/api";
+import { LIVE_URL, SOCKET_URL } from "@/utils/api";
+import { useLastMessage } from "@/context/LastMesageContext";
+import NewsComponent from "./NewsComponent";
 
 
 export interface PersonalDetails {
@@ -60,14 +62,13 @@ const socket = io(`${SOCKET_URL}`, {
 
 const Home = () => {
   const [isCreated, setIsCreated] = useState(false);
-  const { user} = useAuthContext();
-  const {fetchOnlineUsers} = useOnlineUsers();
+  const { user } = useAuthContext();
+  const { fetchOnlineUsers } = useOnlineUsers();
   const navigate = useNavigate();
-  // const [profile,setProfile] = useState({});
-  console.log('Home reloads')
+  const { fetchLastMessage } = useLastMessage();
+  
 
-  const [profile,setProfile] = useState<UserProfile>({});
-  // Theek se merge karo isse mat hatao please 🙏
+  const [profile, setProfile] = useState<UserProfile>({});
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -78,31 +79,53 @@ const Home = () => {
           },
           body: JSON.stringify({
             userId: user?.id,
-            //profileId: user?.id,
           }),
-        })
-  
+        });
+
         if (!response.ok) {
-          //  navigate('/not-found')
-          throw new Error('Network response was not ok')
+          throw new Error('Network response was not ok');
         }
-        if (response.status === 404) {
-          // navigate('/not-found')
-        }
-        const data = await response.json()
-        
+
+        const data = await response.json();
         setProfile(data?.data);
       } catch (error) {
-        console.error('Error fetching user profile:', error)
-      } 
-    }
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    const fetchConnections = async () => {
+      try {
+        const res = await fetch(`${LIVE_URL}api/v1/connection/get-connection-list`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user?.id,
+            profileId: user?.id,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const connectionData = await res.json();
+        // console.log('Connection Data:', connectionData.connections);
+        connectionData.connections.forEach((connection: { userId: string }) => {
+          fetchLastMessage(connection.userId);
+        });
+        // Handle connection data if needed
+      } catch (error) {
+        console.error('Error fetching connection list:', error);
+      }
+    };
+
     fetchUser();
-  },[user.id])
-;
+    fetchConnections();
+  }, [user?.id]);
 
-
-
-  
+ 
 
   return (
     <>
@@ -111,10 +134,10 @@ const Home = () => {
         lg={6}
         id="scrollableDiv"
         style={{
-         
+
           position: 'sticky', // Ensure the container's position is suitable for scrolling
-       // Enables vertical scrolling
-           // Sets a height limit for scrolling
+          // Enables vertical scrolling
+          // Sets a height limit for scrolling
           WebkitOverflowScrolling: 'touch', // Smooth scrolling for iOS
           marginLeft: '0',
           scrollbarWidth: 'none', /* Firefox: Hide scrollbar */
@@ -124,65 +147,29 @@ const Home = () => {
       >
 
 
-       
-      <CreatePostCard setIsCreated={setIsCreated} isCreated={isCreated} />       
-        <Feeds isCreated={isCreated}  setIsCreated={setIsCreated} profile={profile}/>
+
+        <CreatePostCard setIsCreated={setIsCreated} isCreated={isCreated} />
+        <Feeds isCreated={isCreated} setIsCreated={setIsCreated} profile={profile} />
       </Col>
 
-      <Col lg={3} 
-        style={{ 
-          marginTop : '0px', 
-          height : '44rem',   
-          maxHeight:"70em",
+      <Col lg={3}
+        style={{
+          marginTop: '0px',
+          height: '44rem',
+          maxHeight: "70em",
           //  /* Enable vertical scrolling */
           // scrollbarWidth: 'none', /* Firefox: Hide scrollbar */
           // msOverflowStyle: 'none', /* IE 10+: Hide scrollbar */
-      }}>
+        }}>
         <Row className="g-4">
           <Col sm={6} lg={12} >
-            <div style={{marginTop : '23px'}}>
-             <Followers />
+            <div style={{ marginTop: '23px' }}>
+              <Followers />
             </div>
           </Col>
 
-          <Col sm={6} lg={12} style={{}}>
-            {/* <Card>
-              <CardHeader className="pb-0 border-0">
-                <CardTitle className="mb-0">Businessroom News</CardTitle>
-              </CardHeader>
-              <CardBody>
-                <div className="mb-3">
-                  <h6 className="mb-0">
-                    <Link to="/blogs/details">Ten questions you should answer truthfully</Link>
-                  </h6>
-                  <small>2hr</small>
-                </div>
+        <NewsComponent/>
 
-                <div className="mb-3">
-                  <h6 className="mb-0">
-                    <Link to="/blogs/details">Five unbelievable facts about money</Link>
-                  </h6>
-                  <small>3hr</small>
-                </div>
-
-                <div className="mb-3">
-                  <h6 className="mb-0">
-                    <Link to="/blogs/details">Best Pinterest Boards for learning about business</Link>
-                  </h6>
-                  <small>4hr</small>
-                </div>
-
-                <div className="mb-3">
-                  <h6 className="mb-0">
-                    <Link to="/blogs/details">Skills that you can learn from business</Link>
-                  </h6>
-                  <small>6hr</small>
-                </div>
-
-                <LoadContentButton name="View all latest news" />
-              </CardBody>
-            </Card> */}
-          </Col>
         </Row>
       </Col>
     </>

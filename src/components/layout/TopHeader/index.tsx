@@ -202,7 +202,7 @@ const TopHeader = () => {
           </li>
 
           {/* 🔔 Notification Dropdown */}
-          <NotificationDropdown count={Notificount} />
+          <NotificationDropdown count={Notificount}/>
 
           {/* 👤 Profile Dropdown */}
           <ProfileDropdown />

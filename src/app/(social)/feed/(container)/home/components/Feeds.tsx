@@ -53,8 +53,10 @@ const Feeds = ({ isCreated, setIsCreated, profile }: FeedsProps) => {
   const { fetchOnlineUsers } = useOnlineUsers();
   const [flag, setflag] = useState(false);
 
-
   const fetchPosts = async (pageNumber: number) => {
+    if(pageNumber<=2){
+      setflag(false)
+    }
     setError(null);
     setHasMore(true);
     // console.log('fetching posts');
@@ -72,8 +74,11 @@ const Feeds = ({ isCreated, setIsCreated, profile }: FeedsProps) => {
       }
 
       if (pageNumber === 1) {
+        console.log('1st Posts:', res.data.posts);
         setPosts([...res.data.posts]);
+        // console.log('Posts:', res.data.posts);
       } else {
+        console.log('Posts:', res.data.posts);
         setPosts((previousPosts) => [...previousPosts, ...res.data.posts]);
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -158,9 +163,8 @@ const Feeds = ({ isCreated, setIsCreated, profile }: FeedsProps) => {
   return (
     <>
       <div className="position-relative">
-        {flag && page>=2 && <Link to="/"
+        {flag && page>2 && <Link to="/"
           className="position-fixed start-50 translate-middle-x btn btn-primary"
-          onClick={() => setShowNewPostButton(true)}
           style={{ zIndex: 9999, top: '2em', alignItems: "center", display: "flex", justifyContent: "center", backgroundColor: "#1ea1f2", color: "#fff", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}
         >
           <FaArrowUp color='#fff' /> &nbsp;New posts
@@ -183,8 +187,8 @@ const Feeds = ({ isCreated, setIsCreated, profile }: FeedsProps) => {
           }
         // Matches the id of the scrollable container
         >
-
-          {posts.map((post) => (
+          {/* {console.log(posts,"------------------------------")} */}
+          {posts.map((post,index) => (
             <PostCard
               item={post}
               key={post.post.Id}

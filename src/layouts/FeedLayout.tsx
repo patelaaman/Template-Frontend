@@ -44,6 +44,7 @@ const FeedLayout = ({ children }: ChildrenType) => {
   const { messagingOffcanvas, startOffcanvas } = useLayoutContext()
   const { unreadMessages } = useUnreadMessages()
   const count = unreadMessages.length;
+  console.log("unreadMessages", unreadMessages)
   const { width } = useViewPort()
   return (
     <>
@@ -95,21 +96,22 @@ const FeedLayout = ({ children }: ChildrenType) => {
           </Row>
         </Col>
       </main>
-      <div className="d-none d-lg-block">
+      <div className="d-none d-lg-block" >
         <a
           onClick={messagingOffcanvas.toggle}
-          style={{marginRight : '26px'}}
+          style={{ marginRight: '76px', width: '85px', height: '45px' }}
           className="icon-md btn btn-primary position-fixed end-0 bottom-0 mb-5"
           role="button"
-          aria-controls="offcanvasChat">
-            {count > 0 && (
-              <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ padding: '0.5em', width: '1.5em', height: '1.5em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {count}
-              </span>
-            )}
-          <span>
-            <BsChatLeftTextFill />
+          aria-controls="offcanvasChat"
+          >
+        {count > 0 && (
+          <span className="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-circle" style={{ padding: '0.5em', width: '1.5em', height: '1.5em', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {count}
           </span>
+        )}
+            <span>
+              <BsChatLeftTextFill/> Chat
+            </span>
         </a>
         <Offcanvas
           show={messagingOffcanvas.open}

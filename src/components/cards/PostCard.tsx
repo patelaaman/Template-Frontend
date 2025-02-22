@@ -1,144 +1,163 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { BsFillHandThumbsUpFill, BsImages, BsJustify, BsThreeDots, BsTrash } from 'react-icons/bs';
-import { MdComment, MdThumbUp } from "react-icons/md";
-import { Link, useNavigate } from 'react-router-dom';
-import { Copy, MessageSquare, Repeat, Share, ThumbsUp } from 'lucide-react';
-import { Button, ButtonGroup, Card, CardBody, CardFooter, CardHeader, Image } from 'react-bootstrap';
-import CommentItem from './components/CommentItem';
-import LoadContentButton from '../LoadContentButton';
-import { useAuthContext } from '@/context/useAuthContext';
-import useToggle from '@/hooks/useToggle';
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash, BsExclamationTriangle, BsPersonCheckFill, BsPenFill } from 'react-icons/bs'
+import { RxCross2 } from "react-icons/rx";
+import { MdComment, MdThumbUp } from 'react-icons/md'
+import { Link } from 'react-router-dom'
+import { Copy, EyeOff, MessageSquare, Repeat, Share, ThumbsUp } from 'lucide-react'
+import { Button, ButtonGroup, Card, CardBody, CardFooter, CardHeader, Image } from 'react-bootstrap'
+import CommentItem from './components/CommentItem'
+import LoadContentButton from '../LoadContentButton'
+import { useAuthContext } from '@/context/useAuthContext'
+import useToggle from '@/hooks/useToggle'
 import fallBackAvatar from '@/assets/images/avatar/default avatar.png'
-import VideoPlayer from './components/VideoPlayer';
-import ResponsiveGallery, { UtilType } from './components/MediaGallery';
-import { FaGlobe } from 'react-icons/fa';
-import RepostModal from './RepostModal';
-import { LIVE_URL } from '@/utils/api';
-import { UserProfile } from '@/app/(social)/feed/(container)/home/page';
-import { toast } from 'react-toastify';
-import ImageZoom from './ImageZoom';
+import VideoPlayer from './components/VideoPlayer'
+import ResponsiveGallery, { UtilType } from './components/MediaGallery'
+import { FaGlobe, FaPlus, FaUserCheck, FaUserPlus } from 'react-icons/fa'
+import RepostModal from './RepostModal'
+import { LIVE_URL } from '@/utils/api'
+import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
+import { toast } from 'react-toastify'
+import ImageZoom from './ImageZoom'
+import LikeListModal from './components/LikeListModal'
+import FormatContent from './components/ContentFormating'
+import ReportModal from './ReportPost'
 
-// import { LinkPreview } from '@dhaiwat10/react-link-preview';
-
-import LinkPreview from '@ashwamegh/react-link-preview'
-
-// If you're using built in layout, you will need to import this css
-import '@ashwamegh/react-link-preview/dist/index.css'
-import DropzoneFormInput from '../form/DropzoneFormInput';
-import PhotoUpload from '../form/PhotoUpload';
-import { FileUpload, uploadMulti } from '@/utils/CustomS3ImageUpload';
+import avatar from '@/assets/images/avatar/default avatar.png'
+import { EngageComponent } from './EngageComponent'
+import Loading from '../Loading'
 export interface Like {
-  id: string;
-  occupation: string;
-  password: string;
-  country: string;
-  profilePictureUploadId: string;
-  bgPictureUploadId: string;
-  firstName: string;
-  lastName: string;
-  dob: string; // ISO date string
-  mobileNumber: string | null;
-  emailAddress: string;
-  bio: string | null;
-  gender: string; // "male", "female", or empty string
-  preferredLanguage: string;
-  socialMediaProfile: string;
-  height: string;
-  weight: string;
-  permanentAddress: string | null;
-  currentAddress: string | null;
-  aadharNumberUploadId: string;
-  panNumberUploadId: string;
-  userRole: string;
-  createdBy: string;
-  updatedBy: string;
-  createdAt: string;
-  updatedAt: string;
-  likerUrl: string;
+  id: string
+  occupation: string
+  password: string
+  country: string
+  profilePictureUploadId: string
+  bgPictureUploadId: string
+  firstName: string
+  lastName: string
+  dob: string
+  mobileNumber: string | null
+  emailAddress: string
+  bio: string | null
+  gender: string
+  preferredLanguage: string
+  socialMediaProfile: string
+  height: string
+  weight: string
+  permanentAddress: string | null
+  currentAddress: string | null
+  aadharNumberUploadId: string
+  panNumberUploadId: string
+  userRole: string
+  createdBy: string
+  updatedBy: string
+  createdAt: string
+  updatedAt: string
+  likerUrl: string
+  likedByConnections: string[]
+  commentedByConnections: string[]
 }
 
 export interface Post {
-  Id: string;
-  userId: string;
-  title: string | null;
-  content: string;
-  hashtags: string[];
-  mediaUrls: string[];
-  mediaKeys: string[];
-  likeCount: number;
-  commentCount: number;
-  reactions: Record<string, number>; // Assuming reactions are stored as { emoji: count }
-  userReaction: string | null;
-  isRepost: boolean;
-  repostedFrom?: string;
-  repostText?: string;
-  likeStatus: boolean;
+  Id: string
+  userId: string
+  title: string | null
+  content: string
+  hashtags: string[]
+  mediaUrls: string[]
+  mediaKeys: string[]
+  likeCount: number
+  commentCount: number
+  reactions: Record<string, number> // Assuming reactions are stored as { emoji: count }
+  userReaction: string | null
+  isRepost: boolean
+  repostedFrom?: string
+  repostText?: string
+  reactionId: null | number
+  likeStatus: boolean
+  originalPostedAt?: string
+  createdAt: string
+  originalPostedTimeline: string
 }
 export interface UserDetails {
-  postedId: string;
-  firstName: string;
-  lastName: string;
-  timestamp: string;
-  userRole: string;
-  avatar: string;
-  zoomProfile: number;
-  rotateProfile: number;
+  postedId: string
+  firstName: string
+  lastName: string
+  timestamp: string
+  userRole: string
+  avatar: string
+  zoomProfile: number
+  rotateProfile: number
 }
 
 export interface PostSchema {
-  post: Post;
-  userDetails: UserDetails;
-  comments: any[]; // Define a more specific type if comments have a structure
+  post: Post
+  userDetails: UserDetails
+  comments: any[] // Define a more specific type if comments have a structure
 }
 
 export interface GetAllLikesResponse {
-  status: "success" | "error";
-  message: string;
+  status: 'success' | 'error'
+  message: string
   data?: {
-    likes: Like[];
-  };
-  error?: string;
+    likes: Like[]
+  }
+  error?: string
 }
-
 
 const PostCard = ({
   item,
   profile,
   isCreated,
-  setIsCreated
-}:
-  {
-    item: PostSchema;
-    profile: UserProfile;
-    isCreated: boolean;
-    setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
-  }) => {
+  setIsCreated,
+}: {
+  item: PostSchema
+  profile: UserProfile
+  isCreated: boolean
+  setIsCreated: React.Dispatch<React.SetStateAction<boolean>>
+}) => {
   //  console.log('---profile in post card---',profile);
-  const [comments, setComments] = useState<[]>([]);
-  const [commentText, setCommentText] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuthContext();
-  const [refresh, setRefresh] = useState(0);
-  const [likeStatus, setLikeStatus] = useState<boolean>(false);
-  const [loadMore, setLoadMore] = useState(false);
-  const [preview, setPreview] = useState<any>();
-  const [url, setUrl] = useState("");
-  const post: Post = item?.post;
-  const userInfo = item?.userDetails;
-  const { setTrue, setFalse } = useToggle();
-  const [commentCount, setCommentCount] = useState<number>(post.commentCount || 0);
-  const [likeCount, setLikeCount] = useState<number>(post.likeCount || 0);
-  const [menuVisible, setMenuVisible] = useState<boolean>(false);
-  const [isDeleted, setIsDeleted] = useState<boolean>(false);
-  const [showReactions, setShowReactions] = useState<boolean>(false);
-  const hasMount = useRef(false);
-  const [allLikes, setAllLikes] = useState<Like[]>([]);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const [isExpandedRe, setIsExpandedRe] = useState<boolean>(false);
-  const [openComment, setOpenComment] = useState<boolean>(false);
-  const [showRepostOp, setShowRepostOp] = useState<boolean>(false);
-  const [repostProfile, setRepostProfile] = useState<UserProfile>({});
-  const [close, setClose] = useState<boolean>(true);
+  const [comments, setComments] = useState<[]>([])
+  const [commentText, setCommentText] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuthContext()
+  const [refresh, setRefresh] = useState(0)
+  const [likeStatus, setLikeStatus] = useState<boolean>(false)
+  const [loadMore, setLoadMore] = useState(false)
+  const [preview, setPreview] = useState<any>()
+  const [url, setUrl] = useState('')
+  const post: Post = item?.post
+  const userInfo = item?.userDetails
+  const { setTrue, setFalse } = useToggle()
+  const [commentCount, setCommentCount] = useState<number>(post.commentCount || 0)
+  const [likeCount, setLikeCount] = useState<number>(post.likeCount || 0)
+  const [menuVisible, setMenuVisible] = useState<boolean>(false)
+  const [isDeleted, setIsDeleted] = useState<boolean>(false)
+  const [showReactions, setShowReactions] = useState<boolean>(false)
+  const hasMount = useRef(false)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [allLikes, setAllLikes] = useState<Like[]>([])
+  const [isExpanded, setIsExpanded] = useState<boolean>(false)
+  const [isExpandedRe, setIsExpandedRe] = useState<boolean>(false)
+  const [openComment, setOpenComment] = useState<boolean>(false)
+  const [showRepostOp, setShowRepostOp] = useState<boolean>(false)
+  const [repostProfile, setRepostProfile] = useState<UserProfile>({})
+  const [close, setClose] = useState<boolean>(true)
+  const [showList, setShowList] = useState<boolean>(false)
+  const [mouseOnReactions, setMouseOnReactions] = useState<boolean>(false)
+  const [reactionId, setReactionId] = useState<number | null>(null)
+  const [sentStatus, setSentStatus] = useState<{ [key: string]: boolean }>({})
+  const [loading, setLoading] = useState<string | null>(null)
+  const reactions = [
+    { emoji: '👍', label: 'Like', reactId: 1 },
+    { emoji: '🎉', label: 'Celebrate', reactId: 2 },
+    { emoji: '💪', label: 'Support', reactId: 3 },
+    { emoji: '❤️', label: 'Love', reactId: 4 },
+    { emoji: '💡', label: 'Insightful', reactId: 5 },
+    { emoji: '😂', label: 'Funny', reactId: 6 },
+  ]
+
+  const [hoveredReaction, setHoveredReaction] = useState<string | null>(null)
+
   const utils: UtilType = {
     comments: comments,
     setComments: setComments,
@@ -151,41 +170,109 @@ const PostCard = ({
   }
   useEffect(() => {
     if (post?.likeStatus !== undefined) {
-      setLikeStatus(post.likeStatus);
+      setLikeStatus(post.likeStatus)
     } else {
-      setLikeStatus(false);
+      setLikeStatus(false)
     }
-  }, [post.likeStatus]);
-  const media = post.repostedFrom ? post?.mediaUrls : post?.mediaUrls;
-  const isVideo = media?.length > 0 && (media[0] as string).includes('video/mp4');
+  }, [post.likeStatus])
+  // console.log("-------post--------",post)
+  const media = post.repostedFrom ? post?.mediaUrls : post?.mediaUrls
+  const isVideo = media?.length > 0 && (media[0] as string).includes('video/mp4')
 
-  const handleCopy = (postId: string)=>{
-    const shareUrl = `http://13.216.146.100/feed/post/${postId}`;
+  const UserRequest = async (userId: string) => {
+    const newSentStatus = { ...sentStatus }
+    const isSending = !sentStatus[userId]
+    newSentStatus[userId] = isSending
+    setSentStatus(newSentStatus)
+    setLoading(userId)
 
-    navigator.clipboard.writeText(shareUrl)
-      .then(() => toast.success("Link copied to clipboard!"))
-      .catch((error) => console.error("Error copying link:", error));
+    const apiUrl = isSending ? `${LIVE_URL}api/v1/connection/send-connection-request` : `${LIVE_URL}api/v1/connection/unsend-connection-request`
+
+    try {
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requesterId: user?.id,
+          receiverId: userId,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error(`Failed to ${isSending ? 'send' : 'unsend'} connection request.`)
+      }
+
+      const data = await res.json()
+
+      console.log(`Connection request ${isSending ? 'sent' : 'unsent'} successfully:`, data)
+      toast.success(`Connection request ${isSending ? 'sent' : 'unsent'} successfully.`)
+    } catch (error) {
+      console.error(`Error while trying to ${isSending ? 'send' : 'unsend'} connection request:`, error)
+      // Revert status change on failure
+      const revertedStatus = { ...newSentStatus, [userId]: !isSending }
+      setSentStatus(revertedStatus)
+      toast.error(`Failed to ${isSending ? 'send' : 'unsend'} connection request.`)
+    } finally {
+      setLoading(null) // Clear loading state
+    }
+  }
+
+  const handleCopy = (postId: string) => {
+    const shareUrl = `${LIVE_URL}feed/post/${postId}`
+
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => toast.success('Link copied to clipboard!'))
+      .catch((error) => console.error('Error copying link:', error))
   }
 
   const handleShare = (postId: string) => {
-    const shareUrl = `http://13.216.146.100/feed/home#${postId}`;
-  
+    const shareUrl = `${LIVE_URL}feed/home#${postId}`
+
     if (navigator.share) {
       navigator
         .share({
-          title: "Check out this post!", 
+          title: 'Check out this post!',
           url: shareUrl,
         })
-        .catch((error) => console.error("Error sharing:", error));
+        .catch((error) => console.error('Error sharing:', error))
     } else {
       // Fallback for browsers that don't support Web Share API
-      navigator.clipboard.writeText(shareUrl);
-      alert("Link copied to clipboard!");
+      navigator.clipboard.writeText(shareUrl)
+      alert('Link copied to clipboard!')
     }
-  };
+  }
 
   function isRepost() {
     return post.repostedFrom !== null && post.repostedFrom !== undefined
+  }
+
+  async function hidePost(userId: string | undefined, postId: string) {
+    if (!userId) return
+    try {
+      const response = await fetch(`${LIVE_URL}api/v1/post/block-post`, {
+        // Adjust the URL according to your server's API route
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, postId }),
+      })
+
+      const data = await response.json()
+
+      if (response.status === 200) {
+        toast.success(data.message) // Display success toast
+        setIsDeleted(true)
+      } else {
+        toast.error(data.message) // Display error toast
+      }
+    } catch (error) {
+      console.error('Error hiding post:', error)
+      toast.error('Error hiding post') // Display error toast
+    }
   }
 
   // LINK Part
@@ -218,48 +305,48 @@ const PostCard = ({
   // }, [post]); // Use post instead of post?.content
 
   function isRepostWithText() {
-    return isRepost() && (post.repostText?.trim() !== "" || post.repostText !== null)
+    return isRepost() && (post.repostText?.trim() !== '' || post.repostText !== null)
   }
-
 
   const deletePost = async (postId: string): Promise<void> => {
     try {
       // Validate PostId
       if (!postId) {
-        throw new Error('PostId is required.');
+        throw new Error('PostId is required.')
       }
 
       // Send a DELETE request to the backend
-      const response = await fetch(`http://13.216.146.100/api/v1/post/delete-userpost-byPostId`, {
+      const response = await fetch(`${LIVE_URL}api/v1/post/delete-userpost-byPostId`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ PostId: post.Id, userId: user?.id }),
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete post.');
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to delete post.')
+        toast.error('Failed to delete the post. Please try again.')
       }
 
-      const data = await response.json();
+      const data = await response.json()
       // // console.log('dl',tlRefresh)
-      setIsDeleted(true);
+      setIsDeleted(true)
 
       // // console.log('dlr',tlRefresh);
       // // console.log('Post deleted successfully:', data.message);
       // alert('Post deleted successfully!');
     } catch (error: any) {
-      console.error('Error deleting post:', error.message);
+      toast.error('Failed to delete the post. Please try again.')
+      console.error('Error deleting post:', error.message)
     }
-  };
-
+  }
 
   const handleGetAllLikesForPost = async (postId: string): Promise<void> => {
     if (!postId) {
-      console.error('Post ID is required');
-      return;
+      console.error('Post ID is required')
+      return
     }
 
     try {
@@ -269,36 +356,36 @@ const PostCard = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ postId }),
-      });
+      })
 
       if (response.ok) {
-        const data: GetAllLikesResponse = await response.json();
+        const data: GetAllLikesResponse = await response.json()
         if (data.status === 'success') {
           // // console.log('Likes fetched successfully:', data.data?.likes);
-          setAllLikes(data.data?.likers || []);
+          setAllLikes(data.data?.likers || [])
           // Optionally, update the UI with the likes data
         } else {
-          console.error('Error fetching likes:', data.message);
-          setAllLikes([]);
+          console.error('Error fetching likes:', data.message)
+          setAllLikes([])
         }
       } else {
-        const errorData: GetAllLikesResponse = await response.json();
-        console.error('Error fetching likes:', errorData.message);
-        setAllLikes([]);
+        const errorData: GetAllLikesResponse = await response.json()
+        console.error('Error fetching likes:', errorData.message)
+        setAllLikes([])
       }
     } catch (error) {
-      setAllLikes([]);
+      setAllLikes([])
     }
-  };
+  }
 
   const handleDelete = async (postId: string) => {
     try {
-      await deletePost(postId);
+      await deletePost(postId)
       // Optionally, refresh the post list here
     } catch (error) {
-      alert('Failed to delete the post. Please try again.');
+      toast.error('Failed to delete the post. Please try again.')
     }
-  };
+  }
 
   const handleDeletePost = (postId: string) => {
     // console.log(`This is the postId's userID ${post.userId},This is the userId ${user?.id}`)
@@ -307,23 +394,28 @@ const PostCard = ({
     }
     // else // console.log("id did not match")
   }
-  useEffect(() => {
-    if (hasMount.current) return;
-    if (Object.keys(repostProfile).length !== 0) return;
-    hasMount.current = true;
+  const handleEditPost = () => {
+    console.log("edit click")
+  }
 
-    const fetchUser = async () => {
-      try {
-        const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: post.repostedFrom,
-            // profileId: user?.id,
-          }),
-        })
+  useEffect(() => {
+    if (hasMount.current) return
+    setReactionId(post.reactionId)
+    if (Object.keys(repostProfile).length !== 0) return
+    hasMount.current = true
+
+  const fetchUser = async () => {
+    try {
+      setSkeletonLoading(true)
+      const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+        }),
+      })
 
         if (!response.ok) {
           //  navigate('/not-found')
@@ -335,382 +427,252 @@ const PostCard = ({
         const data = await response.json()
         // console.log('---repost profile---',data?.data);
 
-        setRepostProfile(data?.data);
+        setRepostProfile(data?.data)
       } catch (error) {
         console.error('Error fetching user profile:', error)
       }
     }
-    if (post.repostedFrom) fetchUser();
+    if (post.repostedFrom) fetchUser()
   }, [])
 
-  console.log('---item---',item);
+  // console.log('---item---',item);
   useEffect(() => {
-    likeStatus ? setTrue() : setFalse();
+    likeStatus ? setTrue() : setFalse()
+
     const fetchComments = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
         const response = await fetch(`${LIVE_URL}api/v1/post/get-comments`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ page: 2, postId: "9281e5539f76641c12c86d85de8f4edc" }),
-        });
+          body: JSON.stringify({ page: 1, postId: post?.Id }),
+        })
 
-        if (!response.ok) throw new Error('Failed to fetch comments');
-        const data = await response.json();
+        if (!response.ok) throw new Error('Failed to fetch comments')
+        const data = await response.json()
         // // console.log('comments that are fetched : ',data);
-        setComments(data.data.comments || []);
+        setComments(data.data.comments || [])
       } catch (error) {
-        console.error('Error fetching comments:', error);
+        console.error('Error fetching comments:', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    if (post?.Id || post?.likeStatus) {
-      handleGetAllLikesForPost(post?.Id);
     }
-    if (post?.Id) fetchComments();
-  }, [refresh, post?.Id]);
+    if (post?.Id || post?.likeStatus) {
+      handleGetAllLikesForPost(post?.Id)
+    }
+    if (post?.Id) fetchComments()
+  }, [refresh, post?.Id])
   // // console.log('---item---',item);
 
   const videoPlayer = useMemo(() => {
     if (isVideo) {
-      return <VideoPlayer src={media[0]} />;
+      return <VideoPlayer src={media[0]} />
     }
-    return null;
-  }, [media]);
+    return null
+  }, [media])
 
-
-  
-  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
-// Handle file upload
-const handleFileUpload = (files: FileUpload[]) => {
-  if (uploadedFiles.length + files.length > 9) {
-    alert('Max Limit Reached (9 files max).');
-    return;
-  }
-  setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
-};
-
-// Handle file upload process
-const handleUpload = async (): Promise<string[] | false> => {
-  if (!uploadedFiles.length) return [];
-
-  try {
-    const response = await uploadMulti(uploadedFiles, user?.id);
-    console.log('Upload Response:', response);
-
-    // Flatten the response in case it's an array of arrays
-    return Array.isArray(response) ? response.flat() : response;
-  } catch (err) {
-    console.error('Error uploading files:', err);
-    return false;
-  }
-};
-
-
-// Handle comment submission
-const handleCommentSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (!commentText.trim()) return;
-
-  try {
-    const mediaKeys = await handleUpload();
-    if (mediaKeys === false) throw new Error('Media upload failed');
-
-    const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        postId: post.Id, 
-        userId: user?.id, 
-        text: commentText, 
-        mediaKeys: mediaKeys || [], 
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  const toggleLike = async (reactId: number) => {
+    const prevId = reactionId
+    if (reactionId === reactId) {
+      setLikeStatus((prev) => !prev)
+      setReactionId(1)
+    } else {
+      setLikeStatus(true)
+      setReactionId(reactId)
     }
 
-    setRefresh((prev) => prev + 1);
-    setCommentText('');
-    setCommentCount((prevCount) => prevCount + 1);
-  } catch (error) {
-    console.error('Error posting comment:', error);
-  }
-};
-
-
-
-  const toggleLike = async () => {
-    setLikeStatus((prev) => !prev);
-    likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1);
+    likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1)
     try {
       const response = await fetch(`${LIVE_URL}api/v1/post/create-like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId: user?.id, postId: post.Id, status: !likeStatus }),
-      });
+        body: JSON.stringify({ userId: user?.id, postId: post.Id, status: reactId === reactionId ? !likeStatus : true, reactionId: reactId }),
+      })
 
       if (!response.ok) {
-        setLikeStatus(likeStatus);
-        alert('Like not sent')
-        likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (reactionId === reactId) setLikeStatus((prev) => !prev)
+        else setLikeStatus(false)
+        setReactionId(prevId)
+        setLikeStatus(likeStatus)
+        toast.error('Like not Sent')
+        likeStatus ? setLikeCount(() => likeCount - 1) : setLikeCount(() => likeCount + 1)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-
-      setRefresh((prev) => prev + 1);
+      setRefresh((prev) => prev + 1)
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('Error toggling like:', error)
     }
     handleGetAllLikesForPost(post.Id)
-  };
-
-  function LikeText(allLikes: Like[]) {
-    const userLike = allLikes.find(like => like.id === user?.id);
-    const otherLikes = allLikes.filter(like => like.id !== user?.id);
-
-    let str = "Liked by ";
-
-    if (userLike) str += "You";
-    if (otherLikes.length > 0) {
-      if (userLike) str += ", ";
-      str += `${otherLikes[0].firstName}`;
-    }
-    if (otherLikes.length > 1) {
-      str += `, and ${otherLikes.length - 1} others`;
-    }
-    if (allLikes.length === 0) str = ""
-    return <p
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "4px 8px",
-        margin: "0",
-      }}
-    >
-      {/* Left side with like icon and text */}
-      {<span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        {allLikes.length > 0 && <MdThumbUp size={16} />}
-        <span
-          style={{
-            marginRight: "6px",
-            cursor: "pointer",
-            transition: "color 0.2s, text-decoration 0.2s",
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLSpanElement>) => {
-            const target = e.target as HTMLSpanElement;
-            target.style.color = "#1EA1F2";
-            target.style.textDecoration = "underline";
-          }}
-          onMouseLeave={(e) => {
-            const target = e.target as HTMLSpanElement;
-            target.style.color = "inherit";
-            target.style.textDecoration = "none";
-          }}
-        >
-          {str}
-        </span>
-      </span>}
-
-      {/* Right side with comment count */}
-      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-
-        <MdComment size={16} onClick={() => setOpenComment(!openComment)} />
-        {commentCount !== 0 && <span>{commentCount}</span>}
-      </span>
-    </p>
   }
 
+  function LikeText(allLikes: Like[]) {
+    const userLike = allLikes.find((like) => like.id === user?.id)
+    const otherLikes = allLikes.filter((like) => like.id !== user?.id)
 
-  const navigate = useNavigate();
+    let str = 'Reacted by '
 
-  // Function to navigate to a user profile when clicking a mention
-  const handleMentionClick = async (username: string) => {
-    setIsLoading(true)
+    if (userLike) str += 'You'
+    if (otherLikes.length > 0) {
+      if (userLike) str += ', '
+      str += `${otherLikes[0].firstName}`
+    }
+    if (otherLikes.length > 1) {
+      str += `, and ${otherLikes.length - 1} others`
+    }
+    if (allLikes.length === 0) str = ''
+    return (
+      <p
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '4px 8px',
+          margin: '0',
+        }}>
+        {/* Left side with like icon and text */}
+        {
+          <span
+            onClick={() => {
+              console.log('clicking')
+              setShowList(true)
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {allLikes.length > 0 && <MdThumbUp size={16} />}
+            <span
+              style={{
+                marginRight: '6px',
+                cursor: 'pointer',
+                transition: 'color 0.2s, text-decoration 0.2s',
+              }}
+              onMouseEnter={(e: React.MouseEvent<HTMLSpanElement>) => {
+                const target = e.target as HTMLSpanElement
+                target.style.color = '#1EA1F2'
+                target.style.textDecoration = 'underline'
+              }}
+              onMouseLeave={(e) => {
+                const target = e.target as HTMLSpanElement
+                target.style.color = 'inherit'
+                target.style.textDecoration = 'none'
+              }}>
+              {str}
+            </span>
+          </span>
+        }
+
+        {/* Right side with comment count */}
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <MdComment size={16} onClick={() => setOpenComment(!openComment)} />
+          {commentCount !== 0 && <span>{commentCount} {commentCount === 1 ? 'comment' : 'comments'}</span>}
+        </span>
+      </p>
+    )
+  }
+
+  const [mentionDropdownVisible, setMentionDropdownVisible] = useState(false)
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [mentionMap, setMentionMap] = useState<Record<string, string>>({})
+  // const [commentText, setCommentText] = useState("");
+  // const [commentCount, setCommentCount] = useState(0);
+
+  const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!commentText.trim()) return
+
     try {
-      const res = await fetch('http://13.216.146.100/api/v1/auth/get-user-userName', {
+      const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: 'Bearer YOUR_ACCESS_TOKEN',
         },
-        body: JSON.stringify({ userName: username }),
+        body: JSON.stringify({
+          postId: post?.Id,
+          userId: user?.id,
+          text: processMentionsForSubmission(commentText),
+        }),
       })
 
-      const data = await res.json();
-      // toast.success("navigate to user profile");
-      setIsLoading(false)
-      navigate(`/profile/feed/${data.data.id}`);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      toast.error('User not available');
-    }
-
-  };
-
-  // Function to render mentions and hashtags with styling
-   const formatContent = (content: string) => {
-    if (!content) return null;
-  
-    // Regex patterns
-    const mentionRegex = /(@[a-zA-Z0-9_]+)/g;
-    const hashtagRegex = /(#\w+)/g;
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const imageRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/i;
-    const videoRegex = /(https?:\/\/.*\.(?:mp4|webm|ogg))/i;
-    const youtubeRegex =
-      /(https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]+))/;
-    const pptRegex = /(https?:\/\/[^\s]+\.pptx?)/g;
-  
-    // **New regex for Google Docs, Sheets, and Slides**
-    const googleDocsRegex =
-      /https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9-_]+)/;
-  
-    return content.split(/(\s+)/).map((word, index) => {
-      if (mentionRegex.test(word)) {
-        const username = word.substring(1);
-        return (
-          <span
-            key={index}
-            onClick={() => handleMentionClick(username)}
-            style={{
-              color: '#1E40AF',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-            }}
-          >
-            {word}
-          </span>
-        );
-      } else if (hashtagRegex.test(word)) {
-        return (
-          <span
-            key={index}
-            style={{
-              color: '#4CAF50',
-              fontWeight: 'bold',
-            }}
-          >
-            {word}
-          </span>
-        );
-      } else if (youtubeRegex.test(word)) {
-        const videoId = word.match(youtubeRegex)?.[2];
-        return (
-          <iframe
-            key={index}
-            width="100%"
-            height="330px"
-            src={`https://www.youtube.com/embed/${videoId}`}
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-            style={{ borderRadius: '8px', marginTop: '8px' }}
-          ></iframe>
-        );
-      } else if (imageRegex.test(word)) {
-        return (
-          <img
-            key={index}
-            src={word}
-            alt="User shared image"
-            style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }}
-          />
-        );
-      } else if (videoRegex.test(word)) {
-        return (
-          <video
-            key={index}
-            width="100%"
-            height="auto"
-            controls
-            style={{ borderRadius: '8px', marginTop: '8px' }}
-          >
-            <source src={word} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        );
-      } else if (pptRegex.test(word)) {
-        return (
-          <div key={index} className="ppt-preview">
-            <iframe
-              src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(word)}`}
-              width="100%"
-              height="300px"
-              style={{
-                borderRadius: '8px',
-                marginTop: '8px',
-                border: '1px solid #ddd',
-              }}
-              allowFullScreen
-            ></iframe>
-          </div>
-        );
-      } else if (googleDocsRegex.test(word)) {
-        const match = word.match(googleDocsRegex);
-        if (match) {
-          const docType = match[1];
-          const docId = match[2];
-  
-          let embedUrl = '';
-          if (docType === 'document') {
-            embedUrl = `https://docs.google.com/document/d/${docId}/preview`;
-          } else if (docType === 'spreadsheets') {
-            embedUrl = `https://docs.google.com/spreadsheets/d/${docId}/preview`;
-          } else if (docType === 'presentation') {
-            embedUrl = `https://docs.google.com/presentation/d/${docId}/embed`;
-          }
-  
-          return (
-            <iframe
-              key={index}
-              src={embedUrl}
-              width="100%"
-              height="400px"
-              style={{
-                borderRadius: '8px',
-                marginTop: '8px',
-                border: '1px solid #ddd',
-              }}
-              allowFullScreen
-            ></iframe>
-          );
-        }
-      } else if (urlRegex.test(word)) {
-        return (
-          <LinkPreview
-            key={index}
-            url={word}
-            width="100%"
-            descriptionLength={90}
-            imageHeight={200}
-            borderRadius="8px"
-            marginTop="8px"
-          />
-        );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-  
-      return word;
-    });
-  };
-  
 
+      setRefresh((prev) => prev + 1)
+      setCommentText('')
+      setCommentCount((prev) => prev + 1)
+    } catch (error) {
+      console.error('Error posting comment:', error)
+    }
+  }
 
-  if (isDeleted) return null;
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    setCommentText(value)
+    checkForMention(value)
+  }
 
+  const checkForMention = (text: string) => {
+    const match = text.match(/@\S*$/)
+    if (text.endsWith('@')) {
+      fetchUsers('')
+    } else if (match) {
+      fetchUsers(match[0].slice(1))
+    } else {
+      setMentionDropdownVisible(false)
+    }
+  }
+
+  const fetchUsers = async (query: string) => {
+    try {
+      const response = await fetch(`${LIVE_URL}api/v1/post/mention`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id, query }),
+      })
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`)
+      const data = await response.json()
+      setSearchResults(data?.data || [])
+      setMentionDropdownVisible((data?.data.length ?? 0) > 0)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
+  }
+
+  // Function to insert mention correctly
+  const handleMentionClick = (mentionedUser: any) => {
+    const mentionDisplay = `@${mentionedUser.fullName}`
+    const mentionActual = `@${mentionedUser.userName}`
+    setMentionMap((prev) => ({ ...prev, [mentionDisplay]: mentionActual }))
+    setCommentText((prev) => prev.replace(/@\S*$/, mentionDisplay + ' '))
+    setMentionDropdownVisible(false)
+  }
+
+  const processMentionsForSubmission = (text: string) => {
+    let processedText = text
+    Object.entries(mentionMap).forEach(([display, actual]) => {
+      processedText = processedText.replace(display, actual)
+    })
+    return processedText
+  }
+  const selectedReaction = reactions.find((reaction) => reaction.reactId === reactionId)
+  if (isDeleted) return null
   if (isRepostWithText()) {
     return (
       <Card className="mb-4">
-        <CardHeader className="border-0 pb-0">
+        <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
+        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections) && 'pt-0'}`}>
+          {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+            <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
+              {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
+              {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
+            </div>
+          ) : ("")}
           <div className="d-flex align-items-center justify-content-between">
             <div className="d-flex align-items-center">
               <div className="avatar me-2">
@@ -718,19 +680,17 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                   <div
                     style={{
                       border: '3px solid white',
-                      width: "55px",
-                      height: "55px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-
-                    }}
-                  >
+                      width: '55px',
+                      height: '55px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                    }}>
                     <Image
-                      src={userInfo.avatar ? userInfo.avatar : fallBackAvatar} // Replace with your actual image source
+                      src={userInfo.avatar ? userInfo.avatar : fallBackAvatar}
                       alt="Profile"
                       style={{
-                        width: "100%",
-                        height: "100%",
+                        width: '100%',
+                        height: '100%',
                         transform: `scale(${(userInfo?.zoomProfile || 50) / 50}) rotate(${(userInfo?.rotateProfile || 50) - 50}deg)`,
                       }}
                     />
@@ -741,28 +701,28 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
               <div>
                 <div className="nav nav-divider">
                   <h6
-                    className="nav-item card-title mb-0"
+                    className="nav-item card-title mb-0 mt-3"
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      flexDirection: "column",
-                    }}
-                  >
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      flexDirection: 'column',
+                    }}>
                     <Link to={`/profile/feed/${post?.userId}`} role="button" className="nav-item text-start mx-3">
                       {userInfo?.firstName} {userInfo?.lastName}
+
                     </Link>
                     <div style={{ flex: 1, flexDirection: 'row' }}>
-                      <span className="small mx-3" style={{ color: "#8b959b" }}>
+                      <span className="small mx-3" style={{ color: '#8b959b' }}>
                         {/* {console.log(post, '---userInfo---')} */}
                         {/* {userInfo?.userRole ? userInfo?.userRole : null} */}
                         {userInfo?.userRole && userInfo?.userRole}
-                        <span className='mx-2'></span>
+                        <span className="mx-2"></span>
                       </span>
-                      <span className="nav-item small mx-3" style={{ color: "#8b959b" }}>
+                      <span className="nav-item small mx-3" style={{ color: '#8b959b' }}>
                         {userInfo?.timestamp}
                         <span
-                          className='nav-item small'
+                          className="nav-item small"
                           style={{
                             borderRadius: '100%',
                             width: '3px', // Adjust size of the dot as needed
@@ -786,46 +746,148 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
             </div>
 
             {
-              post.userId === user?.id &&
+              <div style={{ position: 'relative' }}>
 
-              <div style={{ position: "relative" }}>
-                <button
-                  className="btn btn-link p-0 text-dark"
-                  style={{ fontSize: "1.5rem", lineHeight: "1", marginTop: '-25px', marginRight: '15px' }}
-                  onClick={() => setMenuVisible(!menuVisible)}
-                >
-                  <BsThreeDots />
-                </button>
-                {menuVisible && (
-                  <div
-                    className="dropdown-menu show"
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      right: 0,
-                      zIndex: 1000,
-                      display: "block",
-                      backgroundColor: "white",
-                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                      borderRadius: "0.25rem",
-                      overflow: "hidden",
+                {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+                  !userInfo.connection && (
+                    <Button
+                      variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                      className="mx-3"
+                      onClick={() => UserRequest(userInfo.id)}
+                      disabled={loading === userInfo.id}>
+                      {loading === userInfo.id ? (
+                        <Loading size={15} loading={true} />
+                      ) : (
+                        <span className="w-100 d-flex align-items-center ">
+                          {sentStatus[userInfo.id] ? (
+                            <>
+                              <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                            </>
+                          ) : (
+                            <>
+                              <FaPlus /> <span className="p-0 px-2">Connect </span>
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </Button>
+                  )
+                ) : (<div className='w-50 d-flex '>
+                  <button
+                    className="btn btn-link p-0 text-dark"
+                    style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                    onClick={() => setMenuVisible(!menuVisible)}>
+                    <BsThreeDots />
+                  </button>
+                  {post.userId !== user?.id && <button
+                    className="dropdown-item text-dark d-flex align-items-center"
+                    onClick={() => {
+                      // console.log('clicking..')
+                      hidePost(user?.id, post.Id)
                     }}
-                  >
-                    <button
-                      className="dropdown-item text-danger d-flex align-items-center"
-                      onClick={() => handleDeletePost(post?.Id)}
-                      style={{ gap: "0.5rem" }}
-                    >
-                      <BsTrash /> Delete Post
-                    </button>
-                  </div>
+                    style={{ gap: '0.5rem' }}>
+                    <RxCross2 size={25} />
+                  </button>}
+                </div>)}
+
+                {menuVisible && (
+                  <>
+                    {post.userId === user?.id && (
+                      <div
+                        className="dropdown-menu show shadow-0"
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          right: 0,
+                          backgroundColor: 'white',
+                          borderRadius: '0.25rem',
+                          overflow: 'hidden',
+                          boxShadow: "none"
+                        }}>
+                        <>
+                          <button
+                            className="dropdown-item text-danger d-flex align-items-center"
+                            onClick={() => handleDeletePost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsTrash /> Delete Post
+                          </button>
+                          <button
+                            className="dropdown-item text-primary d-flex align-items-center"
+                            onClick={() => handleEditPost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsPenFill /> Edit Post
+                          </button>
+                        </>
+                      </div>
+                    )}
+                    {post.userId !== user?.id && (
+                      <div
+                        className="dropdown-menu show"
+                        style={{
+                          position: 'absolute',
+                          padding: 0,
+                          top: 0,
+                          right: "6em",
+                          zIndex: 1000,
+                          display: 'block',
+                          backgroundColor: 'white',
+                          // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                          borderRadius: '0.25rem',
+                          overflow: 'hidden',
+                          boxShadow: "none",
+                          border: "none",
+
+                        }}>
+
+                        {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
+                        <button
+                          className="dropdown-item text-danger d-flex align-items-center "
+                          onClick={() => setShowReportModal(true)}
+                          style={{ gap: '0.5rem' }}>
+                          <BsExclamationTriangle /> Report Post
+                        </button>
+                        {/* {!userInfo.connection && (
+                              <Button
+                                variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                                className="mx-3"
+                                onClick={() => UserRequest(userInfo.id)}
+                                disabled={loading === userInfo.id}>
+                                {loading === userInfo.id ? (
+                                  <Loading size={15} loading={true} />
+                                ) : (
+                                  <span className="w-100 d-flex align-items-center ">
+                                    {sentStatus[userInfo.id] ? (
+                                      <>
+                                        <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                              </Button>
+                            )} */}
+
+                        {
+                          <ReportModal
+                            show={showReportModal}
+                            handleClose={() => setShowReportModal(false)}
+                            userId={user?.id || ''}
+                            postId={post?.Id || ''}
+                          />
+                        }
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             }
           </div>
         </CardHeader>
         <CardBody>
-          {post?.content && (
+          {post?.repostText && (
             <div className="mb-1 p-1 bg-gray-100 rounded-lg">
               <div
                 id={post.Id}
@@ -837,17 +899,13 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                   color: 'black',
                   fontSize: '16px',
                   // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
-                  maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
-                  overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
-                }}
-              >
-                {formatContent(post.content)}
+                  maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : isExpanded ? 'none' : '192px',
+                  overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : isExpanded ? 'visible' : 'hidden',
+                }}>
+                {<FormatContent content={post.repostText} />}
               </div>
-              {!isExpanded && post.content.length > 230 && (
-                <span
-                  className="text-blue-500 mt-1 cursor-pointer"
-                  onClick={() => setIsExpanded(true)}
-                >
+              {!isExpanded && post.repostText.length > 230 && (
+                <span className="text-blue-500 mt-1 cursor-pointer" onClick={() => setIsExpanded(true)}>
                   ...read more
                 </span>
               )}
@@ -855,7 +913,12 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
           )}
 
           <Card className="mb-4">
-            <CardHeader className="border-0 pb-0">
+            <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections) && 'pt-0'}`}>
+              {(post?.likedByConnections || post?.commentedByConnections) ? (
+                <div className="d-flex align-items-center gap-2 flex-wrap  pt-2 mb-2">
+
+                </div>
+              ) : ("")}
               <div className="d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center">
                   <div className="avatar me-2">
@@ -863,77 +926,96 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                       <div
                         style={{
                           border: '3px solid white',
-                          width: "55px",
-                          height: "55px",
-                          borderRadius: "50%",
-                          overflow: "hidden",
-
-                        }}
-                      >
+                          width: '55px',
+                          height: '55px',
+                          borderRadius: '50%',
+                          overflow: 'hidden',
+                        }}>
                         <Image
                           src={repostProfile?.profileImgUrl ? repostProfile?.profileImgUrl : fallBackAvatar} // Replace with your actual image source
                           alt="Profile"
                           style={{
-                            width: "100%",
-                            height: "100%",
+                            width: '100%',
+                            height: '100%',
                             transform: `scale(${(repostProfile?.personalDetails?.zoomProfile || 50) / 50}) rotate(${(repostProfile?.personalDetails?.rotateProfile || 50) - 50}deg)`,
                           }}
                         />
                       </div>
-
                     </Link>
-
                   </div>
-                  <div>
+                  <div className='d-flex'>
                     <div className="nav nav-divider">
                       <h6
-                        className="nav-item card-title mb-0"
+                        className="nav-item card-title mb-0 "
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "flex-start",
-                          flexDirection: "column",
-                        }}
-                      >
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          flexDirection: 'column',
+                        }}>
                         <Link to={`/profile/feed/${post?.repostedFrom}`} role="button" className="nav-item text-start mx-3">
                           {repostProfile?.personalDetails?.firstName} {repostProfile?.personalDetails?.lastName}
                         </Link>
+
                         <div style={{ flex: 1, flexDirection: 'row' }}>
-                          <span className="small mx-3" style={{ color: "#8b959b" }}>
+                          <span className="small mx-3" style={{ color: '#8b959b' }}>
                             {/* {console.log(post, '---userInfo---')} */}
                             {/* {userInfo?.userRole ? userInfo?.userRole : null} */}
                             {repostProfile?.personalDetails?.userRole}
-                            <span className='mx-2'></span>
+                            <span className="mx-2"></span>
                           </span>
-                          <span className="nav-item small mx-3" style={{ color: "#8b959b" }}>
-                            {userInfo?.timestamp}
+                          <span className="nav-item small mx-3" style={{ color: '#8b959b' }}>
+                            {post?.originalPostedTimeline}
                             <span
-                              className='nav-item small'
+                              className="nav-item small"
                               style={{
                                 borderRadius: '100%',
-                                width: '3px', // Adjust size of the dot as needed
-                                height: '3px', // Adjust size of the dot as needed
+                                width: '3px',
+                                height: '3px',
                                 backgroundColor: '#8b959b',
-                                marginLeft: '8px', // Space between dot and icon
+                                marginLeft: '8px',
                               }}
                             />
                             <FaGlobe
                               style={{
-                                color: '#8b959b', // Adjust the color of the globe icon as needed
-                                fontSize: '12px', // Adjust the size of the globe icon as needed
-                                marginLeft: '6px', // Space between dot and icon
+                                color: '#8b959b',
+                                fontSize: '12px',
+                                marginLeft: '6px',
                               }}
                             />
                           </span>
                         </div>
                       </h6>
                     </div>
+                    {/* {!userInfo.connection && (
+                              <Button
+                                variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                                className="mx-3"
+                                onClick={() => UserRequest(userInfo.id)}
+                                disabled={loading === userInfo.id}>
+                                {loading === userInfo.id ? (
+                                  <Loading size={15} loading={true} />
+                                ) : (
+                                  <span className="w-100 d-flex align-items-center ">
+                                    {sentStatus[userInfo.id] ? (
+                                      <>
+                                        <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                              </Button>
+                            )} */}
                   </div>
                 </div>
               </div>
             </CardHeader>
             <CardBody>
-              {post?.content && (
+             {post?.content && (
                 <div className="mb-1 p-1 bg-gray-100 rounded-lg">
                   <div
                     id={post.Id}
@@ -945,209 +1027,279 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                       color: 'black',
                       fontSize: '16px',
                       // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
-                      maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
-                      overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
-                    }}
-                  >
-                    {formatContent(post.content)}
+                      maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : isExpanded ? 'none' : '192px',
+                      overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : isExpanded ? 'visible' : 'hidden',
+                    }}>
+                    {<FormatContent content={post.content} />}
                   </div>
                   {!isExpanded && post.content.length > 230 && (
-                    <span
-                      className="text-blue-500 mt-1 cursor-pointer"
-                      onClick={() => setIsExpanded(true)}
-                    >
+                    <span className="text-blue-500 mt-1 cursor-pointer" onClick={() => setIsExpanded(true)}>
                       ...read more
                     </span>
                   )}
                 </div>
               )}
-
-
-
-              {media?.length > 0 && (
-                isVideo ? (
+              {/* {console.log('---media---', post)} */}
+              {media?.length > 0 &&
+                (isVideo ? (
                   <div
                     style={{
-                      position: "relative",
-                      marginBottom: "10px",
-                      width: "100%",
-                      height: "100%",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
+                      position: 'relative',
+                      marginBottom: '10px',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}>
                     {videoPlayer}
                   </div>
                 ) : (
-                  <ResponsiveGallery
-                    media={media}
-                    item={item}
-                    profile={profile}
-                    setShowRepostOp={setShowRepostOp}
-                    utils={utils}
-                  />
-                )
-              )}
-
+                  <ResponsiveGallery media={media} item={item} profile={profile} setShowRepostOp={setShowRepostOp} utils={utils} />
+                ))}
             </CardBody>
           </Card>
-          <div style={{ marginTop: '20px' }}>
-            {LikeText(allLikes)}
-          </div>
+          <div style={{ marginTop: '20px' }}>{LikeText(allLikes)}</div>
           <ButtonGroup
-            className="w-100 border-top border-bottom mb-3"
+            className="w-100 border-top  mb-3"
             style={{
-              backgroundColor: "white",
-              borderBottom: "1px solid #dee2e6", // Bootstrap's light gray border color
-            }}
-          >
-            <Button
-              variant="ghost" // Always remains ghost
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              onClick={toggleLike}
-              style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-            >
-              {likeStatus ? (
-                <BsFillHandThumbsUpFill size={16} style={{ color: "#1EA1F2" }} /> // Blue icon when liked
-              ) : (
-                <ThumbsUp size={16} style={{ color: "inherit" }} /> // Default color when not liked
+              backgroundColor: 'white',
+              borderBottom: '1px solid #dee2e6',
+            }}>
+            <div style={{ position: 'relative', width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {(showReactions || mouseOnReactions) && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '33px',
+                    left: '120%',
+                    transform: 'translateX(-50%)',
+                    background: 'white',
+                    boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+                    borderRadius: '8px',
+                    padding: '6px',
+                    display: 'flex',
+                    gap: '8px',
+                    zIndex: 10,
+                  }}
+                  onMouseEnter={() => {
+                    setMouseOnReactions(true)
+                    setShowReactions(true)
+                  }}
+                  onMouseLeave={() => {
+                    setMouseOnReactions(false)
+                    setShowReactions(false)
+                  }}>
+                  {reactions.map((reaction) => (
+                    <span
+                      key={reaction.label}
+                      onMouseEnter={(e) => {
+                        ; (e.target as HTMLElement).style.transform = 'scale(1.5)'
+                          ; (e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        setHoveredReaction(reaction.label)
+                      }}
+                      onMouseLeave={(e) => {
+                        ; (e.target as HTMLElement).style.transform = 'scale(1)'
+                        setHoveredReaction(null)
+                      }}
+                      onClick={() => {
+                        toggleLike(reaction.reactId)
+                        setShowReactions(false)
+                      }}
+                      style={{ cursor: 'pointer', fontSize: '25px', position: 'relative' }}>
+                      {reaction.emoji}
+                      {hoveredReaction === reaction.label && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '38px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: 'black',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            whiteSpace: 'nowrap',
+                          }}>
+                          {reaction.label}
+                        </div>
+                      )}
+                    </span>
+                  ))}
+                </div>
               )}
-              {/* <span>Like</span> */}
-            </Button>
+              <Button
+                variant="ghost"
+                className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                onClick={() => toggleLike(reactionId || 1)}
+                onMouseEnter={() => setShowReactions(true)}
+                onMouseLeave={() =>
+                  setTimeout(() => {
+                    setShowReactions(false)
+                  }, 100)
+                }
+                style={{ fontSize: '0.8rem' }}>
+                {selectedReaction && reactionId !== 1 ? (
+                  <span>{selectedReaction.emoji}</span>
+                ) : likeStatus ? (
+                  <BsFillHandThumbsUpFill size={16} style={{ color: '#1EA1F2' }} />
+                ) : (
+                  <ThumbsUp size={16} style={{ color: 'inherit' }} />
+                )}
+              </Button>
+            </div>
 
             <Button
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
               onClick={() => setOpenComment(!openComment)}
-              style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-            >
+              style={{ fontSize: '0.8rem' }}>
               <MessageSquare size={16} />
-              {/* <span>Comment</span> */}
             </Button>
-
             <Button
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-              onClick={() => setShowRepostOp(true)}
-            >
+              style={{ fontSize: '0.8rem' }}
+              onClick={() => setShowRepostOp(true)}>
               <Repeat size={16} />
-              {/* <span>Repost</span> */}
             </Button>
-            {
-              <RepostModal
-                isOpen={showRepostOp}
-                onClose={() => setShowRepostOp(false)}
-                authorName={userInfo?.firstName}
-                item={item}
-                isCreated={isCreated}
-                setIsCreated={setIsCreated}
-              />
-            }
-            {/* <Button
-            variant="ghost"
-            className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-            style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-          >
-            <Share size={16} />
-           
-          </Button> */}
+            <Button
+              onClick={() => handleCopy(post.Id)}
+              variant="ghost"
+              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+              style={{ fontSize: '0.8rem' }}>
+              <Copy size={16} />
+            </Button>
+            <Button
+              onClick={() => handleShare(post.Id)}
+              variant="ghost"
+              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+              style={{ fontSize: '0.8rem' }}>
+              <Share size={16} />
+            </Button>
           </ButtonGroup>
-          {openComment && <div className="d-flex mb-4 px-3">
-            <div className="avatar avatar-xs me-3">
-              <Link to={`/profile/feed/${user?.id}`}>
-                <span role="button">
-                  <div
-                    style={{
-                      border: '3px solid white',
-                      width: "45px",
-                      height: "45px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-
-                    }}
-                  >
-                    <Image
-                      src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar} // Replace with your actual image source
-                      alt="Profile"
+          {openComment && (
+            <div className="d-flex mb-4 px-3">
+              <div className="avatar avatar-xs me-3">
+                <Link to={`/profile/feed/${user?.id}`}>
+                  <span role="button">
+                    <div
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        transform: `scale(${(profile?.personalDetails?.zoomProfile || 50) / 50}) rotate(${(profile?.personalDetails?.rotateProfile || 50) - 50}deg)`,
-                      }}
-                    />
-                  </div>
-                </span>
-              </Link>
-            </div>
-            <form
-              className="nav nav-item w-100 d-flex align-items-center"
-              onSubmit={handleCommentSubmit}
-              style={{ gap: "10px" }}
-            >
-              <textarea
-                data-autoresize
-                className="form-control"
-                style={{
-                  backgroundColor: "#fff",
-                  color: "#000",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  textAlign: "left",
-                  resize: "none",
-                  height: "38px",
-                  flex: 1,
-                  border: "1px solid #ced4da",
-                  borderRadius: "4px",
-                  padding: "5px 10px",
+                        border: '3px solid white',
+                        width: '45px',
+                        height: '45px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                      }}>
+                      <Image
+                        src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar} // Replace with your actual image source
+                        alt="Profile"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          transform: `scale(${(profile?.personalDetails?.zoomProfile || 50) / 50}) rotate(${(profile?.personalDetails?.rotateProfile || 50) - 50}deg)`,
+                        }}
+                      />
+                    </div>
+                  </span>
+                </Link>
+              </div>
+              <form
+                className="nav nav-item w-100 d-flex align-items-center"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  console.log('Submitted:', commentText)
                 }}
-                rows={1}
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleCommentSubmit(e);
-                  }
-                }}
-              />
-             <div className="d-flex align-items-center justify-content-between w-25">
-             <PhotoUpload
-          icon={BsImages} 
-          onFileUpload={handleFileUpload}
-          showPreview
-          text="photo"
-        />
-             </div>
-            </form>
-
-
-          </div>}
-
-          {openComment && (isLoading ? (
-            <p>Loading comments...</p>
-          ) : (
-            <ul className="comment-wrap list-unstyled px-3">
-              {(loadMore ? comments : comments.slice(0, 2)).map((comment, index) => (
-                <CommentItem
-                  key={index}
-                  post={post}
-                  comment={comment}
-                  level={0}
-                  refresh={refresh}
-                  setRefresh={setRefresh}
-                  commentCount={commentCount}
-                  setCommentCount={setCommentCount}
-                  myProfile={profile}
+                style={{ gap: '10px' }}>
+                <textarea
+                  ref={textareaRef}
+                  className="form-control"
+                  style={{
+                    backgroundColor: '#fff',
+                    color: '#000',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                    resize: 'none',
+                    height: '38px',
+                    flex: 1,
+                    border: '1px solid #ced4da',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                  }}
+                  rows={1}
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={handleChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleCommentSubmit(e)
+                      console.log('Comment submitted:', commentText)
+                    }
+                  }}
                 />
-              ))}
-            </ul>
-          ))}
-        </CardBody>
 
+                {/* Mention Dropdown */}
+                {mentionDropdownVisible && searchResults.length > 0 && (
+                  <div
+                    className="position bg-white shadow rounded w-100 mt-1"
+                    style={{
+                      zIndex: 1000,
+                      maxHeight: '10rem',
+                      overflowY: 'auto',
+                      border: '1px solid #ddd',
+                    }}>
+                    {searchResults.map((user) => (
+                      <div
+                        key={user.id}
+                        className="d-flex align-items-center p-2 cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleMentionClick(user)}>
+                        <div className="avatar">
+                          <img
+                            src={user.avatar || avatar}
+                            alt={user.fullName}
+                            className="avatar-img rounded-circle border border-white border-3"
+                            width={34}
+                            height={34}
+                          />
+                        </div>
+                        <div>
+                          <h6 className="mb-0">{user.fullName}</h6>
+                          <small className="text-muted">{user.userRole}</small>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </form>
+            </div>
+          )}
+
+          {openComment &&
+            (isLoading ? (
+              <p>Loading comments...</p>
+            ) : (
+              <ul className="comment-wrap list-unstyled px-3">
+                {(loadMore ? comments : comments.slice(0, 2)).map((comment, index) => (
+                  <CommentItem
+                    key={index}
+                    post={post}
+                    comment={comment}
+                    level={0}
+                    refresh={refresh}
+                    setRefresh={setRefresh}
+                    commentCount={commentCount}
+                    setCommentCount={setCommentCount}
+                    myProfile={profile}
+                  />
+                ))}
+              </ul>
+            ))}
+        </CardBody>
       </Card>
     )
   }
@@ -1155,38 +1307,60 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
   return (
     <>
       <Card className="mb-4">
-        <CardHeader className="border-0 pb-0">
-          {(post.repostedFrom && close) &&
+        <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
+        <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) && 'pt-0'}`}>
+          {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+            <div className='d-flex justify-content-between'>
+              <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
+                {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
+                {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
+              </div>
+              <div className=' d-flex '>
+                <button
+                  className="btn btn-link p-0 text-dark"
+                  style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                  onClick={() => setMenuVisible(!menuVisible)}>
+                  <BsThreeDots />
+                </button>
+                {post.userId !== user?.id && <button
+                  className="dropdown-item text-dark d-flex align-items-center"
+                  onClick={() => {
+                    console.log('clicking..')
+                    hidePost(user?.id, post.Id)
+                  }}
+                  style={{ gap: '0.5rem' }}>
+                  <RxCross2 size={25} />
+                </button>}
+              </div>
+            </div>
+          ) : ("")}
+          {post.repostedFrom && close && (
             <>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "8px 12px",
-                }}
-              >
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 12px',
+                }}>
                 {/* Left Section: Avatar and Name */}
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: '-10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-10px' }}>
                   {/* Avatar */}
                   <Link to={`/profile/feed/${post?.userId}`} role="button" style={{ paddingBottom: '3px', paddingRight: '4px' }}>
-
                     <div
                       style={{
                         border: '3px solid white',
-                        width: "55px",
-                        height: "55px",
-                        borderRadius: "50%",
-                        overflow: "hidden",
-
-                      }}
-                    >
+                        width: '55px',
+                        height: '55px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                      }}>
                       <Image
                         src={userInfo.avatar ? userInfo?.avatar : fallBackAvatar} // Replace with your actual image source
                         alt="Profile"
                         style={{
-                          width: "100%",
-                          height: "100%",
+                          width: '100%',
+                          height: '100%',
                           transform: `scale(${(userInfo?.zoomProfile || 50) / 50}) rotate(${(userInfo?.rotateProfile || 50) - 50}deg)`,
                         }}
                       />
@@ -1207,70 +1381,179 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                   <p
                     style={{
                       margin: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      lineHeight: "1.2",
-                    }}
-                  >
-                    <Link
-                      to={`/profile/feed/${post?.userId}`}
-                      style={{ fontWeight: "bold", textDecoration: "none", color: "#000" }}
-                    >
+                      display: 'flex',
+                      alignItems: 'center',
+                      lineHeight: '1.2',
+                    }}>
+                    <Link to={`/profile/feed/${post?.userId}`} style={{ fontWeight: 'bold', textDecoration: 'none', color: '#000' }}>
                       {userInfo?.firstName} {userInfo?.lastName}
+
                     </Link>
-                    <span style={{ marginLeft: "6px", color: "#555", paddingTop: '2px' }}>reposted this</span>
+                    <span style={{ marginLeft: '6px', color: '#555', paddingTop: '2px' }}>reposted this</span>
                   </p>
                 </div>
 
                 {/* Close Button */}
-                {post.userId === user?.id &&
+                {
+                  <div style={{ position: 'relative' }}>
 
-
-                  <div style={{ position: "relative" }}>
-                    <button
-                      className="btn btn-link p-0 text-dark"
-                      style={{ fontSize: "1.5rem", lineHeight: "1" }}
-                      onClick={() => setMenuVisible(!menuVisible)}
-                    >
-                      <BsThreeDots />
-                    </button>
-                    {menuVisible && (
-                      <div
-                        className="dropdown-menu show"
-                        style={{
-                          position: "absolute",
-                          top: "100%",
-                          right: 0,
-                          zIndex: 1000,
-                          display: "block",
-                          backgroundColor: "white",
-                          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                          borderRadius: "0.25rem",
-                          overflow: "hidden",
+                    {(post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0) ? (
+                      !userInfo.connection && (
+                        <Button
+                          variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                          className="mx-3"
+                          onClick={() => UserRequest(userInfo.id)}
+                          disabled={loading === userInfo.id}>
+                          {loading === userInfo.id ? (
+                            <Loading size={15} loading={true} />
+                          ) : (
+                            <span className="w-100 d-flex align-items-center ">
+                              {sentStatus[userInfo.id] ? (
+                                <>
+                                  <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                </>
+                              ) : (
+                                <>
+                                  <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                </>
+                              )}
+                            </span>
+                          )}
+                        </Button>
+                      )
+                    ) : (<div className='w-50 d-flex '>
+                      <button
+                        className="btn btn-link p-0 text-dark"
+                        style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                        onClick={() => setMenuVisible(!menuVisible)}>
+                        <BsThreeDots />
+                      </button>
+                      {post.userId !== user?.id && <button
+                        className="dropdown-item text-dark d-flex align-items-center"
+                        onClick={() => {
+                          console.log('clicking..')
+                          hidePost(user?.id, post.Id)
                         }}
-                      >
-                        {<button
-                          className="dropdown-item text-danger d-flex align-items-center"
-                          onClick={() => handleDeletePost(post?.Id)}
-                          style={{ gap: "0.5rem" }}
-                        >
-                          <BsTrash /> Delete Post
-                        </button>}
-                      </div>
+                        style={{ gap: '0.5rem' }}>
+                        <RxCross2 size={25} />
+                      </button>}
+                    </div>)}
+
+                    {menuVisible && (
+                      <>
+                        {post.userId === user?.id && (
+                          <div
+                            className="dropdown-menu show shadow-0"
+                            style={{
+                              position: 'absolute',
+                              top: '100%',
+                              right: 0,
+                              backgroundColor: 'white',
+                              borderRadius: '0.25rem',
+                              overflow: 'hidden',
+                              boxShadow: "none"
+                            }}>
+                            <>
+                              <button
+                                className="dropdown-item text-danger d-flex align-items-center"
+                                onClick={() => handleDeletePost(post?.Id)}
+                                style={{ gap: '0.5rem' }}>
+                                <BsTrash /> Delete Post
+                              </button>
+                              <button
+                                className="dropdown-item text-primary d-flex align-items-center"
+                                onClick={() => handleEditPost(post?.Id)}
+                                style={{ gap: '0.5rem' }}>
+                                <BsPenFill /> Edit Post
+                              </button>
+                            </>
+                          </div>
+                        )}
+                        {post.userId !== user?.id && (
+                          <div
+                            className="dropdown-menu show"
+                            style={{
+                              position: 'absolute',
+                              padding: 0,
+                              top: 0,
+                              right: "6em",
+                              zIndex: 1000,
+                              display: 'block',
+                              backgroundColor: 'white',
+                              // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                              borderRadius: '0.25rem',
+                              overflow: 'hidden',
+                              boxShadow: "none",
+                              border: "none",
+
+                            }}>
+
+                            {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
+                            <button
+                              className="dropdown-item text-danger d-flex align-items-center "
+                              onClick={() => setShowReportModal(true)}
+                              style={{ gap: '0.5rem' }}>
+                              <BsExclamationTriangle /> Report Post
+                            </button>
+                            {/* {!userInfo.connection && (
+                              <Button
+                                variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                                className="mx-3"
+                                onClick={() => UserRequest(userInfo.id)}
+                                disabled={loading === userInfo.id}>
+                                {loading === userInfo.id ? (
+                                  <Loading size={15} loading={true} />
+                                ) : (
+                                  <span className="w-100 d-flex align-items-center ">
+                                    {sentStatus[userInfo.id] ? (
+                                      <>
+                                        <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                              </Button>
+                            )} */}
+
+                            {
+                              <ReportModal
+                                show={showReportModal}
+                                handleClose={() => setShowReportModal(false)}
+                                userId={user?.id || ''}
+                                postId={post?.Id || ''}
+                              />
+                            }
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 }
               </div>
             </>
-          }
-          {post.repostedFrom && close && <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', marginTop: '-5px', marginBottom: '10px' }} />}
+          )}
+          {post.repostedFrom && close && (
+            <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', marginTop: '-5px', marginBottom: '10px' }} />
+          )}
           <div className="d-flex align-items-center justify-content-between">
             <div className="d-flex align-items-center">
               <div className="avatar me-2">
                 <Link to={`/profile/feed/${post.repostedFrom ? repostProfile?.personalDetails?.id : post?.userId}`} role="button">
                   {userInfo?.avatar ? (
                     <ImageZoom
-                      src={post.repostedFrom ? repostProfile?.profileImgUrl ? repostProfile?.profileImgUrl : fallBackAvatar : userInfo.avatar ? userInfo.avatar : fallBackAvatar}
+                      src={
+                        post.repostedFrom
+                          ? repostProfile?.profileImgUrl
+                            ? repostProfile?.profileImgUrl
+                            : fallBackAvatar
+                          : userInfo.avatar
+                            ? userInfo.avatar
+                            : fallBackAvatar
+                      }
                       zoom={post.repostedFrom ? repostProfile?.personalDetails?.zoomProfile : userInfo?.zoomProfile}
                       rotate={post.repostedFrom ? repostProfile?.personalDetails?.rotateProfile : userInfo?.rotateProfile}
                     />
@@ -1285,26 +1568,29 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                   <h6
                     className="nav-item card-title mb-0"
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      flexDirection: "column",
-                    }} profile
-                  >
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      flexDirection: 'column',
+                    }}>
                     <Link to={`/profile/feed/${post?.userId}`} role="button" className="nav-item text-start mx-3">
-                      {post.repostedFrom ? repostProfile?.personalDetails?.firstName : userInfo?.firstName} {post.repostedFrom ? repostProfile?.personalDetails?.lastName : userInfo?.lastName}
+                      {post.repostedFrom ? repostProfile?.personalDetails?.firstName : userInfo?.firstName}{' '}
+                      {post.repostedFrom ? repostProfile?.personalDetails?.lastName : userInfo?.lastName}
+                      {/* #tanshque */}
+                      {/* <br/>
+                       <span className='text-danger'> PostID: {post.Id} </span> */}
                     </Link>
                     <div style={{ flex: 1, flexDirection: 'row' }}>
-                      <span className="small mx-3" style={{ color: "#8b959b" }}>
+                      <span className="small mx-3" style={{ color: '#8b959b' }}>
                         {/* {console.log(post, '---userInfo---')} */}
                         {/* {userInfo?.userRole ? userInfo?.userRole : null} */}
                         {post.repostedFrom ? repostProfile?.personalDetails?.userRole : userInfo?.userRole}
-                        <span className='mx-2'></span>
+                        <span className="mx-2"></span>
                       </span>
-                      <span className="nav-item small mx-3" style={{ color: "#8b959b" }}>
+                      <span className="nav-item small mx-3" style={{ color: '#8b959b' }}>
                         {userInfo?.timestamp}
                         <span
-                          className='nav-item small'
+                          className="nav-item small"
                           style={{
                             borderRadius: '100%',
                             width: '3px',
@@ -1328,39 +1614,141 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
             </div>
 
             {
-              post.userId === user?.id && !post.repostedFrom &&
+              <div style={{ position: 'relative' }}>
 
-              <div style={{ position: "relative" }}>
-                <button
-                  className="btn btn-link p-0 text-dark"
-                  style={{ fontSize: "1.5rem", lineHeight: "1", marginTop: '-25px', marginRight: '15px' }}
-                  onClick={() => setMenuVisible(!menuVisible)}
-                >
-                  <BsThreeDots />
-                </button>
-                {menuVisible && (
-                  <div
-                    className="dropdown-menu show"
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      right: 0,
-                      zIndex: 1000,
-                      display: "block",
-                      backgroundColor: "white",
-                      boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                      borderRadius: "0.25rem",
-                      overflow: "hidden",
+                {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+                  !userInfo.connection && (
+                    <Button
+                      variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                      className="mx-3"
+                      onClick={() => UserRequest(userInfo.id)}
+                      disabled={loading === userInfo.id}>
+                      {loading === userInfo.id ? (
+                        <Loading size={15} loading={true} />
+                      ) : (
+                        <span className="w-100 d-flex align-items-center ">
+                          {sentStatus[userInfo.id] ? (
+                            <>
+                              <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                            </>
+                          ) : (
+                            <>
+                              <FaPlus /> <span className="p-0 px-2">Connect </span>
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </Button>
+                  )
+                ) : (<div className='w-50 d-flex '>
+                  <button
+                    className="btn btn-link p-0 text-dark"
+                    style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                    onClick={() => setMenuVisible(!menuVisible)}>
+                    <BsThreeDots />
+                  </button>
+                  {post.userId !== user?.id && <button
+                    className="dropdown-item text-dark d-flex align-items-center"
+                    onClick={() => {
+                      console.log('clicking..')
+                      hidePost(user?.id, post.Id)
                     }}
-                  >
-                    <button
-                      className="dropdown-item text-danger d-flex align-items-center"
-                      onClick={() => handleDeletePost(post?.Id)}
-                      style={{ gap: "0.5rem" }}
-                    >
-                      <BsTrash /> Delete Post
-                    </button>
-                  </div>
+                    style={{ gap: '0.5rem' }}>
+                    <RxCross2 size={25} />
+                  </button>}
+                </div>)}
+
+                {menuVisible && (
+                  <>
+                    {post.userId === user?.id && (
+                      <div
+                        className="dropdown-menu show shadow-0"
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          right: 0,
+                          backgroundColor: 'white',
+                          borderRadius: '0.25rem',
+                          overflow: 'hidden',
+                          boxShadow: "none"
+                        }}>
+                        <>
+                          <button
+                            className="dropdown-item text-danger d-flex align-items-center"
+                            onClick={() => handleDeletePost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsTrash /> Delete Post
+                          </button>
+                          <button
+                            className="dropdown-item text-primary d-flex align-items-center"
+                            onClick={() => handleEditPost(post?.Id)}
+                            style={{ gap: '0.5rem' }}>
+                            <BsPenFill /> Edit Post
+                          </button>
+                        </>
+                      </div>
+                    )}
+                    {post.userId !== user?.id && (
+                      <div
+                        className="dropdown-menu show"
+                        style={{
+                          position: 'absolute',
+                          padding: 0,
+                          top: 0,
+                          right: "6em",
+                          zIndex: 1000,
+                          display: 'block',
+                          backgroundColor: 'white',
+                          // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                          borderRadius: '0.25rem',
+                          overflow: 'hidden',
+                          boxShadow: "none",
+                          border: "none",
+
+                        }}>
+
+                        {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
+                        <button
+                          className="dropdown-item text-danger d-flex align-items-center "
+                          onClick={() => setShowReportModal(true)}
+                          style={{ gap: '0.5rem' }}>
+                          <BsExclamationTriangle /> Report Post
+                        </button>
+                        {/* {!userInfo.connection && (
+                          <Button
+                            variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
+                            className="mx-3"
+                            onClick={() => UserRequest(userInfo.id)}
+                            disabled={loading === userInfo.id}>
+                            {loading === userInfo.id ? (
+                              <Loading size={15} loading={true} />
+                            ) : (
+                              <span className="w-100 d-flex align-items-center ">
+                                {sentStatus[userInfo.id] ? (
+                                  <>
+                                    <BsPersonCheckFill /> <span className="p-0 px-2">sent </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FaPlus /> <span className="p-0 px-2">Connect </span>
+                                  </>
+                                )}
+                              </span>
+                            )}
+                          </Button>
+                        )} */}
+
+                        {
+                          <ReportModal
+                            show={showReportModal}
+                            handleClose={() => setShowReportModal(false)}
+                            userId={user?.id || ''}
+                            postId={post?.Id || ''}
+                          />
+                        }
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             }
@@ -1380,79 +1768,132 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                   color: 'black',
                   fontSize: '16px',
                   // Set maxHeight to 'none' to show all content if there's a link or any embedded content.
-                  maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : (isExpanded ? 'none' : '192px'),
-                  overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : (isExpanded ? 'visible' : 'hidden'),
-                }}
-              >
-                {formatContent(post.content)}
+                  maxHeight: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'none' : isExpanded ? 'none' : '192px',
+                  overflow: post.content.match(/(https?:\/\/[^\s]+)/g) ? 'visible' : isExpanded ? 'visible' : 'hidden',
+                }}>
+                {<FormatContent content={post.content} />}
               </div>
               {!isExpanded && post.content.length > 230 && (
-                <span
-                  className="text-blue-500 mt-1 cursor-pointer"
-                  onClick={() => setIsExpanded(true)}
-                >
+                <span className="text-blue-500 mt-1 cursor-pointer" onClick={() => setIsExpanded(true)}>
                   ...read more
                 </span>
               )}
             </div>
           )}
 
-
-          {media?.length > 0 && (
-            isVideo ? (
+          {media?.length > 0 &&
+            (isVideo ? (
               <div
                 style={{
-                  position: "relative",
-                  marginBottom: "10px",
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+                  position: 'relative',
+                  marginBottom: '10px',
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
                 {videoPlayer}
               </div>
             ) : (
-              <ResponsiveGallery
-                media={media}
-                item={item}
-                profile={profile}
-                setShowRepostOp={setShowRepostOp}
-                utils={utils}
-              />
-            )
-          )}
-          <div style={{ marginTop: '20px' }}>
-            {LikeText(allLikes)}
-          </div>
+              <ResponsiveGallery media={media} item={item} profile={profile} setShowRepostOp={setShowRepostOp} utils={utils} />
+            ))}
+          <div style={{ marginTop: '20px' }}>{LikeText(allLikes)}</div>
           <ButtonGroup
             className="w-100 border-top border-bottom mb-3"
             style={{
-              backgroundColor: "white",
-              borderBottom: "1px solid #dee2e6",
-            }}
-          >
-            <Button
-              variant="ghost"
-              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              onClick={toggleLike}
-              style={{ fontSize: "0.8rem" }}
-            >
-              {likeStatus ? (
-                <BsFillHandThumbsUpFill size={16} style={{ color: "#1EA1F2" }} />
-              ) : (
-                <ThumbsUp size={16} style={{ color: "inherit" }} />
+              backgroundColor: 'white',
+              borderBottom: '1px solid #dee2e6',
+            }}>
+            <div style={{ position: 'relative', width: '20%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {(showReactions || mouseOnReactions) && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '33px',
+                    left: '140%',
+                    transform: 'translateX(-50%)',
+                    background: 'white',
+                    boxShadow: '0px 4px 6px rgba(0,0,0,0.1)',
+                    borderRadius: '8px',
+                    padding: '6px',
+                    display: 'flex',
+                    gap: '8px',
+                    zIndex: 100,
+                  }}
+                  onMouseEnter={() => {
+                    setMouseOnReactions(true)
+                    setShowReactions(true)
+                  }}
+                  onMouseLeave={() => {
+                    setMouseOnReactions(false)
+                    setShowReactions(false)
+                  }}>
+                  {reactions.map((reaction) => (
+                    <span
+                      key={reaction.label}
+                      onMouseEnter={(e) => {
+                        ; (e.target as HTMLElement).style.transform = 'scale(1.5)'
+                          ; (e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        setHoveredReaction(reaction.label)
+                      }}
+                      onMouseLeave={(e) => {
+                        ; (e.target as HTMLElement).style.transform = 'scale(1)'
+                        setHoveredReaction(null)
+                      }}
+                      onClick={() => {
+                        toggleLike(reaction.reactId)
+                        setShowReactions(false)
+                      }}
+                      style={{ cursor: 'pointer', fontSize: '25px', position: 'relative' }}>
+                      {reaction.emoji}
+                      {hoveredReaction === reaction.label && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '38px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: 'black',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            whiteSpace: 'nowrap',
+                          }}>
+                          {reaction.label}
+                        </div>
+                      )}
+                    </span>
+                  ))}
+                </div>
               )}
-              {/* <span>Like</span> */}
-            </Button>
+              <Button
+                variant="ghost"
+                className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                onClick={() => toggleLike(reactionId || 1)}
+                onMouseEnter={() => setShowReactions(true)}
+                onMouseLeave={() =>
+                  setTimeout(() => {
+                    setShowReactions(false)
+                  }, 100)
+                }
+                style={{ fontSize: '0.8rem' }}>
+                {selectedReaction && reactionId !== 1 ? (
+                  <span>{selectedReaction.emoji}</span>
+                ) : likeStatus ? (
+                  <BsFillHandThumbsUpFill size={16} style={{ color: '#1EA1F2' }} />
+                ) : (
+                  <ThumbsUp size={16} style={{ color: 'inherit' }} />
+                )}
+              </Button>
+            </div>
 
             <Button
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
               onClick={() => setOpenComment(!openComment)}
-              style={{ fontSize: "0.8rem" }}
-            >
+              style={{ fontSize: '0.8rem' }}>
               <MessageSquare size={16} />
               {/* <span>Comment</span> */}
             </Button>
@@ -1460,9 +1901,8 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
             <Button
               variant="ghost"
               className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-              style={{ fontSize: "0.8rem" }}
-              onClick={() => setShowRepostOp(true)}
-            >
+              style={{ fontSize: '0.8rem' }}
+              onClick={() => setShowRepostOp(true)}>
               <Repeat size={16} />
               {/* <span>Repost</span> */}
             </Button>
@@ -1474,89 +1914,112 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                 item={item}
                 isCreated={isCreated}
                 setIsCreated={setIsCreated}
-              />}
-              <Button
-          onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
-          variant="ghost"
-          className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-          style={{ fontSize: "0.8rem" }}
-        >
-          <Copy size={16} />
-        </Button>
-          <Button
-      onClick={() => handleShare(post.Id)}
-      variant="ghost"
-      className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-      style={{ fontSize: "0.8rem" }}
-    >
-      <Share size={16} />
-    </Button>
+              />
+            }
+            <Button
+              onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
+              variant="ghost"
+              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+              style={{ fontSize: '0.8rem' }}>
+              <Copy size={16} />
+            </Button>
+            <Button
+              onClick={() => handleShare(post.Id)}
+              variant="ghost"
+              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+              style={{ fontSize: '0.8rem' }}>
+              <Share size={16} />
+            </Button>
           </ButtonGroup>
-          {openComment && <div className="d-flex mb-4 px-3">
-            <div className="avatar avatar-xs me-3">
-              <Link to={`/profile/feed/${user?.id}`}>
-                <span role="button">
-                  <ImageZoom
-                    src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar}
-                    zoom={profile?.personalDetails?.zoomProfile}
-                    rotate={profile?.personalDetails?.rotateProfile}
-                    width='45px'
-                    height='45px'
-                  />
-                  {/* <img
+          {
+            <div className="d-flex mb-4 px-3">
+              <div className="avatar avatar-xs me-3">
+                <Link to={`/profile/feed/${user?.id}`}>
+                  <span role="button">
+                    <ImageZoom
+                      src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar}
+                      zoom={profile?.personalDetails?.zoomProfile}
+                      rotate={profile?.personalDetails?.rotateProfile}
+                      width="45px"
+                      height="45px"
+                    />
+                    {/* <img
                     className="avatar-img rounded-circle"
                     style={{ width: '52px', height: '35px', objectFit: 'cover' }}
                     src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar}
                     alt="avatar"
                   /> */}
-                </span>
-              </Link>
-            </div>
-            <form
-              className="nav nav-item w-100 d-flex align-items-center"
-              onSubmit={handleCommentSubmit}
-              style={{ gap: "10px" }}
-            >
-              <textarea
-                data-autoresize
-                className="form-control"
-                style={{
-                  backgroundColor: "#fff",
-                  color: "#000",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  textAlign: "left",
-                  resize: "none",
-                  height: "38px",
-                  flex: 1,
-                  border: "1px solid #ced4da",
-                  borderRadius: "4px",
-                  padding: "5px 10px",
-                }}
-                rows={1}
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleCommentSubmit(e);
-                  }
-                }}
-              />
-             <div className="d-flex align-items-center justify-content-between w-25">
-             <PhotoUpload
-          icon={BsImages} 
-          onFileUpload={handleFileUpload}
-          showPreview
-          text="photo"
-        />
-             </div>
-            </form>
-          </div>}
+                  </span>
+                </Link>
+              </div>
+              <form className="nav nav-item w-100 d-flex align-items-center" onSubmit={handleCommentSubmit} style={{ gap: '10px' }}>
+                <textarea
+                  data-autoresize
+                  className="form-control"
+                  style={{
+                    backgroundColor: '#fff',
+                    color: '#000',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                    resize: 'none',
+                    height: '38px',
+                    flex: 1,
+                    border: '1px solid #ced4da',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                  }}
+                  rows={1}
+                  placeholder="Add a comment... "
+                  value={commentText}
+                  onChange={handleChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleCommentSubmit(e)
+                    }
+                  }}
+                />
 
-          {openComment && (isLoading ? (
+                {/* Mention Dropdown */}
+                {mentionDropdownVisible && searchResults.length > 0 && (
+                  <div
+                    className="position bg-white shadow rounded w-100 mt-1"
+                    style={{
+                      zIndex: 1000,
+                      maxHeight: '10rem',
+                      overflowY: 'auto',
+                      border: '1px solid #ddd',
+                    }}>
+                    {searchResults.map((user) => (
+                      <div
+                        key={user.id}
+                        className="d-flex align-items-center p-2 cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleMentionClick(user)}>
+                        <div className="avatar">
+                          <img
+                            src={user.avatar || avatar}
+                            alt={user.fullName}
+                            className="avatar-img rounded-circle border border-white border-3"
+                            width={34}
+                            height={34}
+                          />
+                        </div>
+                        <div>
+                          <h6 className="mb-0">{user.fullName}</h6>
+                          <small className="text-muted">{user.userRole}</small>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </form>
+            </div>
+          }
+
+          {isLoading ? (
             <p>Loading comments...</p>
           ) : (
             <ul className="comment-wrap list-unstyled px-3">
@@ -1574,24 +2037,21 @@ const handleCommentSubmit = async (e: React.FormEvent) => {
                 />
               ))}
             </ul>
-          ))}
+          )}
         </CardBody>
 
-        {openComment && (
-          comments.length > 2 && (
-            <CardFooter
-              className="border-0 pt-0"
-              onClick={() => {
-                setLoadMore(!loadMore);
-              }}
-            >
-              <LoadContentButton name={!loadMore ? "Load more comments" : "Close comments"} toggle={loadMore} />
-            </CardFooter>
-          )
+        {comments.length > 2 && (
+          <CardFooter
+            className="border-0 pt-0"
+            onClick={() => {
+              setLoadMore(!loadMore)
+            }}>
+            <LoadContentButton name={!loadMore ? 'Load more comments' : 'Close comments'} toggle={loadMore} />
+          </CardFooter>
         )}
       </Card>
     </>
-  );
-};
+  )
+}
 
-export default PostCard;
+export default PostCard

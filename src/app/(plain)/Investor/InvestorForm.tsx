@@ -1966,6 +1966,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/context/useAuthContext';
 import { toast } from 'react-toastify';
+import { Lightbulb, Users } from 'lucide-react';
+import { LIVE_URL } from '@/utils/api';
 
 interface FormData {
   isAccredited: string;
@@ -1993,6 +1995,72 @@ interface FormData {
 }
 
 const InvestorForm = () => {
+
+
+  const containerStyle = {
+    backgroundColor: '#f8f9fa',
+    border: '1px solid #dee2e6',
+    borderRadius: '12px',
+    padding: '24px',
+    width: '100%',
+    maxWidth: '100vw', // Full-screen width
+    margin: '-47px auto 10px ', // Top, Right, Bottom, Left
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+  };
+  
+
+  const headerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '20px',
+    borderBottom: '1px solid #dee2e6',
+    paddingBottom: '16px'
+    
+  };
+
+  const titleStyle = {
+    fontSize: '24px',
+    fontWeight: '600',
+    color: '#2c3e50',
+    margin: 0
+  };
+
+  const descriptionStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    color: '#6c757d',
+    fontSize: '16px',
+    marginBottom: '20px'
+  };
+
+  const iconContainerStyle = {
+    display: 'flex',
+    gap: '24px',
+    marginTop: '20px'
+  };
+
+  const iconBoxStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 16px',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    color: '#495057'
+  };
+
+
+
+
+
+
+
+
+
+  
   const { user } = useAuthContext();
   const navigate = useNavigate();
   
@@ -2062,7 +2130,7 @@ const InvestorForm = () => {
     }
     
     try {
-      const response1 = await fetch(`http://13.216.146.100/api/v1/investor/create`, {
+      const response1 = await fetch(`${LIVE_URL}api/v1/investor/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2075,7 +2143,7 @@ const InvestorForm = () => {
       }
     
       try {
-        const response2 = await fetch(`http://13.216.146.100/api/v1/subrole/create`, {
+        const response2 = await fetch(`${LIVE_URL}api/v1/subrole/create`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2608,7 +2676,30 @@ const InvestorForm = () => {
 
   return (
     <div className="container py-4">
-      <h2 className="mb-4 text-center">Investor Profile</h2>
+       <div style={containerStyle}  >
+      <div style={headerStyle}>
+        <Users 
+          size={32} 
+          color="#0d6efd"
+          style={{ strokeWidth: 1.5 }}
+        />
+        <h2 style={titleStyle}>Investor</h2>
+      </div>
+      
+      <div style={descriptionStyle}>
+        <Lightbulb 
+          size={20} 
+          color="#6c757d"
+          style={{ strokeWidth: 1.5 }}
+        />
+        <p style={{ margin: 0 }}>
+        Invest in Companies and Startups
+        </p>
+      </div>
+           
+      <div style={iconContainerStyle}>
+      </div>
+    </div>
       
       {/* Enhanced Tab Navigation */}
       <div className="mb-4">
@@ -2619,10 +2710,10 @@ const InvestorForm = () => {
               onClick={() => handleTabClick(tab.step)}
               className={`flex-grow-1 text-center py-3 px-4 rounded-3 mx-2 tab-item ${
                 step === tab.step
-                  ? 'bg-primary text-white'
+                  ? 'bg-white text-primary p-4 border border-primary rounded-3 shadow'
                   : step > tab.step
-                  ? 'bg-light text-primary cursor-pointer'
-                  : 'text-muted'
+                  ? 'bg-white text-blue p-4 border border-light rounded-3 shadow'
+                  : 'bg-white text-blue p-4 border border-light rounded-3 shadow'
               }`}
               style={{ 
                 cursor: tab.step <= step ? 'pointer' : 'pointer',
@@ -2641,7 +2732,7 @@ const InvestorForm = () => {
 
       {renderStep()}
 
-      <div className="d-flex justify-content-between mt-4">
+      <div className="d-flex justify-content-between mt-4 p-3  border rounded-2" style={{backgroundColor:"#f8f9fa"}}>
         {step > 1 && (
           <button
             className="btn btn-secondary"

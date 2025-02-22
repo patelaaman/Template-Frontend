@@ -14,6 +14,7 @@ import { useLayoutContext } from '@/context/useLayoutContext'
 import { set } from 'react-hook-form'
 import { LIVE_URL } from '@/utils/api'
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page'
+import ImageZoom from '../cards/ImageZoom'
 
 type ProfilePanelProps = {
   links: ProfilePanelLink[]
@@ -81,190 +82,160 @@ const ProfilePanel = ({ links }: ProfilePanelProps) => {
 
   return (
     <>
-      <Card className="overflow-hidden h-100">
-        <div className="h-60px">
-          {!skeletonLoading ? (
-            <div
-            className="h-90px rounded-top"
-            style={{
-              position : 'relative',
-              overflow : 'hidden',
-              backgroundPosition: 'center',
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-            }}
-          >
-            <Image
-            src={profile?.coverImgUrl ? profile?.coverImgUrl : bgBannerImg} // Replace with your actual image source
-            alt="Profile"
+  <Card className="overflow-hidden">
+    {/* Profile Cover Image */}
+    <div className="h-90px position-relative">
+      {!skeletonLoading ? (
+        <div
+          className="h-100 rounded-top"
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            backgroundPosition: "center",
+          }}
+        >
+          <Image
+            src={profile?.coverImgUrl || bgBannerImg}
+            alt="Profile Cover"
             style={{
               width: "100%",
-              height: "100%",
-              transform: `scale(${(profile.personalDetails.zoom || 50)/ 50}) rotate(${(profile.personalDetails.rotate || 50) - 50}deg)`,
+              objectFit: "cover",
             }}
           />
-          </div>
-          ) : (
-            <Skeleton height={50} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
-          )}
         </div>
+      ) : (
+        <Skeleton height={50} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} />
+      )}
+    </div>
 
-        <CardBody className="pt-0" style={{marginTop : '40px'}}>
-          <div className="text-center">
-            <Link to={`/profile/feed/${user?.id}`}>
-              <div className="avatar avatar-lg mt-n5 mb-3">
-                {skeletonLoading ? (
-                  <Skeleton height={50} width={50} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} style={{ borderRadius: '50%' }}/>
-                ) : (
-                  <div
-                    style={{
-                      border : '3px solid white',
-                      width: "90px",
-                      height: "90px",
-                      borderRadius: "50%",
-                      overflow: "hidden",
-                      // marginTop : '30px',
-                      marginLeft:"-22px"
-                       }}
-                  >
-                    <Image
-                      src={profile.profileImgUrl || avatar7} // Replace with your actual image source
-                      alt="Profile"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        transform: `scale(${(profile.personalDetails.zoomProfile || 50)  / 50}) rotate(${(profile.personalDetails.rotateProfile || 50) - 50}deg)`,
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            </Link>
-
-            <h5 className="mb-2 fw-semibold">
-              <Link to={`/profile/feed/${user?.id}`} className={`${isDarkMode ? 'text-light' : 'text-dark'} text-decoration-none`}>
-                {profile.personalDetails?.firstName || user?.firstName} {profile.personalDetails?.lastName || user?.lastName}
-              </Link>
-            </h5>
-
-            <p className={`fs-6 mx-1 mb-0 ${isDarkMode ? 'text-light' : 'text-dark'}`}>{user?.userRole}</p>
-            <div className={`d-flex align-items-center justify-content-center gap-2 pb-3 ${isDarkMode ? 'text-light' : 'text-dark'} mb-2`}>
-              <span className={`fs-6 ${isDarkMode ? 'text-light' : 'text-dark'}`}>{user?.country}</span>
-            </div>
-            {/* <p className="text-dark fs-6 mt-3 mb-0">
-              {profile.personalDetails?.bio ? profile.personalDetails?.bio : "Software Developer"}
-            </p> */}
-
-            {/* {profile.postsCount && profile.connectionsCount && profile.likeCount ? (
-              <div className="hstack gap-2 gap-xl-3 justify-content-center">
-                <div>
-                  <h6 className="mb-0">{profile.postsCount}</h6>
-                  <small>Posts</small>
-                </div>
-                <div className="vr" />
-                <div>
-                  <h6 className="mb-0">{profile.connectionsCount}</h6>
-                  <small>Connections</small>
-                </div>
-                <div className="vr" />
-                <div>
-                  <h6 className="mb-0">{profile.likeCount}</h6>
-                  <small>Likes</small>
-                </div>
-              </div>
-            ) : null} */}
-          </div>
-
-          <hr />
-
-          <ul className="nav nav-link-secondary flex-column fw-bold gap-2">
-            {links.map((item, idx) => (
-              <li key={item.name + idx} className="nav-item">
-                <Link className="nav-link d-flex justify-content-center align-center" to={item.link}>
-                  {item.image &&  <item.image size={20}/>}
-                  <span className='text-center' style={{marginLeft : '8px'}}>{item.name ? item.name : 'Arun Jain'} </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </CardBody>
-
-        <CardFooter className="text-center">
-          {/* <Link  className="btn btn-sm btn-link" to= {(`/profile/feed/${user?.id}`)}> */}
+    {/* Card Body with Proper Spacing */}
+    <CardBody className="pt-0 position-relative" style={{ paddingTop: "" }}>
+      <div className="text-center">
+        {/* Profile Image - Absolutely Centered but with Correct Spacing */}
+        <Link to={`/profile/feed/${user?.id}`}>
           <div
+            className="avatar avatar-lg"
             style={{
-              width: '100%',
-              height: '140px',
-            }}>
-            <p
-              className="btn btn-sm btn-link"
-              style={{
-                fontSize: '17px',
-                color: 'black',
-                fontWeight: 'bold',
-              }}>
-              <span>Subscribe to Premium</span>
-            </p>
-            <p>Subscribe to unlock new features</p>
-
-            <Button
-              className="w-100"
-              style={{
-                backgroundColor: '#1ea1f3',
-                color: 'white',
-                padding: '3px',
-                marginBottom: '3px',
-
-              }}
-              onClick={() => {
-                navigate('/feed/groups')
-              }}>
-              <Gem size={16}/> <span style={{paddingLeft : '2px',paddingTop : '4px'}}>Subscribe</span>
-            </Button>
+              width: "100px",
+              height: "100px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              margin: "auto", // Center inside parent
+              position: "relative", // No absolute positioning to avoid overlap
+              marginTop: "-50px", // Moves it above the name
+            }}
+          >
+            {skeletonLoading ? (
+              <Skeleton height={90} width={90} baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor} style={{ borderRadius: "50%" }} />
+            ) : (
+              <ImageZoom
+                src={profile.profileImgUrl || avatar7}
+                width="90px"
+                height="90px"
+                zoom={profile.personalDetails.zoomProfile}
+                rotate={profile.personalDetails.rotateProfile}
+              />
+            )}
           </div>
-          {/* </Link> */}
-        </CardFooter>
-      </Card>
-      <ul className="nav small mt-4 justify-content-center lh-1">
-        <li className="nav-item">
-          <Link className="nav-link" to="/profile/about">
-            About
-          </Link>
-        </li>
-        <li className="nav-item">
-          <Link className="nav-link" to="/settings/account">
-            Settings
-          </Link>
-        </li>
-        <li className="nav-item">
-          <Link className="nav-link" target="_blank" rel="noreferrer" to={developedByLink}>
-            Support
-          </Link>
-        </li>
-        <li className="nav-item">
-          <Link className="nav-link" target="_blank" rel="noreferrer" to="">
-            Docs
-          </Link>
-        </li>
-        <li className="nav-item">
-          <Link className="nav-link" to="/help">
-            Help
-          </Link>
-        </li>
-        <li className="nav-item">
-          <Link className="nav-link" to="/privacy-terms">
-            Privacy &amp; terms
-          </Link>
-        </li>
-      </ul>
+        </Link>
 
-      <p className="small text-center mt-1">
-        ©{currentYear}
-        <a className="text-reset" target="_blank" rel="noreferrer" href={developedByLink}>
-          {developedBy}
-        </a>
-      </p>
-    </>
+        {/* Profile Name & Details - Now Properly Positioned Below the Profile Pic */}
+        <div style={{ marginTop: "10px" }}> 
+          <h5 className="mb-2 fw-semibold">
+            <Link to={`/profile/feed/${user?.id}`} className={`${isDarkMode ? "text-light" : "text-dark"} text-decoration-none`}>
+              {profile.personalDetails?.firstName || user?.firstName} {profile.personalDetails?.lastName || user?.lastName}
+            </Link>
+          </h5>
+
+          <p className={`fs-6 mx-1 mb-0 ${isDarkMode ? "text-light" : "text-dark"}`}>{user?.userRole}</p>
+          <div className={`d-flex align-items-center justify-content-center gap-2 pb-3 ${isDarkMode ? "text-light" : "text-dark"} mb-2`}>
+            <span className={`fs-6 ${isDarkMode ? "text-light" : "text-dark"}`}>{user?.country}</span>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      {/* Navigation Links */}
+      <ul className="nav nav-link-secondary flex-column fw-bold gap-2">
+        {links.map((item, idx) => (
+          <li key={item.name + idx} className="nav-item">
+            <Link className="nav-link d-flex justify-content-center align-items-center" to={item.link}>
+              {item.image && <item.image size={20} />}
+              <span className="text-center" style={{ marginLeft: "8px" }}>{item.name || "Arun Jain"}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </CardBody>
+
+    {/* Subscribe Section */}
+    <CardFooter className="text-center">
+      <div style={{ width: "100%", height: "140px" }}>
+        <p className="btn btn-sm btn-link" style={{ fontSize: "17px", color: "black", fontWeight: "bold" }}>
+          <span>Subscribe to Premium</span>
+        </p>
+        <p>Subscribe to unlock new features</p>
+
+        <Button
+          className="w-100"
+          style={{
+            backgroundColor: "#1ea1f3",
+            color: "white",
+            padding: "6px",
+            marginBottom: "5px",
+          }}
+          onClick={() => navigate("/feed/groups")}
+        >
+          <Gem size={16} /> <span style={{ paddingLeft: "5px" }}>Subscribe</span>
+        </Button>
+      </div>
+    </CardFooter>
+  </Card>
+
+  {/* Footer Links */}
+  <ul className="nav small mt-4 justify-content-center lh-1">
+    <li className="nav-item">
+      <Link className="nav-link" to="/profile/about">
+        About
+      </Link>
+    </li>
+    <li className="nav-item">
+      <Link className="nav-link" to="/settings/account">
+        Settings
+      </Link>
+    </li>
+    <li className="nav-item">
+      <Link className="nav-link" target="_blank" rel="noreferrer" to={developedByLink}>
+        Support
+      </Link>
+    </li>
+    <li className="nav-item">
+      <Link className="nav-link" target="_blank" rel="noreferrer" to="">
+        Docs
+      </Link>
+    </li>
+    <li className="nav-item">
+      <Link className="nav-link" to="/help">
+        Help
+      </Link>
+    </li>
+    <li className="nav-item">
+      <Link className="nav-link" to="/privacy-terms">
+        Privacy & Terms
+      </Link>
+    </li>
+  </ul>
+
+  <p className="small text-center mt-1">
+    ©{currentYear}
+    <a className="text-reset" target="_blank" rel="noreferrer" href={developedByLink}>
+      {developedBy}
+    </a>
+  </p>
+</>
+
   )
 }
 

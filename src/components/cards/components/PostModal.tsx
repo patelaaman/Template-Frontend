@@ -6,7 +6,7 @@ import fallBackAvatar from '@/assets/images/avatar/default avatar.png'
 import { FaGlobe } from "react-icons/fa";
 import { useAuthContext } from "@/context/useAuthContext";
 import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash } from "react-icons/bs";
-import { ChevronLeft, ChevronRight, MessageSquare, Repeat, ThumbsUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, MessageSquare, Repeat, Share, ThumbsUp } from "lucide-react";
 import { LIVE_URL } from "@/utils/api";
 import { MdComment, MdThumbUp } from "react-icons/md";
 import { UserProfile } from "@/app/(social)/feed/(container)/home/page";
@@ -17,6 +17,8 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { UtilType } from "./MediaGallery";
+import { toast } from "react-toastify";
+import RepostModal from "../RepostModal";
 const PostModal = ({
   show,
   handleClose,
@@ -34,6 +36,7 @@ const PostModal = ({
     item: PostSchema;
     profile: UserProfile;
     media: string[];
+    showRepostOp : boolean
     setShowRepostOp: React.Dispatch<React.SetStateAction<boolean>>
     utils: UtilType
   }) => {
@@ -54,6 +57,13 @@ const PostModal = ({
   const hasMount = useRef(false);
   const swiperRef = useRef(null);
   const [repostProfile, setRepostProfile] = useState<UserProfile>({});
+
+  const [errorIndexes, setErrorIndexes] = useState([]);
+
+  // Function to handle media errors
+  const handleMediaError = (index) => {
+    setErrorIndexes((prev) => [...prev, index]);
+  };
   // console.log('---profile in post modal---',profile?.profileImgUrl);
   const { likeCount, setLikeCount, commentCount, setCommentCount, likeStatus, setLikeStatus, allLikes, setAllLikes } = utils
 
@@ -132,7 +142,31 @@ const PostModal = ({
       setLen(0);
     }
   }, [])
+
+  const handleShare = (postId: string) => {
+    const shareUrl = `${LIVE_URL}feed/home#${postId}`;
+
+    if (navigator.share) {
+      navigator
+        .share({
+          title: "Check out this post!",
+          url: shareUrl,
+        })
+        .catch((error) => console.error("Error sharing:", error));
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      navigator.clipboard.writeText(shareUrl);
+      alert("Link copied to clipboard!");
+    }
+  };
   
+    const handleCopy = (postId: string) => {
+      const shareUrl = `${LIVE_URL}feed/post/${postId}`;
+  
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => toast.success("Link copied to clipboard!"))
+        .catch((error) => console.error("Error copying link:", error));
+    }
 
   useEffect(() => {
     likeStatus ? setTrue() : setFalse();
@@ -278,7 +312,7 @@ const PostModal = ({
           <Row>
             {/* Left Side - Post Image */}
             <Col md={7} className="p-0 position-relative">
-              <Swiper
+            <Swiper
                 modules={[Navigation]}
                 spaceBetween={10}
                 slidesPerView={1}
@@ -287,44 +321,84 @@ const PostModal = ({
                   swiperRef.current = swiper;
                   swiper.slideTo(imageIndex);
                 }}
-              // onSlideChange={(swiper) => {
-              //   // Force a re-render to update button visibility
-              //   setRefresh(prev => prev + 1);
-              // }}
               >
-                {media.map((image, index) => (
-                  <SwiperSlide key={index} style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                  <div
+                {media.map((item, index) => (
+                  <SwiperSlide
+                    key={index}
                     style={{
-                      position: "relative",
-                      width: "100%",
-                      maxWidth: "700px",
-                      height: "600px",
-                      backgroundColor: "#1b1f23",
                       display: "flex",
-                      alignItems: "center",
                       justifyContent: "center",
-                      overflow: "hidden"
+                      alignItems: "center",
                     }}
                   >
-                    <img
-                      src={image}
-                      alt={`Slide ${index}`}
+                    <div
                       style={{
-                        width: "auto",
-                        height: "auto",
-                        maxWidth: "100%",
-                        maxHeight: "100%",
-                        objectFit: "contain",
-                        zIndex: 7
+                        position: "relative",
+                        width: "100%",
+                        maxWidth: "700px",
+                        height: "600px",
+                        backgroundColor: "#1b1f23",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
-                    />
-                  </div>
-                </SwiperSlide>
-                
+                    >
+                      {errorIndexes.includes(index) ? (
+                         <video
+                         controls
+                         style={{
+                           width: "auto",
+                           height: "auto",
+                           maxWidth: "100%",
+                           maxHeight: "100%",
+                           objectFit: "contain",
+                         }}
+                         onError={() => handleMediaError(index)}
+                       >
+                         <source src={item} type="video/mp4" />
+                         <source src={item} type="video/webm" />
+                         <source src={item} type="video/ogg" />
+                         Your browser does not support the video tag.
+                       </video>
+                      ) : item.endsWith(".mp4") ||
+                        item.endsWith(".webm") ||
+                        item.endsWith(".ogg") ? (
+                        <video
+                          controls
+                          style={{
+                            width: "auto",
+                            height: "auto",
+                            maxWidth: "100%",
+                            maxHeight: "100%",
+                            objectFit: "contain",
+                          }}
+                          onError={() => handleMediaError(index)}
+                        >
+                          <source src={item} type="video/mp4" />
+                          <source src={item} type="video/webm" />
+                          <source src={item} type="video/ogg" />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : (
+                        <img
+                          src={item}
+                          alt={`Slide ${index}`}
+                          style={{
+                            width: "auto",
+                            height: "auto",
+                            maxWidth: "100%",
+                            maxHeight: "100%",
+                            objectFit: "contain",
+                            zIndex: 7,
+                          }}
+                          onError={() => handleMediaError(index)}
+                        />
+                      )}
+                    </div>
+                  </SwiperSlide>
                 ))}
               </Swiper>
-
               {/* Left Navigation Button */}
               {media.length > 1 && (
                 <button
@@ -524,56 +598,61 @@ const PostModal = ({
                   className="w-100 border-top border-bottom mb-3"
                   style={{
                     backgroundColor: "white",
-                    borderBottom: "1px solid #dee2e6", // Bootstrap's light gray border color
+                    borderBottom: "1px solid #dee2e6",
                   }}
                 >
-                  <Button
-                    variant="ghost" // Always remains ghost
-                    className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-                    onClick={toggleLike}
-                    style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-                  >
-                    {likeStatus ? (
-                      <BsFillHandThumbsUpFill size={16} style={{ color: "#1EA1F2" }} /> // Blue icon when liked
-                    ) : (
-                      <ThumbsUp size={16} style={{ color: "inherit" }} /> // Default color when not liked
-                    )}
-                    {/* <span>Like</span> */}
-                  </Button>
+                <Button
+                  variant="ghost"
+                  className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                  onClick={toggleLike}
+                  style={{ fontSize: "0.8rem" }}
+                >
+                  {likeStatus ? (
+                    <BsFillHandThumbsUpFill size={16} style={{ color: "#1EA1F2" }} />
+                  ) : (
+                    <ThumbsUp size={16} style={{ color: "inherit" }} />
+                  )}
+                  {/* <span>Like</span> */}
+                </Button>
 
-                  <Button
-                    variant="ghost"
-                    className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-                    style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-                  >
-                    <MessageSquare size={16} />
-                    {/* <span>Comment</span> */}
-                  </Button>
+                <Button
+                  variant="ghost"
+                  className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                  onClick={() => setOpenComment(!openComment)}
+                  style={{ fontSize: "0.8rem" }}
+                >
+                  <MessageSquare size={16} />
+                  {/* <span>Comment</span> */}
+                </Button>
 
-                  <Button
-                    variant="ghost"
-                    className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-                    style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-                    onClick={() => {
-                      setShowRepostOp(true)
-                      handleClose()
-                    }}
-                  >
-                    <Repeat size={16} />
-                    {/* <span>Repost</span> */}
-                  </Button>
-                  {
-
-                  }
-                  {/* <Button
-            variant="ghost"
-            className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
-            style={{ fontSize: "0.8rem" }} // Slightly smaller font size
-          >
-            <Share size={16} />
-           
-          </Button> */}
-                </ButtonGroup>
+                <Button
+                  variant="ghost"
+                  className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                  style={{ fontSize: "0.8rem" }}
+                  onClick={() => {handleClose()
+                    setShowRepostOp(true)
+                  }}
+                >
+                  <Repeat size={16} />
+                  {/* <span>Repost</span> */}
+                </Button>
+              <Button
+                onClick={() => handleCopy(post.Id)} // onclick copy this link to clip board
+                variant="ghost"
+                className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+                style={{ fontSize: "0.8rem" }}
+              >
+                <Copy size={16} />
+              </Button>
+            <Button
+              onClick={() => handleShare(post.Id)}
+              variant="ghost"
+              className="flex-grow-1 d-flex align-items-center justify-content-center gap-1 py-1 px-2"
+              style={{ fontSize: "0.8rem" }}
+            >
+              <Share size={16} />
+            </Button>
+          </ButtonGroup>
                 {<div className="d-flex mb-4 px-3">
                   <div className="avatar avatar-xs me-3">
                     <Link to={`/profile/feed/${user?.id}`}>
