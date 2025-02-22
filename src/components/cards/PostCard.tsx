@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash } from 'react-icons/bs';
+import { BsFillHandThumbsUpFill, BsImages, BsJustify, BsThreeDots, BsTrash } from 'react-icons/bs';
 import { MdComment, MdThumbUp } from "react-icons/md";
 import { Link, useNavigate } from 'react-router-dom';
 import { Copy, MessageSquare, Repeat, Share, ThumbsUp } from 'lucide-react';
@@ -17,12 +17,16 @@ import { LIVE_URL } from '@/utils/api';
 import { UserProfile } from '@/app/(social)/feed/(container)/home/page';
 import { toast } from 'react-toastify';
 import ImageZoom from './ImageZoom';
+
 // import { LinkPreview } from '@dhaiwat10/react-link-preview';
 
 import LinkPreview from '@ashwamegh/react-link-preview'
 
 // If you're using built in layout, you will need to import this css
 import '@ashwamegh/react-link-preview/dist/index.css'
+import DropzoneFormInput from '../form/DropzoneFormInput';
+import PhotoUpload from '../form/PhotoUpload';
+import { FileUpload, uploadMulti } from '@/utils/CustomS3ImageUpload';
 export interface Like {
   id: string;
   occupation: string;
@@ -350,7 +354,7 @@ const PostCard = ({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ page: 1, postId: post?.Id }),
+          body: JSON.stringify({ page: 2, postId: "9281e5539f76641c12c86d85de8f4edc" }),
         });
 
         if (!response.ok) throw new Error('Failed to fetch comments');
@@ -377,30 +381,69 @@ const PostCard = ({
     return null;
   }, [media]);
 
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
 
-    try {
-      const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer YOUR_ACCESS_TOKEN',
-        },
-        body: JSON.stringify({ postId: post.Id, userId: user?.id, text: commentText }),
-      });
+  
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
+// Handle file upload
+const handleFileUpload = (files: FileUpload[]) => {
+  if (uploadedFiles.length + files.length > 9) {
+    alert('Max Limit Reached (9 files max).');
+    return;
+  }
+  setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
+};
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      setRefresh((prev) => prev + 1);
-      setCommentText('');
-      setCommentCount(() => commentCount + 1);
-    } catch (error) {
-      console.error('Error posting comment:', error);
+// Handle file upload process
+const handleUpload = async (): Promise<string[] | false> => {
+  if (!uploadedFiles.length) return [];
+
+  try {
+    const response = await uploadMulti(uploadedFiles, user?.id);
+    console.log('Upload Response:', response);
+
+    // Flatten the response in case it's an array of arrays
+    return Array.isArray(response) ? response.flat() : response;
+  } catch (err) {
+    console.error('Error uploading files:', err);
+    return false;
+  }
+};
+
+
+// Handle comment submission
+const handleCommentSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!commentText.trim()) return;
+
+  try {
+    const mediaKeys = await handleUpload();
+    if (mediaKeys === false) throw new Error('Media upload failed');
+
+    const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        postId: post.Id, 
+        userId: user?.id, 
+        text: commentText, 
+        mediaKeys: mediaKeys || [], 
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+
+    setRefresh((prev) => prev + 1);
+    setCommentText('');
+    setCommentCount((prevCount) => prevCount + 1);
+  } catch (error) {
+    console.error('Error posting comment:', error);
+  }
+};
 
 
 
@@ -1071,7 +1114,17 @@ const PostCard = ({
                   }
                 }}
               />
+             <div className="d-flex align-items-center justify-content-between w-25">
+             <PhotoUpload
+          icon={BsImages} 
+          onFileUpload={handleFileUpload}
+          showPreview
+          text="photo"
+        />
+             </div>
             </form>
+
+
           </div>}
 
           {openComment && (isLoading ? (
@@ -1492,6 +1545,14 @@ const PostCard = ({
                   }
                 }}
               />
+             <div className="d-flex align-items-center justify-content-between w-25">
+             <PhotoUpload
+          icon={BsImages} 
+          onFileUpload={handleFileUpload}
+          showPreview
+          text="photo"
+        />
+             </div>
             </form>
           </div>}
 
