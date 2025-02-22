@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash, BsExclamationTriangle, BsPersonCheckFill, BsPenFill } from 'react-icons/bs'
-import { RxCross2 } from "react-icons/rx";
+import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash, BsExclamationTriangle, BsPersonCheckFill, BsPenFill, BsImages } from 'react-icons/bs'
+import { RxCross2 } from 'react-icons/rx'
 import { MdComment, MdThumbUp } from 'react-icons/md'
 import { Link } from 'react-router-dom'
 import { Copy, EyeOff, MessageSquare, Repeat, Share, ThumbsUp } from 'lucide-react'
@@ -21,10 +21,11 @@ import ImageZoom from './ImageZoom'
 import LikeListModal from './components/LikeListModal'
 import FormatContent from './components/ContentFormating'
 import ReportModal from './ReportPost'
-
+import PhotoUpload from '@/components/form/PhotoUpload'
 import avatar from '@/assets/images/avatar/default avatar.png'
 import { EngageComponent } from './EngageComponent'
 import Loading from '../Loading'
+import { FileUpload, uploadMulti } from '@/utils/CustomS3ImageUpload'
 export interface Like {
   id: string
   occupation: string
@@ -395,7 +396,7 @@ const PostCard = ({
     // else // console.log("id did not match")
   }
   const handleEditPost = () => {
-    console.log("edit click")
+    console.log('edit click')
   }
 
   useEffect(() => {
@@ -404,18 +405,18 @@ const PostCard = ({
     if (Object.keys(repostProfile).length !== 0) return
     hasMount.current = true
 
-  const fetchUser = async () => {
-    try {
-      setSkeletonLoading(true)
-      const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user?.id,
-        }),
-      })
+    const fetchUser = async () => {
+      try {
+        setSkeletonLoading(true)
+        const response = await fetch(`${LIVE_URL}api/v1/auth/get-user-Profile`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user?.id,
+          }),
+        })
 
         if (!response.ok) {
           //  navigate('/not-found')
@@ -473,6 +474,8 @@ const PostCard = ({
     }
     return null
   }, [media])
+
+  
 
   const toggleLike = async (reactId: number) => {
     const prevId = reactionId
@@ -568,7 +571,11 @@ const PostCard = ({
         {/* Right side with comment count */}
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <MdComment size={16} onClick={() => setOpenComment(!openComment)} />
-          {commentCount !== 0 && <span>{commentCount} {commentCount === 1 ? 'comment' : 'comments'}</span>}
+          {commentCount !== 0 && (
+            <span>
+              {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
+            </span>
+          )}
         </span>
       </p>
     )
@@ -581,10 +588,41 @@ const PostCard = ({
   // const [commentText, setCommentText] = useState("");
   // const [commentCount, setCommentCount] = useState(0);
 
+  
+  
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
+// Handle file upload
+const handleFileUpload = (files: FileUpload[]) => {
+  if (uploadedFiles.length + files.length > 9) {
+    alert('Max Limit Reached (9 files max).');
+    return;
+  }
+  setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
+};
+
+// Handle file upload process
+const handleUpload = async (): Promise<string[] | false> => {
+  if (!uploadedFiles.length) return [];
+
+  try {
+    const response = await uploadMulti(uploadedFiles, user?.id);
+    console.log('Upload Response:', response);
+
+    // Flatten the response in case it's an array of arrays
+    return Array.isArray(response) ? response.flat() : response;
+  } catch (err) {
+    console.error('Error uploading files:', err);
+    return false;
+  }
+};
+
+
+
   const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!commentText.trim()) return
-
+    const mediaKeys = await handleUpload();
+    if (mediaKeys === false) throw new Error('Media upload failed');
     try {
       const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
         method: 'POST',
@@ -596,6 +634,8 @@ const PostCard = ({
           postId: post?.Id,
           userId: user?.id,
           text: processMentionsForSubmission(commentText),
+          
+        mediaKeys: mediaKeys || [], 
         }),
       })
 
@@ -667,12 +707,14 @@ const PostCard = ({
       <Card className="mb-4">
         <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
         <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections) && 'pt-0'}`}>
-          {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+          {post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0 ? (
             <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
               {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
               {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
             </div>
-          ) : ("")}
+          ) : (
+            ''
+          )}
           <div className="d-flex align-items-center justify-content-between">
             <div className="d-flex align-items-center">
               <div className="avatar me-2">
@@ -710,7 +752,6 @@ const PostCard = ({
                     }}>
                     <Link to={`/profile/feed/${post?.userId}`} role="button" className="nav-item text-start mx-3">
                       {userInfo?.firstName} {userInfo?.lastName}
-
                     </Link>
                     <div style={{ flex: 1, flexDirection: 'row' }}>
                       <span className="small mx-3" style={{ color: '#8b959b' }}>
@@ -747,8 +788,7 @@ const PostCard = ({
 
             {
               <div style={{ position: 'relative' }}>
-
-                {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+                {post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0 ? (
                   !userInfo.connection && (
                     <Button
                       variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
@@ -772,23 +812,27 @@ const PostCard = ({
                       )}
                     </Button>
                   )
-                ) : (<div className='w-50 d-flex '>
-                  <button
-                    className="btn btn-link p-0 text-dark"
-                    style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
-                    onClick={() => setMenuVisible(!menuVisible)}>
-                    <BsThreeDots />
-                  </button>
-                  {post.userId !== user?.id && <button
-                    className="dropdown-item text-dark d-flex align-items-center"
-                    onClick={() => {
-                      // console.log('clicking..')
-                      hidePost(user?.id, post.Id)
-                    }}
-                    style={{ gap: '0.5rem' }}>
-                    <RxCross2 size={25} />
-                  </button>}
-                </div>)}
+                ) : (
+                  <div className="w-50 d-flex ">
+                    <button
+                      className="btn btn-link p-0 text-dark"
+                      style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                      onClick={() => setMenuVisible(!menuVisible)}>
+                      <BsThreeDots />
+                    </button>
+                    {post.userId !== user?.id && (
+                      <button
+                        className="dropdown-item text-dark d-flex align-items-center"
+                        onClick={() => {
+                          // console.log('clicking..')
+                          hidePost(user?.id, post.Id)
+                        }}
+                        style={{ gap: '0.5rem' }}>
+                        <RxCross2 size={25} />
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {menuVisible && (
                   <>
@@ -802,7 +846,7 @@ const PostCard = ({
                           backgroundColor: 'white',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
-                          boxShadow: "none"
+                          boxShadow: 'none',
                         }}>
                         <>
                           <button
@@ -827,18 +871,16 @@ const PostCard = ({
                           position: 'absolute',
                           padding: 0,
                           top: 0,
-                          right: "6em",
+                          right: '6em',
                           zIndex: 1000,
                           display: 'block',
                           backgroundColor: 'white',
                           // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
-                          boxShadow: "none",
-                          border: "none",
-
+                          boxShadow: 'none',
+                          border: 'none',
                         }}>
-
                         {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
                         <button
                           className="dropdown-item text-danger d-flex align-items-center "
@@ -914,11 +956,11 @@ const PostCard = ({
 
           <Card className="mb-4">
             <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections || post?.commentedByConnections) && 'pt-0'}`}>
-              {(post?.likedByConnections || post?.commentedByConnections) ? (
-                <div className="d-flex align-items-center gap-2 flex-wrap  pt-2 mb-2">
-
-                </div>
-              ) : ("")}
+              {post?.likedByConnections || post?.commentedByConnections ? (
+                <div className="d-flex align-items-center gap-2 flex-wrap  pt-2 mb-2"></div>
+              ) : (
+                ''
+              )}
               <div className="d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center">
                   <div className="avatar me-2">
@@ -943,7 +985,7 @@ const PostCard = ({
                       </div>
                     </Link>
                   </div>
-                  <div className='d-flex'>
+                  <div className="d-flex">
                     <div className="nav nav-divider">
                       <h6
                         className="nav-item card-title mb-0 "
@@ -1015,7 +1057,7 @@ const PostCard = ({
               </div>
             </CardHeader>
             <CardBody>
-             {post?.content && (
+              {post?.content && (
                 <div className="mb-1 p-1 bg-gray-100 rounded-lg">
                   <div
                     id={post.Id}
@@ -1094,12 +1136,12 @@ const PostCard = ({
                     <span
                       key={reaction.label}
                       onMouseEnter={(e) => {
-                        ; (e.target as HTMLElement).style.transform = 'scale(1.5)'
-                          ; (e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        ;(e.target as HTMLElement).style.transform = 'scale(1.5)'
+                        ;(e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
                         setHoveredReaction(reaction.label)
                       }}
                       onMouseLeave={(e) => {
-                        ; (e.target as HTMLElement).style.transform = 'scale(1)'
+                        ;(e.target as HTMLElement).style.transform = 'scale(1)'
                         setHoveredReaction(null)
                       }}
                       onClick={() => {
@@ -1205,42 +1247,53 @@ const PostCard = ({
                   </span>
                 </Link>
               </div>
-              <form
-                className="nav nav-item w-100 d-flex align-items-center"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  console.log('Submitted:', commentText)
+
+          
+              
+           <form 
+              className="nav nav-item w-100 d-flex align-items-center"
+              onSubmit={handleCommentSubmit}
+              style={{ gap: "15px" }}
+            >
+              <textarea
+                data-autoresize
+                className="form-control"
+                style={{
+                  backgroundColor: "#fff",
+                  color: "#000",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  textAlign: "left",
+                  resize: "none",
+                  height: "38px",
+                  flex: 1,
+                  border: "1px solid #ced4da",
+                  borderRadius: "4px",
+                  padding: "5px 10px"
+
                 }}
-                style={{ gap: '10px' }}>
-                <textarea
-                  ref={textareaRef}
-                  className="form-control"
-                  style={{
-                    backgroundColor: '#fff',
-                    color: '#000',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    textAlign: 'left',
-                    resize: 'none',
-                    height: '38px',
-                    flex: 1,
-                    border: '1px solid #ced4da',
-                    borderRadius: '4px',
-                    padding: '5px 10px',
-                  }}
-                  rows={1}
-                  placeholder="Add a comment..."
-                  value={commentText}
-                  onChange={handleChange}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleCommentSubmit(e)
-                      console.log('Comment submitted:', commentText)
-                    }
-                  }}
-                />
+                rows={1}
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleCommentSubmit(e);
+                  }
+                }}
+              />
+             <div className="d-flex align-items-center justify-content-between w-25">
+  <PhotoUpload 
+    icon={BsImages} 
+    onFileUpload={handleFileUpload} 
+    showPreview
+    text="Upload Photos"
+  />
+</div>
+
+          
 
                 {/* Mention Dropdown */}
                 {mentionDropdownVisible && searchResults.length > 0 && (
@@ -1309,31 +1362,35 @@ const PostCard = ({
       <Card className="mb-4">
         <LikeListModal isOpen={showList} onClose={() => setShowList(false)} likes={allLikes} />
         <CardHeader className={`border-0 pb-0 ${(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) && 'pt-0'}`}>
-          {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
-            <div className='d-flex justify-content-between'>
+          {post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0 ? (
+            <div className="d-flex justify-content-between">
               <div className="d-flex align-items-center gap-2 flex-wrap border-bottom pt-2 mb-2">
                 {post?.likedByConnections && <EngageComponent users={post.likedByConnections} type="like" />}
                 {post?.commentedByConnections && <EngageComponent users={post.commentedByConnections} type="comment" />}
               </div>
-              <div className=' d-flex '>
+              <div className=" d-flex ">
                 <button
                   className="btn btn-link p-0 text-dark"
                   style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
                   onClick={() => setMenuVisible(!menuVisible)}>
                   <BsThreeDots />
                 </button>
-                {post.userId !== user?.id && <button
-                  className="dropdown-item text-dark d-flex align-items-center"
-                  onClick={() => {
-                    console.log('clicking..')
-                    hidePost(user?.id, post.Id)
-                  }}
-                  style={{ gap: '0.5rem' }}>
-                  <RxCross2 size={25} />
-                </button>}
+                {post.userId !== user?.id && (
+                  <button
+                    className="dropdown-item text-dark d-flex align-items-center"
+                    onClick={() => {
+                      console.log('clicking..')
+                      hidePost(user?.id, post.Id)
+                    }}
+                    style={{ gap: '0.5rem' }}>
+                    <RxCross2 size={25} />
+                  </button>
+                )}
               </div>
             </div>
-          ) : ("")}
+          ) : (
+            ''
+          )}
           {post.repostedFrom && close && (
             <>
               <div
@@ -1387,7 +1444,6 @@ const PostCard = ({
                     }}>
                     <Link to={`/profile/feed/${post?.userId}`} style={{ fontWeight: 'bold', textDecoration: 'none', color: '#000' }}>
                       {userInfo?.firstName} {userInfo?.lastName}
-
                     </Link>
                     <span style={{ marginLeft: '6px', color: '#555', paddingTop: '2px' }}>reposted this</span>
                   </p>
@@ -1396,8 +1452,7 @@ const PostCard = ({
                 {/* Close Button */}
                 {
                   <div style={{ position: 'relative' }}>
-
-                    {(post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0) ? (
+                    {post?.likedByConnections.length > 0 || post?.commentedByConnections.length > 0 ? (
                       !userInfo.connection && (
                         <Button
                           variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
@@ -1421,23 +1476,27 @@ const PostCard = ({
                           )}
                         </Button>
                       )
-                    ) : (<div className='w-50 d-flex '>
-                      <button
-                        className="btn btn-link p-0 text-dark"
-                        style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
-                        onClick={() => setMenuVisible(!menuVisible)}>
-                        <BsThreeDots />
-                      </button>
-                      {post.userId !== user?.id && <button
-                        className="dropdown-item text-dark d-flex align-items-center"
-                        onClick={() => {
-                          console.log('clicking..')
-                          hidePost(user?.id, post.Id)
-                        }}
-                        style={{ gap: '0.5rem' }}>
-                        <RxCross2 size={25} />
-                      </button>}
-                    </div>)}
+                    ) : (
+                      <div className="w-50 d-flex ">
+                        <button
+                          className="btn btn-link p-0 text-dark"
+                          style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                          onClick={() => setMenuVisible(!menuVisible)}>
+                          <BsThreeDots />
+                        </button>
+                        {post.userId !== user?.id && (
+                          <button
+                            className="dropdown-item text-dark d-flex align-items-center"
+                            onClick={() => {
+                              console.log('clicking..')
+                              hidePost(user?.id, post.Id)
+                            }}
+                            style={{ gap: '0.5rem' }}>
+                            <RxCross2 size={25} />
+                          </button>
+                        )}
+                      </div>
+                    )}
 
                     {menuVisible && (
                       <>
@@ -1451,7 +1510,7 @@ const PostCard = ({
                               backgroundColor: 'white',
                               borderRadius: '0.25rem',
                               overflow: 'hidden',
-                              boxShadow: "none"
+                              boxShadow: 'none',
                             }}>
                             <>
                               <button
@@ -1476,18 +1535,16 @@ const PostCard = ({
                               position: 'absolute',
                               padding: 0,
                               top: 0,
-                              right: "6em",
+                              right: '6em',
                               zIndex: 1000,
                               display: 'block',
                               backgroundColor: 'white',
                               // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                               borderRadius: '0.25rem',
                               overflow: 'hidden',
-                              boxShadow: "none",
-                              border: "none",
-
+                              boxShadow: 'none',
+                              border: 'none',
                             }}>
-
                             {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
                             <button
                               className="dropdown-item text-danger d-flex align-items-center "
@@ -1615,8 +1672,7 @@ const PostCard = ({
 
             {
               <div style={{ position: 'relative' }}>
-
-                {(post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0) ? (
+                {post?.likedByConnections?.length > 0 || post?.commentedByConnections?.length > 0 ? (
                   !userInfo.connection && (
                     <Button
                       variant={sentStatus[userInfo.id] ? 'primary' : 'primary-soft'}
@@ -1640,23 +1696,27 @@ const PostCard = ({
                       )}
                     </Button>
                   )
-                ) : (<div className='w-50 d-flex '>
-                  <button
-                    className="btn btn-link p-0 text-dark"
-                    style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
-                    onClick={() => setMenuVisible(!menuVisible)}>
-                    <BsThreeDots />
-                  </button>
-                  {post.userId !== user?.id && <button
-                    className="dropdown-item text-dark d-flex align-items-center"
-                    onClick={() => {
-                      console.log('clicking..')
-                      hidePost(user?.id, post.Id)
-                    }}
-                    style={{ gap: '0.5rem' }}>
-                    <RxCross2 size={25} />
-                  </button>}
-                </div>)}
+                ) : (
+                  <div className="w-50 d-flex ">
+                    <button
+                      className="btn btn-link p-0 text-dark"
+                      style={{ fontSize: '1.5rem', lineHeight: '1', marginRight: '15px' }}
+                      onClick={() => setMenuVisible(!menuVisible)}>
+                      <BsThreeDots />
+                    </button>
+                    {post.userId !== user?.id && (
+                      <button
+                        className="dropdown-item text-dark d-flex align-items-center"
+                        onClick={() => {
+                          console.log('clicking..')
+                          hidePost(user?.id, post.Id)
+                        }}
+                        style={{ gap: '0.5rem' }}>
+                        <RxCross2 size={25} />
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {menuVisible && (
                   <>
@@ -1670,7 +1730,7 @@ const PostCard = ({
                           backgroundColor: 'white',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
-                          boxShadow: "none"
+                          boxShadow: 'none',
                         }}>
                         <>
                           <button
@@ -1695,18 +1755,16 @@ const PostCard = ({
                           position: 'absolute',
                           padding: 0,
                           top: 0,
-                          right: "6em",
+                          right: '6em',
                           zIndex: 1000,
                           display: 'block',
                           backgroundColor: 'white',
                           // boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
                           borderRadius: '0.25rem',
                           overflow: 'hidden',
-                          boxShadow: "none",
-                          border: "none",
-
+                          boxShadow: 'none',
+                          border: 'none',
                         }}>
-
                         {/* <div style={{ height: '1px', width: '100%', backgroundColor: '#F2F2F2', margin: '5px 0' }} /> */}
                         <button
                           className="dropdown-item text-danger d-flex align-items-center "
@@ -1833,12 +1891,12 @@ const PostCard = ({
                     <span
                       key={reaction.label}
                       onMouseEnter={(e) => {
-                        ; (e.target as HTMLElement).style.transform = 'scale(1.5)'
-                          ; (e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
+                        ;(e.target as HTMLElement).style.transform = 'scale(1.5)'
+                        ;(e.target as HTMLElement).style.transition = 'transform 0.2s ease-out'
                         setHoveredReaction(reaction.label)
                       }}
                       onMouseLeave={(e) => {
-                        ; (e.target as HTMLElement).style.transform = 'scale(1)'
+                        ;(e.target as HTMLElement).style.transform = 'scale(1)'
                         setHoveredReaction(null)
                       }}
                       onClick={() => {
@@ -1952,35 +2010,47 @@ const PostCard = ({
                   </span>
                 </Link>
               </div>
-              <form className="nav nav-item w-100 d-flex align-items-center" onSubmit={handleCommentSubmit} style={{ gap: '10px' }}>
-                <textarea
-                  data-autoresize
-                  className="form-control"
-                  style={{
-                    backgroundColor: '#fff',
-                    color: '#000',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    textAlign: 'left',
-                    resize: 'none',
-                    height: '38px',
-                    flex: 1,
-                    border: '1px solid #ced4da',
-                    borderRadius: '4px',
-                    padding: '5px 10px',
-                  }}
-                  rows={1}
-                  placeholder="Add a comment... "
-                  value={commentText}
-                  onChange={handleChange}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleCommentSubmit(e)
-                    }
-                  }}
-                />
+              <form
+              className="nav nav-item w-100 d-flex align-items-center"
+              onSubmit={handleCommentSubmit}
+              style={{ gap: "10px" }}
+            >
+              <textarea
+                data-autoresize
+                className="form-control"
+                style={{
+                  backgroundColor: "#fff",
+                  color: "#000",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  textAlign: "left",
+                  resize: "none",
+                  height: "38px",
+                  flex: 1,
+                  border: "1px solid #ced4da",
+                  borderRadius: "4px",
+                  padding: "5px 10px",
+                }}
+                rows={1}
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleCommentSubmit(e);
+                  }
+                }}
+              />
+             <div className="d-flex align-items-center justify-content-between w-25">
+             <PhotoUpload
+          icon={BsImages} 
+          onFileUpload={handleFileUpload}
+          showPreview
+          text="photo"
+        />
+             </div>
 
                 {/* Mention Dropdown */}
                 {mentionDropdownVisible && searchResults.length > 0 && (

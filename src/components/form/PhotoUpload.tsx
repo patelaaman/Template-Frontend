@@ -83,13 +83,13 @@ const DropzoneFormInput = ({
     <>
       <FormLabel className={labelClassName}>{label}</FormLabel>
 
-      <Dropzone onDrop={(acceptedFiles) => handleAcceptedFiles(acceptedFiles)} maxFiles={5}>
+      <Dropzone onDrop={(acceptedFiles) => handleAcceptedFiles(acceptedFiles)} maxFiles={4}>
         {({ getRootProps, getInputProps }) => (
           <div className="dropzone dropzone-custom cursor-pointer" style={{ maxHeight: '15px', minHeight: '12px' }}>
             {selectedFiles.length === 0 && (
               <div className="" {...getRootProps()}>
                 <input {...getInputProps()} />
-                <Icon {...iconProps} className="display-3" size={18} style={{    marginTop: "-22px"}}/>
+                <Icon {...iconProps} className="display-3" size={30} style={{    marginTop: "-22px"}}/>
                 {/* <p className={textClassName}>{text}</p> */}
               </div>
             )}
@@ -105,10 +105,10 @@ const DropzoneFormInput = ({
                         <div className="rounded bg-light text-center">{file.documentName.split('.').pop()?.toUpperCase()}</div>
                       )}
                       <div className="mt-2">
-                        {/* <p role="button" className="text-body-secondary fw-bold">
+                        <p role="button" className="text-body-secondary fw-bold">
                           {file.documentName}
-                        </p> */}
-                        {/* <p className="mb-0 small">{(file.fileSize / 1024).toFixed(2)} KB</p> */}
+                        </p> 
+                        <p className="mb-0 small">{(file.fileSize / 1024).toFixed(2)} KB</p>
                       </div>
                       <div className="position-absolute  start-100 translate-middle" style={{ top: '-25px' }}>
                         <button 
