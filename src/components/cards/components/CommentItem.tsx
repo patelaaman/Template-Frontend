@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ThumbsUp, MessageSquare, ChevronUp, ChevronDown } from 'react-feather';
-import { BsFillHandThumbsUpFill, BsSendFill, BsThreeDots, BsTrash } from 'react-icons/bs';
+import { BsFillHandThumbsUpFill, BsSendFill, BsThreeDots, BsTrash, BsUpload } from 'react-icons/bs';
 import fallBackAvatar from '../../../assets/images/avatar/default avatar.png';
 import axios, { AxiosResponse } from 'axios';
 import { useAuthContext } from '@/context/useAuthContext';
@@ -11,6 +11,8 @@ import { UserProfile } from '@/app/(social)/feed/(container)/home/page';
 import { Image } from 'react-bootstrap';
 import MediaGallery from './MediaGallery';
 import MediaGrid from './MediaGrid';
+import DropzoneFormInput from '@/components/form/PhotoUpload';
+import { FileUpload, uploadMulti } from '@/utils/CustomS3ImageUpload';
 
 interface DeleteCommentResponse {
   message: string;
@@ -72,6 +74,44 @@ const CommentItem = ({post, comment, level,setRefresh,refresh,parentId=null,comm
     }
   };
 
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
+  
+  // Handle file upload (Restrict to 4 images & prevent duplicates)
+  const handleFileUpload = (files: FileUpload[]) => {
+    // Remove duplicates based on file name & size
+    const uniqueFiles = files.filter(
+      (file) =>
+        !uploadedFiles.some(
+          (existingFile) =>
+            existingFile.name === file.name && existingFile.size === file.size
+        )
+    );
+  
+    if (uploadedFiles.length + uniqueFiles.length > 4) {
+      alert("You can only upload up to 4 unique images.");
+      return;
+    }
+  
+    setUploadedFiles((prevFiles) => [...prevFiles, ...uniqueFiles]);
+  };
+  
+  // Handle file upload process
+  const handleUpload = async (): Promise<string[] | false> => {
+    if (!uploadedFiles.length) return [];
+  
+    try {
+      const response = await uploadMulti(uploadedFiles, user?.id);
+      console.log("Upload Response:", response);
+  
+      // Flatten the response in case it's an array of arrays
+      return Array.isArray(response) ? response.flat() : response;
+    } catch (err) {
+      console.error("Error uploading files:", err);
+      return false;
+    }
+  };
+  
+
   const handleCommentSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     console.log(post);
@@ -90,6 +130,7 @@ const CommentItem = ({post, comment, level,setRefresh,refresh,parentId=null,comm
           postId,
           commentId, // Include only if it is a reply to another comment
           text,
+          MediaKeys: [],
         }),
       });
   
@@ -375,6 +416,16 @@ const CommentItem = ({post, comment, level,setRefresh,refresh,parentId=null,comm
       }
     }}
   />
+    <div className="d-flex align-items-center justify-content-between w-25">
+             <DropzoneFormInput
+    icon={BsUpload}
+    onFileUpload={handleFileUpload}
+    showPreview
+    text="Drag & Drop Images Here or Click to Upload"
+
+  />
+  
+</div>
 </form>
         </div>
       )}

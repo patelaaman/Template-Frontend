@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash, BsExclamationTriangle, BsPersonCheckFill, BsPenFill, BsImages } from 'react-icons/bs'
+import { BsFillHandThumbsUpFill, BsThreeDots, BsTrash, BsExclamationTriangle, BsPersonCheckFill, BsPenFill, BsImages, BsUpload } from 'react-icons/bs'
 import { RxCross2 } from 'react-icons/rx'
 import { MdComment, MdThumbUp } from 'react-icons/md'
 import { Link } from 'react-router-dom'
@@ -26,6 +26,7 @@ import avatar from '@/assets/images/avatar/default avatar.png'
 import { EngageComponent } from './EngageComponent'
 import Loading from '../Loading'
 import { FileUpload, uploadMulti } from '@/utils/CustomS3ImageUpload'
+import DropzoneFormInput from '../form/DropzoneFormInput'
 export interface Like {
   id: string
   occupation: string
@@ -594,7 +595,6 @@ const PostCard = ({
 
 // Handle file upload (Restrict to 4 images & prevent duplicates)
 const handleFileUpload = (files: FileUpload[]) => {
-  // Remove duplicates based on file name & size
   const uniqueFiles = files.filter(
     (file) =>
       !uploadedFiles.some(
@@ -609,7 +609,16 @@ const handleFileUpload = (files: FileUpload[]) => {
   }
 
   setUploadedFiles((prevFiles) => [...prevFiles, ...uniqueFiles]);
+
+ // setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
 };
+
+// ✅ Remove image from preview
+const removeImage = (index: number) => {
+  setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+};
+
+
 
 // Handle file upload process
 const handleUpload = async (): Promise<string[] | false> => {
@@ -620,7 +629,12 @@ const handleUpload = async (): Promise<string[] | false> => {
     console.log("Upload Response:", response);
 
     // Flatten the response in case it's an array of arrays
-    return Array.isArray(response) ? response.flat() : response;
+    const uploadedUrls = Array.isArray(response) ? response.flat() : response;
+
+    // Clear uploaded images from state (which will also remove previews)
+    setUploadedFiles([]);
+
+    return uploadedUrls;
   } catch (err) {
     console.error("Error uploading files:", err);
     return false;
@@ -1305,9 +1319,8 @@ const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     onFileUpload={handleFileUpload}
     showPreview
     text="Drag & Drop Images Here or Click to Upload"
-
-  />
-  
+    
+  /> 
 </div>
 
           
