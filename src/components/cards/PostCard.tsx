@@ -149,6 +149,7 @@ const PostCard = ({
   const [reactionId, setReactionId] = useState<number | null>(null)
   const [sentStatus, setSentStatus] = useState<{ [key: string]: boolean }>({})
   const [loading, setLoading] = useState<string | null>(null)
+  const [flag, setFlag] = useState<boolean>(false)
   const reactions = [
     { emoji: '👍', label: 'Like', reactId: 1 },
     { emoji: '🎉', label: 'Celebrate', reactId: 2 },
@@ -476,8 +477,6 @@ const PostCard = ({
     return null
   }, [media])
 
-  
-
   const toggleLike = async (reactId: number) => {
     const prevId = reactionId
     if (reactionId === reactId) {
@@ -589,94 +588,85 @@ const PostCard = ({
   // const [commentText, setCommentText] = useState("");
   // const [commentCount, setCommentCount] = useState(0);
 
-  
-  
-  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
 
-// Handle file upload (Restrict to 4 images & prevent duplicates)
-const handleFileUpload = (files: FileUpload[]) => {
-  const uniqueFiles = files.filter(
-    (file) =>
-      !uploadedFiles.some(
-        (existingFile) =>
-          existingFile.name === file.name && existingFile.size === file.size
-      )
-  );
+  // Handle file upload (Restrict to 4 images & prevent duplicates)
+  const handleFileUpload = (files: FileUpload[]) => {
+    const uniqueFiles = files.filter(
+      (file) => !uploadedFiles.some((existingFile) => existingFile.name === file.name && existingFile.size === file.size),
+    )
 
-  if (uploadedFiles.length + uniqueFiles.length > 4) {
-    alert("You can only upload up to 4 unique images.");
-    return;
-  }
-
-  setUploadedFiles((prevFiles) => [...prevFiles, ...uniqueFiles]);
-
- // setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-};
-
-// ✅ Remove image from preview
-const removeImage = (index: number) => {
-  setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-};
-
-
-
-// Handle file upload process
-const handleUpload = async (): Promise<string[] | false> => {
-  if (!uploadedFiles.length) return [];
-
-  try {
-    const response = await uploadMulti(uploadedFiles, user?.id);
-    console.log("Upload Response:", response);
-
-    // Flatten the response in case it's an array of arrays
-    const uploadedUrls = Array.isArray(response) ? response.flat() : response;
-
-    // Clear uploaded images from state (which will also remove previews)
-    setUploadedFiles([]);
-
-    return uploadedUrls;
-  } catch (err) {
-    console.error("Error uploading files:", err);
-    return false;
-  }
-};
-
-// Handle comment submission
-const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  
-  const mediaKeys = await handleUpload();
-  if (mediaKeys === false) throw new Error("Media upload failed");
-
-  try {
-    const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer YOUR_ACCESS_TOKEN",
-      },
-      body: JSON.stringify({
-        postId: post?.Id,
-        userId: user?.id,
-        text: processMentionsForSubmission(commentText),
-        mediaKeys: mediaKeys || [],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (uploadedFiles.length + uniqueFiles.length > 4) {
+      alert('You can only upload up to 4 unique images.')
+      return
     }
 
-    // Refresh UI after successful comment submission
-    setRefresh((prev) => prev + 1);
-    setCommentText("");
-    setUploadedFiles([]); // Clear uploaded images after comment submission
-    setCommentCount((prev) => prev + 1);
-  } catch (error) {
-    console.error("Error posting comment:", error);
-  }
-};
+    setUploadedFiles((prevFiles) => [...prevFiles, ...uniqueFiles])
 
+    // setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  }
+
+  // ✅ Remove image from preview
+  const removeImage = (index: number) => {
+    setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+  }
+
+  // Handle file upload process
+  const handleUpload = async (): Promise<string[] | false> => {
+    if (!uploadedFiles.length) return []
+
+    try {
+      const response = await uploadMulti(uploadedFiles, user?.id)
+      console.log('Upload Response:', response)
+
+      // Flatten the response in case it's an array of arrays
+      const uploadedUrls = Array.isArray(response) ? response.flat() : response
+
+      // Clear uploaded images from state (which will also remove previews)
+      setUploadedFiles([])
+
+      return uploadedUrls
+    } catch (err) {
+      console.error('Error uploading files:', err)
+      return false
+    }
+  }
+
+  // Handle comment submission
+  const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const mediaKeys = await handleUpload()
+    if (mediaKeys === false) throw new Error('Media upload failed')
+
+    try {
+      const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer YOUR_ACCESS_TOKEN',
+        },
+        body: JSON.stringify({
+          postId: post?.Id,
+          userId: user?.id,
+          text: processMentionsForSubmission(commentText),
+          mediaKeys: mediaKeys || [],
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      // Refresh UI after successful comment submission
+      setRefresh((prev) => prev + 1)
+      setCommentText('')
+      setUploadedFiles([]) // Clear uploaded images after comment submission
+      setCommentCount((prev) => prev + 1)
+    } catch (error) {
+      console.error('Error posting comment:', error)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
@@ -1260,6 +1250,7 @@ const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                         height: '45px',
                         borderRadius: '50%',
                         overflow: 'hidden',
+                        backgroundColor: 'red',
                       }}>
                       <Image
                         src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar} // Replace with your actual image source
@@ -1275,54 +1266,44 @@ const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </Link>
               </div>
 
-          
-              
-           <form 
-              className="nav nav-item w-100 d-flex align-items-center"
-              onSubmit={handleCommentSubmit}
-              style={{ gap: "15px" }}
-            >
-              <textarea
-                data-autoresize
-                className="form-control"
-                style={{
-                  backgroundColor: "#fff",
-                  color: "#000",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  textAlign: "left",
-                  resize: "none",
-                  height: "38px",
-                  flex: 1,
-                  border: "1px solid #ced4da",
-                  borderRadius: "4px",
-                  padding: "5px 10px"
-
-                }}
-                rows={1}
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleCommentSubmit(e);
-                  }
-                }}
-              />
-             <div className="d-flex align-items-center justify-content-between w-25">
-             <DropzoneFormInput
-    label="Upload Images"
-    icon={BsUpload}
-    onFileUpload={handleFileUpload}
-    showPreview
-    text="Drag & Drop Images Here or Click to Upload"
-    
-  /> 
-</div>
-
-          
+              <form className="nav nav-item w-100 d-flex align-items-center" onSubmit={handleCommentSubmit} style={{ gap: '15px' }}>
+                <textarea
+                  data-autoresize
+                  className="form-control"
+                  style={{
+                    backgroundColor: '#fff',
+                    color: '#000',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                    resize: 'none',
+                    height: '38px',
+                    flex: 1,
+                    border: '1px solid #ced4da',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                  }}
+                  rows={1}
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleCommentSubmit(e)
+                    }
+                  }}
+                />
+                <div className="d-flex align-items-center justify-content-between w-25">
+                  <DropzoneFormInput
+                    label="Upload Images"
+                    icon={BsUpload}
+                    onFileUpload={handleFileUpload}
+                    showPreview
+                    text="Drag & Drop Images Here or Click to Upload"
+                  />
+                </div>
 
                 {/* Mention Dropdown */}
                 {mentionDropdownVisible && searchResults.length > 0 && (
@@ -1365,7 +1346,7 @@ const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             (isLoading ? (
               <p>Loading comments...</p>
             ) : (
-              <ul className="comment-wrap list-unstyled px-3" >
+              <ul className="comment-wrap list-unstyled px-3">
                 {(loadMore ? comments : comments.slice(0, 2)).map((comment, index) => (
                   <CommentItem
                     key={index}
@@ -2040,46 +2021,40 @@ const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 </Link>
               </div>
               <form
-              className="nav nav-item w-100 d-flex align-items-center"
-              onSubmit={handleCommentSubmit}
-              style={{ gap: "10px" }}
-            >
-              <textarea
-                data-autoresize
-                className="form-control"
-                style={{
-                  backgroundColor: "#fff",
-                  color: "#000",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  textAlign: "left",
-                  resize: "none",
-                  height: "38px",
-                  flex: 1,
-                  border: "1px solid #ced4da",
-                  borderRadius: "4px",
-                  padding: "5px 10px",
-                }}
-                rows={1}
-                placeholder="Add a comment..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleCommentSubmit(e);
-                  }
-                }}
-              />
-             <div className="d-flex align-items-center justify-content-between w-25">
-             <PhotoUpload
-          icon={BsImages} 
-          onFileUpload={handleFileUpload}
-          showPreview
-          text="photo"
-        />
-             </div>
+                className="nav nav-item w-100 d-flex border align-items-start"
+                onSubmit={handleCommentSubmit}
+                style={{ gap: '10px', marginTop: '0.4rem' }}>
+                <textarea
+                  data-autoresize
+                  className="form-control border-0 rounded"
+                  style={{
+                    backgroundColor: '#fff',
+                    color: '#000',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                    resize: 'none',
+                    height: '38px',
+                    flex: 1,
+                    border: '1px solid #ced4da',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                  }}
+                  rows={1}
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleCommentSubmit(e)
+                    }
+                  }}
+                />
+                <div className="d-flex align-items-center justify-content-between  w-25"style={{flexDirection:"column", marginTop:-8}}>
+                  <PhotoUpload icon={BsImages} onFileUpload={handleFileUpload} showPreview text="photo" />
+                </div>
 
                 {/* Mention Dropdown */}
                 {mentionDropdownVisible && searchResults.length > 0 && (
