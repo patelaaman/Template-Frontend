@@ -591,13 +591,24 @@ const PostCard = ({
   
   
   const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([]);
-// Handle file upload
+
+// Handle file upload (Restrict to 4 images & prevent duplicates)
 const handleFileUpload = (files: FileUpload[]) => {
-  if (uploadedFiles.length + files.length > 9) {
-    alert('Max Limit Reached (9 files max).');
+  // Remove duplicates based on file name & size
+  const uniqueFiles = files.filter(
+    (file) =>
+      !uploadedFiles.some(
+        (existingFile) =>
+          existingFile.name === file.name && existingFile.size === file.size
+      )
+  );
+
+  if (uploadedFiles.length + uniqueFiles.length > 4) {
+    alert("You can only upload up to 4 unique images.");
     return;
   }
-  setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
+
+  setUploadedFiles((prevFiles) => [...prevFiles, ...uniqueFiles]);
 };
 
 // Handle file upload process
@@ -606,50 +617,53 @@ const handleUpload = async (): Promise<string[] | false> => {
 
   try {
     const response = await uploadMulti(uploadedFiles, user?.id);
-    console.log('Upload Response:', response);
+    console.log("Upload Response:", response);
 
     // Flatten the response in case it's an array of arrays
     return Array.isArray(response) ? response.flat() : response;
   } catch (err) {
-    console.error('Error uploading files:', err);
+    console.error("Error uploading files:", err);
     return false;
   }
 };
 
+// Handle comment submission
+const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  if (!commentText.trim()) return;
 
+  const mediaKeys = await handleUpload();
+  if (mediaKeys === false) throw new Error("Media upload failed");
 
-  const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!commentText.trim()) return
-    const mediaKeys = await handleUpload();
-    if (mediaKeys === false) throw new Error('Media upload failed');
-    try {
-      const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer YOUR_ACCESS_TOKEN',
-        },
-        body: JSON.stringify({
-          postId: post?.Id,
-          userId: user?.id,
-          text: processMentionsForSubmission(commentText),
-          
-        mediaKeys: mediaKeys || [], 
-        }),
-      })
+  try {
+    const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer YOUR_ACCESS_TOKEN",
+      },
+      body: JSON.stringify({
+        postId: post?.Id,
+        userId: user?.id,
+        text: processMentionsForSubmission(commentText),
+        mediaKeys: mediaKeys || [],
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      setRefresh((prev) => prev + 1)
-      setCommentText('')
-      setCommentCount((prev) => prev + 1)
-    } catch (error) {
-      console.error('Error posting comment:', error)
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    // Refresh UI after successful comment submission
+    setRefresh((prev) => prev + 1);
+    setCommentText("");
+    setUploadedFiles([]); // Clear uploaded images after comment submission
+    setCommentCount((prev) => prev + 1);
+  } catch (error) {
+    console.error("Error posting comment:", error);
   }
+};
+
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
@@ -1285,12 +1299,15 @@ const handleUpload = async (): Promise<string[] | false> => {
                 }}
               />
              <div className="d-flex align-items-center justify-content-between w-25">
-  <PhotoUpload 
-    icon={BsImages} 
-    onFileUpload={handleFileUpload} 
+             <DropzoneFormInput
+    label="Upload Images"
+    icon={BsUpload}
+    onFileUpload={handleFileUpload}
     showPreview
-    text="Upload Photos"
+    text="Drag & Drop Images Here or Click to Upload"
+
   />
+  
 </div>
 
           
@@ -1336,7 +1353,7 @@ const handleUpload = async (): Promise<string[] | false> => {
             (isLoading ? (
               <p>Loading comments...</p>
             ) : (
-              <ul className="comment-wrap list-unstyled px-3">
+              <ul className="comment-wrap list-unstyled px-3" >
                 {(loadMore ? comments : comments.slice(0, 2)).map((comment, index) => (
                   <CommentItem
                     key={index}

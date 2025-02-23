@@ -114,27 +114,37 @@ export const uploadMulti = async (files: FileUpload[], userId: string): Promise<
   try {
     console.log('📂 Uploading files:', files);
 
-    const mediaKeys = await Promise.all(
-      files.map(async (file, index) => {
-        if (!file || !file.fileType) {
-          console.error(`🚨 Error: Missing fileType in file at index ${index}:`, file);
-          return [];
-        }
+    // Process files in chunks of 4
+    const chunkSize = 4;
+    let mediaKeys: string[] = [];
 
-        try {
-          const uploadedKeys = await uploadDoc([file], userId);
-          console.log(`✅ Uploaded file ${index}:`, uploadedKeys);
-          return uploadedKeys || [];
-        } catch (err) {
-          console.error(`⚠️ Upload failed for file ${index}:`, err);
-          return [];
-        }
-      })
-    );
+    for (let i = 0; i < files.length; i += chunkSize) {
+      const chunk = files.slice(i, i + chunkSize); // Get a batch of 4 files
+      console.log(`🚀 Uploading batch ${i / chunkSize + 1}:`, chunk);
 
-    const flattenedKeys = mediaKeys.flat();
-    console.log('🎯 Final media keys:', flattenedKeys);
-    return flattenedKeys;
+      const batchKeys = await Promise.all(
+        chunk.map(async (file, index) => {
+          if (!file || !file.fileType) {
+            console.error(`🚨 Error: Missing fileType in file at index ${index}:`, file);
+            return [];
+          }
+
+          try {
+            const uploadedKeys = await uploadDoc([file], userId);
+            console.log(`✅ Uploaded file ${index}:`, uploadedKeys);
+            return Array.isArray(uploadedKeys) ? uploadedKeys : [];
+          } catch (err) {
+            console.error(`⚠️ Upload failed for file ${index}:`, err);
+            return [];
+          }
+        })
+      );
+
+      mediaKeys.push(...batchKeys.flat()); // Store results
+    }
+
+    console.log('🎯 Final uploaded media keys:', mediaKeys);
+    return mediaKeys;
   } catch (error) {
     console.error('❌ Error in uploadMulti:', error);
     return [];
