@@ -114,6 +114,10 @@ const CommentItem = ({post, comment, level,setRefresh,refresh,parentId=null,comm
 
   const handleCommentSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    const mediaKeys = await handleUpload();
+    if (mediaKeys === false) throw new Error("Media upload failed"); 
+
     console.log(post);
     const userId = user?.id; 
     const postId = post.Id; 
@@ -130,7 +134,7 @@ const CommentItem = ({post, comment, level,setRefresh,refresh,parentId=null,comm
           postId,
           commentId, // Include only if it is a reply to another comment
           text,
-          MediaKeys: [],
+          mediaKeys:mediaKeys ? mediaKeys:[]
         }),
       });
   

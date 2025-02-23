@@ -644,8 +644,7 @@ const handleUpload = async (): Promise<string[] | false> => {
 // Handle comment submission
 const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-  if (!commentText.trim()) return;
-
+  
   const mediaKeys = await handleUpload();
   if (mediaKeys === false) throw new Error("Media upload failed");
 
