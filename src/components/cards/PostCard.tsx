@@ -635,10 +635,12 @@ const PostCard = ({
   // Handle comment submission
   const handleCommentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
 
     const mediaKeys = await handleUpload()
     if (mediaKeys === false) throw new Error('Media upload failed')
-
+      setFlag(true)
+    setTimeout(() => setFlag(false), 100)
     try {
       const response = await fetch(`${LIVE_URL}api/v1/post/create-comment`, {
         method: 'POST',
@@ -657,14 +659,17 @@ const PostCard = ({
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-
+  setFlag(true)
+      setTimeout(() => setFlag(false), 100)
       // Refresh UI after successful comment submission
       setRefresh((prev) => prev + 1)
       setCommentText('')
       setUploadedFiles([]) // Clear uploaded images after comment submission
       setCommentCount((prev) => prev + 1)
+    
     } catch (error) {
       console.error('Error posting comment:', error)
+    
     }
   }
 
@@ -1253,7 +1258,7 @@ const PostCard = ({
                         backgroundColor: 'red',
                       }}>
                       <Image
-                        src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar} // Replace with your actual image source
+                        src={profile?.profileImgUrl ? profile.profileImgUrl : fallBackAvatar}
                         alt="Profile"
                         style={{
                           width: '100%',
@@ -1266,10 +1271,13 @@ const PostCard = ({
                 </Link>
               </div>
 
-              <form className="nav nav-item w-100 d-flex align-items-center" onSubmit={handleCommentSubmit} style={{ gap: '15px' }}>
+              <form
+                className="nav nav-item w-100 d-flex border align-items-start"
+                onSubmit={handleCommentSubmit}
+                style={{ gap: '10px', marginTop: '0.4rem' }}>
                 <textarea
                   data-autoresize
-                  className="form-control"
+                  className="form-control border-0 rounded"
                   style={{
                     backgroundColor: '#fff',
                     color: '#000',
@@ -1295,14 +1303,8 @@ const PostCard = ({
                     }
                   }}
                 />
-                <div className="d-flex align-items-center justify-content-between w-25">
-                  <DropzoneFormInput
-                    label="Upload Images"
-                    icon={BsUpload}
-                    onFileUpload={handleFileUpload}
-                    showPreview
-                    text="Drag & Drop Images Here or Click to Upload"
-                  />
+                <div className="d-flex align-items-center justify-content-between  w-25" style={{ flexDirection: 'column', marginTop: -8 }}>
+                  <PhotoUpload icon={BsImages} onFileUpload={handleFileUpload} showPreview text="photo"   reset={flag}/>
                 </div>
 
                 {/* Mention Dropdown */}
@@ -2052,8 +2054,8 @@ const PostCard = ({
                     }
                   }}
                 />
-                <div className="d-flex align-items-center justify-content-between  w-25"style={{flexDirection:"column", marginTop:-8}}>
-                  <PhotoUpload icon={BsImages} onFileUpload={handleFileUpload} showPreview text="photo" />
+                <div className="d-flex align-items-center justify-content-between  w-25" style={{ flexDirection: 'column', marginTop: -8 }}>
+                  <PhotoUpload icon={BsImages} onFileUpload={handleFileUpload} showPreview text="photo"   reset={flag}/>
                 </div>
 
                 {/* Mention Dropdown */}

@@ -45,7 +45,7 @@ const CommentItem = ({
   const [isDeleted, setIsDeleted] = useState<boolean>(false)
   const [profile, setProfile] = useState<UserProfile>(false)
   // console.log('---comment---',comment);
-  console.log('---my profile---', myProfile)
+  // console.log('---my profile---', myProfile)
   function formatText(text: string, name: string): string {
     return `@${name} ${text}`
   }
