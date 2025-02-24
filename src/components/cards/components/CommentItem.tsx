@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ThumbsUp, MessageSquare, ChevronUp, ChevronDown } from 'react-feather'
-import { BsFillHandThumbsUpFill, BsSendFill, BsThreeDots, BsTrash, BsUpload } from 'react-icons/bs'
+import { BsFillHandThumbsUpFill, BsImages, BsSendFill, BsThreeDots, BsTrash, BsUpload } from 'react-icons/bs'
 import fallBackAvatar from '../../../assets/images/avatar/default avatar.png'
 import axios, { AxiosResponse } from 'axios'
 import { useAuthContext } from '@/context/useAuthContext'
@@ -13,6 +13,7 @@ import MediaGallery from './MediaGallery'
 import MediaGrid from './MediaGrid'
 import DropzoneFormInput from '@/components/form/PhotoUpload'
 import { FileUpload, uploadMulti } from '@/utils/CustomS3ImageUpload'
+import PhotoUpload from '@/components/form/PhotoUpload'
 
 interface DeleteCommentResponse {
   message: string
@@ -86,6 +87,7 @@ const CommentItem = ({
 
   const [uploadedFiles, setUploadedFiles] = useState<FileUpload[]>([])
 
+  const [flag, setFlag] = useState<boolean>(false)
   // Handle file upload (Restrict to 4 images & prevent duplicates)
   const handleFileUpload = (files: FileUpload[]) => {
     // Remove duplicates based on file name & size
@@ -122,7 +124,8 @@ const CommentItem = ({
 
     const mediaKeys = await handleUpload()
     if (mediaKeys === false) throw new Error('Media upload failed')
-
+      setFlag(true)
+    setTimeout(() => setFlag(false), 100)
     console.log(post)
     const userId = user?.id
     const postId = post.Id
@@ -391,40 +394,76 @@ const CommentItem = ({
               </span>
             </Link>
           </div>
-          <form className="nav nav-item w-100 d-flex align-items-center" onSubmit={handleCommentSubmit} style={{ gap: '10px' }}>
-            <textarea
-              data-autoresize
-              className="form-control"
-              style={{
-                backgroundColor: '#fff', // Set the input background to white
-                color: '#000', // Optional: Ensure text color is black for contrast
-                whiteSpace: 'nowrap', // Keep text on a single line
-                overflow: 'hidden', // Hide overflowing content
-                textOverflow: 'ellipsis', // Optional: show ellipsis for overflow
-                textAlign: 'left', // Start text and cursor from the left
-                resize: 'none', // Disable resizing
-                height: '38px', // Fixed height for a single line
-                flex: 1, // Allow textarea to take available space
-                border: '1px solid #ced4da', // Optional: Subtle border for better visibility
-                borderRadius: '4px', // Rounded corners for a smoother look
-                padding: '5px 10px', // Add some padding for better UX
-              }}
-              rows={1}
-              placeholder="Add a comment..."
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  // Submit on Enter, allow Shift+Enter for new lines
-                  e.preventDefault() // Prevent adding a new line
-                  handleCommentSubmit(e) // Call the form's submit handler
-                }
-              }}
-            />
-            <div className="d-flex align-items-center justify-content-between w-25">
-              <DropzoneFormInput icon={BsUpload} onFileUpload={handleFileUpload} showPreview text="Drag & Drop Images Here or Click to Upload" />
-            </div>
-          </form>
+          <form
+                className="nav nav-item w-100 d-flex border align-items-start"
+                onSubmit={handleCommentSubmit}
+                style={{ gap: '10px', marginTop: '0.4rem' }}>
+                <textarea
+                  data-autoresize
+                  className="form-control border-0 rounded"
+                  style={{
+                    backgroundColor: '#fff',
+                    color: '#000',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: 'left',
+                    resize: 'none',
+                    height: '38px',
+                    flex: 1,
+                    border: '1px solid #ced4da',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                  }}
+                  rows={1}
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleCommentSubmit(e)
+                    }
+                  }}
+                />
+                <div className="d-flex align-items-center justify-content-between  w-25" style={{ flexDirection: 'column', marginTop: -8 }}>
+                  <PhotoUpload icon={BsImages} onFileUpload={handleFileUpload} showPreview text="photo"   reset={flag}/>
+                </div>
+
+                {/* Mention Dropdown */}
+                {/* {mentionDropdownVisible && searchResults.length > 0 && (
+                  <div
+                    className="position bg-white shadow rounded w-100 mt-1"
+                    style={{
+                      zIndex: 1000,
+                      maxHeight: '10rem',
+                      overflowY: 'auto',
+                      border: '1px solid #ddd',
+                    }}>
+                    {searchResults.map((user) => (
+                      <div
+                        key={user.id}
+                        className="d-flex align-items-center p-2 cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleMentionClick(user)}>
+                        <div className="avatar">
+                          <img
+                            src={user.avatar || avatar}
+                            alt={user.fullName}
+                            className="avatar-img rounded-circle border border-white border-3"
+                            width={34}
+                            height={34}
+                          />
+                        </div>
+                        <div>
+                          <h6 className="mb-0">{user.fullName}</h6>
+                          <small className="text-muted">{user.userRole}</small>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )} */}
+              </form>
         </div>
       )}
 
